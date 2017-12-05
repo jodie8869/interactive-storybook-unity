@@ -91,8 +91,15 @@ public class SceneDescription {
         // Empty constructor if no JSON file is passed.
     }
 
-    public SceneDescription(string jsonFile) {
-        this.loadFromJSON(jsonFile);
+    // Constructor for SceneDescription. Takes either a file name or the raw
+    // data. If a file name is given, it is just the name not the full path,
+    // for example should give simply "the_hungry_toad_04".
+    public SceneDescription(string jsonFileOrData, bool isData=true) {
+        if (isData) {
+            this.loadFromJSONData(jsonFileOrData);
+        } else {
+            this.loadFromJSONFile(jsonFileOrData);
+        }
     }
 
     // To be called by GameController. We need to this to determine displayMode.
@@ -100,16 +107,21 @@ public class SceneDescription {
         SceneDescription.orientation = o;
     }
 
-    // Populate this SceneDescription with JSON data.
-    private void loadFromJSON(string jsonFile) {
+    // Populate this SceneDescription with JSON data from the given file.
+    private void loadFromJSONFile(string jsonFile) {
         string storyName = jsonFile.Substring(0,
             jsonFile.LastIndexOf("_", StringComparison.CurrentCulture)
         );
-        string dataAsJson = File.ReadAllText("Assets/SceneDescriptions/" +
-                                             storyName + "/" + jsonFile);
-		JsonUtility.FromJsonOverwrite(dataAsJson, this);
+        string dataAsJson = File.ReadAllText(Application.streamingAssetsPath +
+                                             "/SceneDescriptions/" + storyName +
+                                             "/" + jsonFile);
+		
+        this.loadFromJSONData(dataAsJson);
+    }
 
-        // Decide if the image should be in landscape or portrait mode.
+    // Populate this SceneDescription with the given JSON data.
+    private void loadFromJSONData(string jsonData) {
+        JsonUtility.FromJsonOverwrite(jsonData, this);
         this.setDisplayMode();
     }
 

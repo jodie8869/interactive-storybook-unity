@@ -51,4 +51,10 @@ public static class Util {
     public static Sprite GetTitleSprite(string story) {
         return Util.GetStorySprite(story + "_01");
     }
+
+    // Return true if the two positions (rectangles) overlap.
+    public static bool PositionsOverlap(Position first, Position second) {
+        // TODO
+        return false;
+    }
 }

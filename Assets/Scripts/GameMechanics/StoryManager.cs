@@ -59,6 +59,7 @@ public class StoryManager : MonoBehaviour {
     private List<GameObject> tinkerTexts;
     // Dynamically created SceneObjects, keyed by their id.
     private Dictionary<int, GameObject> sceneObjects;
+    private Dictionary<string, int> sceneObjectsLabelToId;
     // The image we loaded for this scene.
     private GameObject storyImage;
     // Need to know the actual dimensions of the background image, so that we
@@ -79,6 +80,7 @@ public class StoryManager : MonoBehaviour {
         this.tinkerTexts = new List<GameObject>();
         this.stanzas = new List<GameObject>();
         this.sceneObjects = new Dictionary<int, GameObject>();
+        this.sceneObjectsLabelToId = new Dictionary<string, int>();
     }
 
     void Update() {
@@ -280,10 +282,16 @@ public class StoryManager : MonoBehaviour {
 
     // Adds a SceneObject to the story scene.
     private void loadSceneObject(SceneObject sceneObject) {
-        // TODO: handle multiple objects per label. For now, only allow one.
-        // Idea: allow multiple as long as the boxes don't overlap.
-        if (this.sceneObjects.ContainsKey(sceneObject.id)) {
-            return;
+        // Allow multiple scene objects per label as long as they don't overlap.
+        if (this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
+            // Check for overlap.
+            // TODO 
+            if (Util.PositionsOverlap(
+                    sceneObject.position,
+                    this.sceneObjects[this.sceneObjectsLabelToId[sceneObject.label]]
+                        .GetComponent<SceneObject>().position)) {
+                return;
+            }
         }
         GameObject newObj = 
             Instantiate((GameObject)Resources.Load("Prefabs/SceneObject"));

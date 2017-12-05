@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <LangVersion>4</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.20506</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <RootNamespace></RootNamespace>
+    <ProjectGuid>{E71F0CBE-5E50-018A-ECF1-4E6B00425145}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <AssemblyName>Assembly-CSharp-firstpass</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <BaseDirectory>Assets</BaseDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Temp\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_2_0;UNITY_2017_2;UNITY_2017;UNITY_ANALYTICS;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_RAKNET;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;PLATFORM_SUPPORTS_MONO;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;PLATFORM_ANDROID;UNITY_ANDROID;UNITY_ANDROID_API;ENABLE_SUBSTANCE;ENABLE_EGL;ENABLE_NETWORK;ENABLE_RUNTIME_GI;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_EVENT_QUEUE;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING;PLATFORM_SUPPORTS_ADS_ID;UNITY_CAN_SHOW_SPLASH_SCREEN;ENABLE_VR;ENABLE_AR;ENABLE_SPATIALTRACKING;ENABLE_UNITYADS_RUNTIME;UNITY_UNITYADS_API;ENABLE_MONO;NET_2_0_SUBSET;DEVELOPMENT_BUILD;ENABLE_PROFILER;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_OSX;ENABLE_NATIVE_ARRAY_CHECKS;UNITY_TEAM_LICENSE;UNITY_HAS_GOOGLEVR;UNITY_HAS_TANGO</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0169</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Temp\bin\Release\</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0169</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="UnityEngine">
+      <HintPath>/Applications/Unity/Unity.app/Contents/Managed/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor">
+      <HintPath>/Applications/Unity/Unity.app/Contents/Managed/UnityEditor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+     <Compile Include="Assets\Plugins\MiniJSON.cs" />
+     <None Include="Assets\Resources\StoryText\he_likes_she_likes.txt" />
+     <None Include="Assets\Resources\StoryText\where_is_the_fox.txt" />
+     <None Include="Assets\Resources\StoryText\the_biggest_cookie_in_the_world.txt" />
+     <None Include="Assets\Resources\StoryText\geraldine_first.txt" />
+     <None Include="Assets\Resources\StoryText\i_see.txt" />
+     <None Include="Assets\Resources\StoryText\bones.txt" />
+     <None Include="Assets\Resources\StoryText\dog_went_for_a_walk.txt" />
+     <None Include="Assets\Resources\StoryText\pizza_cook.txt" />
+     <None Include="Assets\Resources\StoryText\jane_and_jake_bake_a_cake.txt" />
+     <None Include="Assets\Resources\StoryText\t_bone_on_top.txt" />
+     <None Include="Assets\Resources\StoryText\i_see_my_dad.txt" />
+     <None Include="Assets\Resources\StoryText\did_you_see_that_rabbit.txt" />
+     <None Include="Assets\Resources\StoryText\jazz_class.txt" />
+     <None Include="Assets\Resources\StoryText\henrys_happy_birthday_lv1.txt" />
+     <None Include="Assets\Resources\StoryText\building_shapes.txt" />
+     <None Include="Assets\Resources\StoryText\bos_bows.txt" />
+     <None Include="Assets\Resources\StoryText\goats_book.txt" />
+     <None Include="Assets\Resources\StoryText\hen_pens_joke.txt" />
+     <None Include="Assets\Resources\StoryText\no_fun_for_gus.txt" />
+     <None Include="Assets\Resources\StoryText\paws_and_claws.txt" />
+     <None Include="Assets\Resources\StoryText\baby_ducks_new_friend_lv1.txt" />
+     <None Include="Assets\Resources\StoryText\paper_bag_trail.txt" />
+     <None Include="Assets\Resources\StoryText\wet_pets.txt" />
+     <None Include="Assets\Resources\StoryText\possum_and_the_peeper_lv1.txt" />
+     <None Include="Assets\Resources\StoryText\bridges.txt" />
+     <None Include="Assets\Resources\StoryText\the_big_nut.txt" />
+     <None Include="Assets\Resources\StoryText\follow_it.txt" />
+     <None Include="Assets\Resources\StoryText\small_animals_with_big_names.txt" />
+     <None Include="Assets\Resources\StoryText\who_hid_it.txt" />
+     <None Include="Assets\Resources\StoryText\see_the_sea.txt" />
+     <None Include="Assets\Resources\StoryText\my_dogs_the_best.txt" />
+     <None Include="Assets\Resources\StoryText\troll_tricks.txt" />
+     <None Include="Assets\Resources\StoryText\friends.txt" />
+     <None Include="Assets\Resources\StoryText\baby_birds_first_nest_lv1.txt" />
+     <None Include="Assets\Resources\StoryText\clifford_and_the_jet.txt" />
+     <None Include="Assets\Resources\StoryText\the_dinosaur_who_lived_in_my_backyard.txt" />
+     <None Include="Assets\Resources\StoryText\dinosaur_hall.txt" />
+     <None Include="Assets\Resources\StoryText\baby_pig_at_school.txt" />
+     <None Include="Assets\Resources\StoryText\box_turtle_at_long_pond.txt" />
+     <None Include="Assets\Resources\StoryText\in_the_woods_whos_been_here.txt" />
+     <None Include="Assets\Resources\StoryText\will_clifford_win.txt" />
+     <None Include="Assets\Resources\StoryText\baby_birds_first_nest_lv3.txt" />
+     <None Include="Assets\Resources\StoryText\hello_clifford.txt" />
+     <None Include="Assets\Resources\StoryText\happy_birthday_clifford.txt" />
+     <None Include="Assets\Resources\StoryText\at_bat.txt" />
+     <None Include="Assets\Resources\StoryText\pete_the_cat_too_cool_for_school.txt" />
+     <None Include="Assets\Resources\StoryText\a_dozen_dogs.txt" />
+     <None Include="Assets\Resources\StoryText\left_right_emma.txt" />
+     <None Include="Assets\Resources\StoryText\ord_eats_a_pizza.txt" />
+     <None Include="Assets\Resources\StoryText\stop_the_tot.txt" />
+     <None Include="Assets\Resources\StoryText\henrys_happy_birthday_lv3.txt" />
+     <None Include="Assets\Resources\StoryText\drip_drop_drip.txt" />
+     <None Include="Assets\Resources\StoryText\what_is_that_said_the_cat.txt" />
+     <None Include="Assets\Resources\StoryText\mice_on_ice.txt" />
+     <None Include="Assets\Resources\StoryText\chucks_lunch.txt" />
+     <None Include="Assets\Resources\StoryText\mmm_i_like.txt" />
+     <None Include="Assets\Resources\StoryText\clifford_can.txt" />
+     <None Include="Assets\Resources\StoryText\baby_ducks_new_friend_lv2.txt" />
+     <None Include="Assets\Resources\StoryText\raccoon_on_his_own.txt" />
+     <None Include="Assets\Resources\StoryText\freda_says_please.txt" />
+     <None Include="Assets\Resources\StoryText\clay_art.txt" />
+     <None Include="Assets\Resources\StoryText\the_haircut.txt" />
+     <None Include="Assets\Resources\StoryText\possum_and_the_peeper_lv2.txt" />
+     <None Include="Assets\Resources\StoryText\the_pancake_man.txt" />
+     <None Include="Assets\Resources\StoryText\baby_birds_first_nest_lv2.txt" />
+     <None Include="Assets\Resources\StoryText\baby_ducks_new_friend_lv3.txt" />
+     <None Include="Assets\Resources\StoryText\clifford_is_tops.txt" />
+     <None Include="Assets\Resources\StoryText\donkey_and_monkey.txt" />
+     <None Include="Assets\Resources\StoryText\possum_and_the_peeper_lv3.txt" />
+     <None Include="Assets\Resources\StoryText\henrys_happy_birthday_lv2.txt" />
+     <None Include="Assets\Resources\StoryText\the_street_band.txt" />
+     <None Include="Assets\Resources\StoryText\a_rain_forest_day.txt" />
+     <None Include="Assets\Resources\StoryText\a_cub_can.txt" />
+     <None Include="Assets\Resources\StoryText\the_kind_child.txt" />
+     <None Include="Assets\Resources\StoryText\biscuit.txt" />
+     <None Include="Assets\Resources\StoryText\the_frog_trail.txt" />
+     <None Include="Assets\Resources\StoryText\maxs_pet.txt" />
+     <None Include="Assets\Resources\StoryText\hairy_maclarys_bone.txt" />
+     <None Include="Assets\Resources\StoryText\robs_shop.txt" />
+     <None Include="Assets\Resources\StoryText\the_hungry_toad.txt" />
+     <None Include="Assets\Resources\StoryText\frogs.txt" />
+ <Reference Include="UnityEngine.UI">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Networking">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.TestRunner">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/TestRunner/UnityEngine.TestRunner.dll</HintPath>
+ </Reference>
+ <Reference Include="nunit.framework">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/TestRunner/net35/unity-custom/nunit.framework.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Timeline">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Timeline/RuntimeEditor/UnityEngine.Timeline.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.UIAutomation">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UIAutomation/UnityEngine.UIAutomation.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.GoogleAudioSpatializer">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UnityGoogleAudioSpatializer/RuntimeEditor/UnityEngine.GoogleAudioSpatializer.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.HoloLens">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.SpatialTracking">
+ <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UnitySpatialTracking/RuntimeEditor/UnityEngine.SpatialTracking.dll</HintPath>
+ </Reference>
+ <Reference Include="websocket-sharp">
+ <HintPath>/Users/hannalee/mit/meng/interactive-storybook-unity/Assets/Plugins/websocket-sharp.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Analytics">
+ <HintPath>/Users/hannalee/Library/Unity/cache/packages/packages.unity.com/com.unity.analytics@1.0.1/UnityEngine.Analytics.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Purchasing">
+ <HintPath>/Users/hannalee/Library/Unity/cache/packages/packages.unity.com/com.unity.purchasing@1.0.1/UnityEngine.Purchasing.dll</HintPath>
+ </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  
+</Project>

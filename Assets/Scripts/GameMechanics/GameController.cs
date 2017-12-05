@@ -148,17 +148,17 @@ public class GameController : MonoBehaviour {
 
     private void startStory(string story) {
         this.storyName = story;
-        DirectoryInfo dir = new DirectoryInfo(Application.dataPath +
-                                              "/SceneDescriptions/" + story);
-        FileInfo[] files = dir.GetFiles("*.json");
+        TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + story);
+        Logger.Log("one name is  " + textAssets[0].name);
         // Sort to ensure pages are in order.
-        Array.Sort(files, (f1, f2) => string.Compare(f1.Name, f2.Name));
+        Array.Sort(textAssets, (f1, f2) => string.Compare(f1.name, f2.name));
         this.storyPages.Clear();
         // Figure out the orientation of this story and tell SceneDescription.
         this.setOrientation(this.orientations[this.storyName]);
         SceneDescription.SetOrientation(this.orientation);
-        foreach (FileInfo file in files) {
-            this.storyPages.Add(new SceneDescription(file.Name));          
+        foreach (TextAsset text in textAssets)
+        {
+            this.storyPages.Add(new SceneDescription(text.text));
         }
         this.setOrientation(this.orientation);
         this.changeButtonText(this.nextButton, "Begin Story!");
