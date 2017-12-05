@@ -143,6 +143,7 @@ public class StoryAudioManager : MonoBehaviour {
     }
 
     private void resetInternalTimestamps() {
+        this.audioSource.time = 0;
         this.lastTimestamp = float.MinValue;
         this.currentTimestamp = 0.0f;
         this.startTimestamp = float.MinValue;

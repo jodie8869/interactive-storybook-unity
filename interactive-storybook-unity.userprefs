@@ -1,4 +1,5 @@
-﻿<Properties>
+﻿<Properties StartupConfiguration="{13B92E01-1876-2EE9-BE8A-C989CBE09518}|Unit Tests">
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Util/Constants.cs">
     <Files>
       <File FileName="Assets/Scripts/GameMechanics/GameController.cs" Line="49" Column="5" />

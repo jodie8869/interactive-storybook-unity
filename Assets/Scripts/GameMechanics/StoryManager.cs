@@ -401,7 +401,6 @@ public class StoryManager : MonoBehaviour {
         this.storyImage = null;
         // Remove audio triggers.
         this.audioManager.ClearTriggersAndReset();
-
         this.prevWordEndsStanza = false;
     }
 
