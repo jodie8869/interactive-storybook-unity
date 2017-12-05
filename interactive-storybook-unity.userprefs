@@ -1,16 +1,16 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GameMechanics/GameController.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Util/Constants.cs">
     <Files>
-      <File FileName="Assets/Scripts/GameMechanics/GameController.cs" Line="173" Column="78" />
+      <File FileName="Assets/Scripts/GameMechanics/GameController.cs" Line="49" Column="5" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/TinkerText.cs" Line="104" Column="1" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/SceneObjectManipulator.cs" Line="44" Column="28" />
-      <File FileName="Assets/Scripts/GameMechanics/SceneDescription.cs" Line="63" Column="39" />
+      <File FileName="Assets/Scripts/GameMechanics/StoryAudioManager.cs" Line="70" Column="25" />
+      <File FileName="Assets/Scripts/GameMechanics/SceneDescription.cs" Line="98" Column="22" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/Sentence.cs" Line="25" Column="2" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/Stanza.cs" Line="44" Column="39" />
-      <File FileName="Assets/Scripts/GameMechanics/StoryAudioManager.cs" Line="110" Column="44" />
-      <File FileName="Assets/Scripts/Util/Constants.cs" Line="8" Column="5" NotebookId="1" />
-      <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="414" Column="27" NotebookId="1" />
-      <File FileName="Assets/Scripts/Util/Util.cs" Line="61" Column="1" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/Constants.cs" Line="26" Column="61" NotebookId="1" />
+      <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="141" Column="10" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/Util.cs" Line="51" Column="43" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

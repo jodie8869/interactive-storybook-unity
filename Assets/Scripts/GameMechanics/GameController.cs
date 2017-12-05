@@ -105,25 +105,28 @@ public class GameController : MonoBehaviour {
 
         this.toggleAudioButton.onClick.AddListener(toggleAudio);
 
+        // Update the sizing of all of the panels depending on the actual
+        // screen size of the device we're on.
+        this.resizePanelsOnStartup();
+
         this.storyPages = new List<SceneDescription>();
         this.orientations = new Dictionary<string, ScreenOrientation>();
 
         this.storyManager = GetComponent<StoryManager>();
 
         this.stories = new List<string>();
-        // TODO: read this from a file.
+        // TODO: Read storynames and their orientations here.
+        // Create a stories metadata file with this info.
         this.stories.Add("the_hungry_toad");
         this.stories.Add("possum_and_the_peeper");
+        // Set up the orientations.
+        this.orientations["the_hungry_toad"] = ScreenOrientation.Landscape;
+        this.orientations["possum_and_the_peeper"] =
+                ScreenOrientation.Landscape;
 
         // TODO: Check if we are using ROS or not.
         // Either launch the splash screen to connect to ROS, or go straight
         // into the story selection process.
-
-        // Set up the orientations.
-        // TODO: read in a file here instead.
-        this.orientations["the_hungry_toad"] = ScreenOrientation.Landscape;
-        this.orientations["possum_and_the_peeper"] =
-                ScreenOrientation.Landscape;
 
         this.storyManager.SetAutoplay(true);
 
@@ -149,7 +152,6 @@ public class GameController : MonoBehaviour {
     private void startStory(string story) {
         this.storyName = story;
         TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + story);
-        Logger.Log("one name is  " + textAssets[0].name);
         // Sort to ensure pages are in order.
         Array.Sort(textAssets, (f1, f2) => string.Compare(f1.name, f2.name));
         this.storyPages.Clear();
@@ -176,6 +178,19 @@ public class GameController : MonoBehaviour {
 
     private void hideElement(GameObject go) {
         go.SetActive(false);
+    }
+
+    private void resizePanelsOnStartup() {
+        // Panels that need to be resized are landscapePanel, portraitPanel,
+        // and splashPanel.
+        int width = Util.GetScreenWidth();
+        int height = Util.GetScreenHeight();
+        Vector2 landscape = new Vector2(width, height);
+        Vector2 portrait = new Vector2(height, width);
+
+        this.landscapePanel.GetComponent<RectTransform>().sizeDelta = landscape;
+        this.portraitPanel.GetComponent<RectTransform>().sizeDelta = portrait;
+        this.splashPanel.GetComponent<RectTransform>().sizeDelta = landscape;
     }
 
     private void setOrientation(ScreenOrientation o) {
@@ -235,7 +250,11 @@ public class GameController : MonoBehaviour {
 	}
 
     private void onFinishButtonClick() {
-        // For now, just return to the splash screen.
+        // For now, just reset and return to the splash screen.
+        this.storyManager.ClearPage();
+        this.currentPageNumber = 0;
+        this.hideElement(this.finishButton.gameObject);
+        this.showElement(this.nextButton.gameObject);
         this.showSplashScreen(true);
     }
 

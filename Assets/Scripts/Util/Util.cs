@@ -57,4 +57,18 @@ public static class Util {
         // TODO
         return false;
     }
+
+    // Returns absolute screen width (meaning width is the larger of the two
+    // values, not necessarily the horizonal one).
+    public static int GetScreenWidth() {
+        return Math.Max(Screen.width, Screen.height);
+    }
+
+    public static int GetScreenHeight() {
+        return Math.Min(Screen.width, Screen.height);
+    }
+
+    public static void SetSize(GameObject panel, Vector2 newSize) {
+        panel.GetComponent<RectTransform>().sizeDelta = newSize;
+    }
 }

@@ -67,6 +67,7 @@ public class StoryAudioManager : MonoBehaviour {
             }
         }
         if (this.currentTimestamp > this.stopTimestamp) {
+            Logger.Log("stopping because current is " + this.currentTimestamp.ToString() + " and stop is " + this.stopTimestamp.ToString());
             this.StopAudio();
         }
         this.lastTimestamp = this.currentTimestamp;
@@ -132,8 +133,8 @@ public class StoryAudioManager : MonoBehaviour {
     public void PlayInterval(float start, float end) {
         this.StopAudio();
         this.audioSource.time = start; // TODO: maybe backtrack a tiny bit?
-        this.UnpauseAudio();
         this.stopTimestamp = end;
+        this.UnpauseAudio();
     }
 
     public void ClearTriggersAndReset() {

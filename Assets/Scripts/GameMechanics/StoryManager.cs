@@ -41,12 +41,19 @@ public class StoryManager : MonoBehaviour {
     // Variables for loading TinkerTexts.
     private float STANZA_SPACING = 20; // Matches Prefab.
     private float MIN_TINKER_TEXT_WIDTH = TinkerText.MIN_WIDTH;
-    private float MAX_LANDSCAPE_GRAPHICS_WIDTH = 1400;
-    private float LANDSCAPE_GRAPHICS_HEIGHT = 1270;
-    private float MAX_PORTRAIT_GRAPHICS_HEIGHT = 1450;
-    private float PORTRAIT_GRAPHICS_WIDTH = 1500;
-    private float LANDSCAPE_TEXT_WIDTH = 1050;
-    private float PORTRAIT_TEXT_HEIGHT = 750;
+
+    // These all need to be set after we determine the screen size.
+    // They are set in initPanelSizesOnStartup() and used in resetPanelSizes().
+    private float LANDSCAPE_GRAPHICS_WIDTH;
+    private float LANDSCAPE_TEXT_WIDTH;
+    private float LANDSCAPE_HEIGHT;
+    private float PORTRAIT_GRAPHICS_HEIGHT;
+    private float PORTRAIT_TEXT_HEIGHT;
+    private float PORTRAIT_WIDTH;
+    private float LANDSCAPE_WIDE_GRAPHICS_HEIGHT;
+    private float LANDSCAPE_WIDE_TEXT_HEIGHT;
+    private float LANDSCAPE_WIDE_WIDTH;
+
     private float remainingStanzaWidth = 0; // For loading TinkerTexts.
     private bool prevWordEndsStanza = false; // Know when to start new stanza.
 
@@ -81,6 +88,8 @@ public class StoryManager : MonoBehaviour {
         this.stanzas = new List<GameObject>();
         this.sceneObjects = new Dictionary<int, GameObject>();
         this.sceneObjectsLabelToId = new Dictionary<string, int>();
+
+        this.initPanelSizesOnStartup();
     }
 
     void Update() {
@@ -125,7 +134,8 @@ public class StoryManager : MonoBehaviour {
             }
             // Set end timestamp of last stanza (edge case).
             this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().SetEndTimestamp(
-                this.tinkerTexts[this.tinkerTexts.Count - 1].GetComponent<TinkerText>().audioEndTime);
+                this.tinkerTexts[this.tinkerTexts.Count - 1]
+                .GetComponent<TinkerText>().audioEndTime);
             // Load audio triggers for TinkerText.
             this.loadAudioTriggers();
         }
@@ -423,8 +433,8 @@ public class StoryManager : MonoBehaviour {
                     this.titlePanel = this.portraitTitlePanel;
                     // Resize back to normal.
                     this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
-                            new Vector2(this.PORTRAIT_GRAPHICS_WIDTH,
-                                        this.MAX_PORTRAIT_GRAPHICS_HEIGHT);
+                            new Vector2(this.PORTRAIT_WIDTH,
+                                        this.PORTRAIT_GRAPHICS_HEIGHT);
                     break;
                 default:
                     Logger.LogError("unknown display mode " + newMode);
@@ -445,29 +455,77 @@ public class StoryManager : MonoBehaviour {
 
     }
 
+    // Called once on startup to size the layout panels correctly. Saves the
+    // new values as constants so that resetPanelSizes() can use them to
+    // dynamically resize the panels between scenes.
+    private void initPanelSizesOnStartup() {
+        float landscapeWidth = (float)Util.GetScreenWidth() - 100;
+        float landscapeHeight = (float)Util.GetScreenHeight() - 330f; // Subtract buttons
+        float portraitWidth = (float)Util.GetScreenHeight() - 100f;
+        float portraitHeight = (float)Util.GetScreenWidth() - 330f; // Subtract buttons.
+
+        this.LANDSCAPE_GRAPHICS_WIDTH =
+                Constants.LANDSCAPE_GRAPHICS_WIDTH_FRACTION * landscapeWidth;
+        this.LANDSCAPE_TEXT_WIDTH = landscapeWidth - this.LANDSCAPE_GRAPHICS_WIDTH;
+        this.LANDSCAPE_HEIGHT = landscapeHeight;
+        Util.SetSize(
+            this.landscapeGraphicsPanel,
+            new Vector2(this.LANDSCAPE_GRAPHICS_WIDTH, this.LANDSCAPE_HEIGHT));
+        Util.SetSize(
+            this.landscapeTextPanel,
+            new Vector2(this.LANDSCAPE_TEXT_WIDTH, this.LANDSCAPE_HEIGHT));
+
+        this.PORTRAIT_GRAPHICS_HEIGHT =
+                Constants.PORTRAIT_GRAPHICS_HEIGHT_FRACTION * portraitHeight;
+        this.PORTRAIT_TEXT_HEIGHT = portraitHeight - this.PORTRAIT_GRAPHICS_HEIGHT;
+        this.PORTRAIT_WIDTH = portraitWidth;
+        Util.SetSize(
+            this.portraitGraphicsPanel,
+            new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_GRAPHICS_HEIGHT));
+        Util.SetSize(
+            this.portraitTextPanel,
+            new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_TEXT_HEIGHT));
+        
+        this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT =
+                Constants.LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION * landscapeHeight;
+        this.LANDSCAPE_WIDE_TEXT_HEIGHT =
+                landscapeHeight - this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT;
+        this.LANDSCAPE_WIDE_WIDTH = landscapeWidth;
+        Util.SetSize(
+            this.landscapeWideGraphicsPanel,
+            new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT));
+        Util.SetSize(
+            this.landscapeWideTextPanel,
+            new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.LANDSCAPE_WIDE_TEXT_HEIGHT));
+
+        // And the title panels.
+        Util.SetSize(this.landscapeTitlePanel, new Vector2(landscapeWidth, landscapeHeight));
+        Util.SetSize(this.portraitTitlePanel, new Vector2(portraitWidth, portraitHeight));
+    }
+
     private void resetPanelSizes() {
+        Vector2 graphicsSize = new Vector2();
+        Vector2 textSize = new Vector2();
         switch(this.displayMode) {
             case DisplayMode.Landscape:
-                this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
-                    new Vector2(this.MAX_LANDSCAPE_GRAPHICS_WIDTH,
-                                this.LANDSCAPE_GRAPHICS_HEIGHT);
-                this.textPanel.GetComponent<RectTransform>().sizeDelta =
-                        new Vector2(LANDSCAPE_TEXT_WIDTH,
-                                    this.textPanel.GetComponent<RectTransform>().sizeDelta.y);
+                graphicsSize = new Vector2(this.LANDSCAPE_GRAPHICS_WIDTH, this.LANDSCAPE_HEIGHT);
+                textSize = new Vector2(this.LANDSCAPE_TEXT_WIDTH, this.LANDSCAPE_HEIGHT);
                 break;
             case DisplayMode.Portrait:
-                this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
-                    new Vector2(this.PORTRAIT_GRAPHICS_WIDTH,
-                                this.MAX_PORTRAIT_GRAPHICS_HEIGHT);
-                this.textPanel.GetComponent<RectTransform>().sizeDelta =
-                        new Vector2(this.textPanel.GetComponent<RectTransform>().sizeDelta.x,
-                                    this.PORTRAIT_TEXT_HEIGHT);
+                graphicsSize = new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_GRAPHICS_HEIGHT);
+                textSize = new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_TEXT_HEIGHT);
                 break;
             case DisplayMode.LandscapeWide:
+                graphicsSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH,
+                                           this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT);
+                textSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.PORTRAIT_TEXT_HEIGHT);
                 break;
             default:
+                Logger.LogError("Unknown display mode: " + displayMode.ToString());
                 break;
         }
+        Util.SetSize(this.graphicsPanel, graphicsSize);
+        Util.SetSize(this.textPanel, textSize);
     }
 
 }
