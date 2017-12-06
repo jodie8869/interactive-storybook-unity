@@ -52,10 +52,37 @@ public static class Util {
         return Util.GetStorySprite(story + "_01");
     }
 
-    // Return true if the two positions (rectangles) overlap.
-    public static bool PositionsOverlap(Position first, Position second) {
-        // TODO
-        return false;
+    // Return true if the two positions (rectangles) overlap enough that we
+    // think they refer to the same object. Based on a heuristic, not exact.
+    public static bool RefersToSameObject(Position first, Position second) {
+        // Check if the area of the rectangle of overlap is larger than 40%
+        // of the size of either of the input rectangles.
+        Position leftMost = first;
+        Position rightMost = second;
+        if (first.left > second.left) {
+            leftMost = second;
+            rightMost = first;
+        }
+        float xOverlap = Math.Max(0, (leftMost.left + leftMost.width) - rightMost.left);
+        if (rightMost.left + rightMost.width < leftMost.left + rightMost.width) {
+            // Special case for complete overlap (rightMost is contained in leftMost).
+            xOverlap = rightMost.width;
+        }
+        Position topMost = first;
+        Position bottomMost = second;
+        if (first.top < second.top) {
+            topMost = second;
+            bottomMost = first;
+        }
+        float yOverlap = Math.Max(0, bottomMost.top - (topMost.top - topMost.height));
+        if (bottomMost.top - bottomMost.height > topMost.top - topMost.height) {
+            // Complete overlap.
+            yOverlap = bottomMost.height;
+        }
+        float overlapArea = xOverlap * yOverlap;
+        float averageArea = (first.width * first.height + second.width * second.height) / 2.0f;
+        Logger.Log("overlapArea ratio " + (overlapArea / averageArea).ToString());
+        return overlapArea / averageArea > 0.4;
     }
 
     // Returns absolute screen width (meaning width is the larger of the two

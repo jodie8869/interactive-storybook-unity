@@ -86,6 +86,26 @@ public class TinkerText : MonoBehaviour
         this.textWidth = newWidth;
     }
 
+    // TODO: also increase font size or something maybe, other visual cues.
+    public Action Highlight() {
+        return () =>
+        {
+            this.ChangeTextColor(Color.magenta);
+            // After some amount of time, remove highlighting.
+            StartCoroutine(undoHighlight(2, Color.black));
+        };
+    }
+
+    private IEnumerator undoHighlight(float secondsDelay, Color originalColor)
+    {
+        yield return new WaitForSeconds(secondsDelay);
+        this.ChangeTextColor(originalColor);
+    }
+
+    private void ChangeTextColor(Color color) {
+        this.text.GetComponent<Text>().color = color;
+    }
+
     // Set whether or not the TinkerText is clickable.
     // (E.g. turn off clicking when auto reading is happening, then turn back
     // on when in explore mode on the page.
@@ -100,10 +120,10 @@ public class TinkerText : MonoBehaviour
 
     public void OnStartAudioTrigger() {
         // Change the text color.
-        this.text.GetComponent<Text>().color = Color.magenta;
+        this.ChangeTextColor(Color.magenta);
     }
 
     public void OnEndAudioTrigger() {
-        this.text.GetComponent<Text>().color = Color.black;
+        this.ChangeTextColor(Color.black);
     }
 }

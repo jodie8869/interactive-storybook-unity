@@ -21,8 +21,9 @@ public class SceneObjectManipulator : MonoBehaviour
     public RectTransform rectTransform;
     public int id { get; set; }
     public string label { get; set; }
+    public Position position { get; set; }
 
-    // TODO: add the concept of variables, so that variables can be
+    // TODO: Add the concept of variables, so that variables can be
     // saved between scenes. This also implies that we should not Destroy
     // SceneObjects as we change pages, otherwise we lose that memory, and
     // we should have an active set per page, and activate or deactivate the
@@ -33,20 +34,13 @@ public class SceneObjectManipulator : MonoBehaviour
 
     void Start() {
         Logger.Log("started scene object manipulator");
-        // TODO: add audio and animation to the prefab, then include them.
+        // TODO: Add audio and animation to the prefab, then include them.
 
-        // It's important to do += here and not = for clickUnityAction.
-        //this.clickUnityAction += () => { };
         this.button.onClick.AddListener(this.clickUnityAction);
-        this.button.onClick.AddListener(Testing);
-    }
-
-    public void Testing() {
-        Logger.Log("in test function");
     }
 
     public void AddClickHandler(Action action) {
-        Logger.Log("adding click handler for " + this.label);
+        Logger.Log("Adding click handler for " + this.label);
         this.clickUnityAction += new UnityAction(action);
     }
 
@@ -54,9 +48,7 @@ public class SceneObjectManipulator : MonoBehaviour
         return () =>
         {
             Color currentColor = gameObject.GetComponent<Image>().color;
-            Logger.Log("current color " + currentColor.ToString());
             gameObject.GetComponent<Image>().color = color;
-            Logger.Log("Highlight: " + color.ToString());
             // After some amount of time, remove highlighting.
             StartCoroutine(undoHighlight(2, currentColor));
         };
@@ -64,7 +56,6 @@ public class SceneObjectManipulator : MonoBehaviour
 
     private IEnumerator undoHighlight(float secondsDelay, Color originalColor) {
         yield return new WaitForSeconds(secondsDelay);
-        Logger.Log("originalColor " + originalColor.ToString());
         gameObject.GetComponent<Image>().color = originalColor;
     }
 
@@ -72,7 +63,6 @@ public class SceneObjectManipulator : MonoBehaviour
         return () =>
         {
             this.rectTransform.localPosition = localPosition;
-            Logger.Log("Moved: " + localPosition.ToString());
             this.GetComponent<RectTransform>().SetAsLastSibling();
         };
     }

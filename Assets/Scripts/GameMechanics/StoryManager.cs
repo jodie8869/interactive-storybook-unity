@@ -66,7 +66,7 @@ public class StoryManager : MonoBehaviour {
     private List<GameObject> tinkerTexts;
     // Dynamically created SceneObjects, keyed by their id.
     private Dictionary<int, GameObject> sceneObjects;
-    private Dictionary<string, int> sceneObjectsLabelToId;
+    private Dictionary<string, List<int>> sceneObjectsLabelToId;
     // The image we loaded for this scene.
     private GameObject storyImage;
     // Need to know the actual dimensions of the background image, so that we
@@ -87,7 +87,7 @@ public class StoryManager : MonoBehaviour {
         this.tinkerTexts = new List<GameObject>();
         this.stanzas = new List<GameObject>();
         this.sceneObjects = new Dictionary<int, GameObject>();
-        this.sceneObjectsLabelToId = new Dictionary<string, int>();
+        this.sceneObjectsLabelToId = new Dictionary<string, List<int>>();
 
         this.initPanelSizesOnStartup();
     }
@@ -294,17 +294,26 @@ public class StoryManager : MonoBehaviour {
 
     // Adds a SceneObject to the story scene.
     private void loadSceneObject(SceneObject sceneObject) {
-        // Allow multiple scene objects per label as long as they don't overlap.
+        // Allow multiple scene objects per label as long as we believe that they are referring to
+        // different objects.
+        Logger.Log("loading object with label " + sceneObject.label);
         if (this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
             // Check for overlap.
-            // TODO implement this Util function.
-            if (Util.PositionsOverlap(
-                    sceneObject.position,
-                    this.sceneObjects[this.sceneObjectsLabelToId[sceneObject.label]]
-                        .GetComponent<SceneObject>().position)) {
-                return;
+            Logger.Log("checking for " + sceneObject.label);
+            foreach (int existingObject in this.sceneObjectsLabelToId[sceneObject.label]) {
+                if (Util.RefersToSameObject(
+                        sceneObject.position,
+                    this.sceneObjects[existingObject].GetComponent<SceneObjectManipulator>().position)) {
+                    return;
+                }
             }
         }
+        // Save this id under its label.
+        if (!this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
+            this.sceneObjectsLabelToId[sceneObject.label] = new List<int>();
+        }
+        this.sceneObjectsLabelToId[sceneObject.label].Add(sceneObject.id);
+
         GameObject newObj = 
             Instantiate((GameObject)Resources.Load("Prefabs/SceneObject"));
         newObj.transform.SetParent(this.graphicsPanel.transform, false);
@@ -315,6 +324,7 @@ public class StoryManager : MonoBehaviour {
         Position pos = sceneObject.position;
         manip.id = sceneObject.id;
         manip.label = sceneObject.label;
+        manip.position = pos; 
         Logger.Log("x, y " + storyImageX.ToString() + " " + storyImageY.ToString());
         manip.MoveToPosition(
             new Vector3(this.storyImageX + pos.left * this.imageScaleFactor,
@@ -330,7 +340,7 @@ public class StoryManager : MonoBehaviour {
             Logger.Log("SceneObject clicked " +
                        manip.label);
         });
-        // TODO: if sceneObject.inText is false, set up whatever behavior we
+        // TODO: If sceneObject.inText is false, set up whatever behavior we
         // want for these words.
         if (!sceneObject.inText) {
             manip.AddClickHandler(() =>
@@ -347,6 +357,11 @@ public class StoryManager : MonoBehaviour {
     private void loadTrigger(Trigger trigger) {
         switch (trigger.type) {
             case TriggerType.CLICK_TINKERTEXT_SCENE_OBJECT:
+                // It's possible this sceneObject was not added because we found that it
+                // overlapped with a previous object. This is fine, just skip it.
+                if (!this.sceneObjects.ContainsKey(trigger.args.sceneObjectId)) {
+                    return;
+                }
                 SceneObjectManipulator manip = 
                     this.sceneObjects[trigger.args.sceneObjectId]
                     .GetComponent<SceneObjectManipulator>();
@@ -354,6 +369,7 @@ public class StoryManager : MonoBehaviour {
                                             .GetComponent<TinkerText>();
                 Action action = manip.Highlight(new Color(0, 1, 1, 60f / 255));
                 tinkerText.AddClickHandler(action);
+                manip.AddClickHandler(tinkerText.Highlight());
                 break;
             default:
                 Logger.LogError("Unknown TriggerType: " +
@@ -398,6 +414,7 @@ public class StoryManager : MonoBehaviour {
             Destroy(obj.Value);
         }
         this.sceneObjects.Clear();
+        this.sceneObjectsLabelToId.Clear();
         // Remove all images.
         Destroy(this.storyImage.gameObject);
         this.storyImage = null;

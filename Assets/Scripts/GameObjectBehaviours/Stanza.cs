@@ -51,17 +51,15 @@ public class Stanza : MonoBehaviour {
         if (Stanza.allowSwipe) {
             if (Input.GetMouseButtonDown(0)) {
                 this.mouseDownPos = Input.mousePosition;
-                print("mouseDown " + this.mouseDownPos.ToString()); 
             }
             if (Input.GetMouseButtonUp(0)) {
                 this.mouseUpPos = Input.mousePosition;
-                print("mouseUp " + this.mouseUpPos.ToString()); 
 
             }
             if (this.stanzaWasSwiped()) {
-                // Delay half a second.
+                // Delay for a short while.
                 // TODO: not sure if this is necessary.
-                Thread.Sleep(500);
+                Thread.Sleep(300);
                 this.audioManager.PlayInterval(this.startTimestamp,
                                                this.endTimestamp);
                 // Reset positions so we don't keep trying to play audio.
