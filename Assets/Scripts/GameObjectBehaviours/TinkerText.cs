@@ -41,7 +41,6 @@ public class TinkerText : MonoBehaviour
     public static float BUTTON_TEXT_HEIGHT = 85;
 
     // Set up click handler.
-    // TODO: Consider using MouseDown and MouseUp instead of Click?
     void Start() {
         // It's important to do += here and not = for clickUnityAction.
         // Need to initialize otherwise will get NullReferenceException.
@@ -59,11 +58,15 @@ public class TinkerText : MonoBehaviour
     // Also need to set the component to active. 
     // Don't need to know anything about its position, the layout groups
     // should automatically handle that.
-    public void Init(int id, string word, AudioTimestamp timestamp) {
+    public void Init(int id, string word, AudioTimestamp timestamp, bool isLastWord) {
         this.id = id;
         this.text.GetComponent<Text>().text = word;
         this.audioStartTime = timestamp.start;
         this.audioEndTime = timestamp.end;
+        // Kind of hacky, but this stops the audio clipping.
+        if (isLastWord) {
+            this.audioEndTime = float.MaxValue;
+        }
         gameObject.SetActive(true);
     }
 

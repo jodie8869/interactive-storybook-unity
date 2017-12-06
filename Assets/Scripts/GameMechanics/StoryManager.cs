@@ -130,7 +130,8 @@ public class StoryManager : MonoBehaviour {
             for (int i = 0; i < textWords.Count; i++)
             {
                 // This will create the TinkerText and update stanzas.
-                this.loadTinkerText(textWords[i], description.timestamps[i]);
+                this.loadTinkerText(textWords[i], description.timestamps[i],
+                                    i == textWords.Count - 1);
             }
             // Set end timestamp of last stanza (edge case).
             this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().SetEndTimestamp(
@@ -237,14 +238,14 @@ public class StoryManager : MonoBehaviour {
     }
 
     // Add a new TinkerText for the given word.
-    private void loadTinkerText(string word, AudioTimestamp timestamp) {
+    private void loadTinkerText(string word, AudioTimestamp timestamp, bool isLastWord) {
         if (word.Length == 0) {
             return;
         }
 		GameObject newTinkerText =
             Instantiate((GameObject)Resources.Load("Prefabs/TinkerText"));
         newTinkerText.GetComponent<TinkerText>()
-             .Init(this.tinkerTexts.Count, word, timestamp);
+             .Init(this.tinkerTexts.Count, word, timestamp, isLastWord);
         // Figure out how wide the TinkerText wants to be, then decide if
         // we need to make a new stanza.
         GameObject newText = newTinkerText.GetComponent<TinkerText>().text;
@@ -255,6 +256,7 @@ public class StoryManager : MonoBehaviour {
         preferredWidth = Math.Max(preferredWidth, this.MIN_TINKER_TEXT_WIDTH);
         // Add new stanza if no more room, or if previous word was terminating
         // punctuation.
+        // TODO: only allow beginning of sentences to be swiped.
         if (preferredWidth > this.remainingStanzaWidth ||
             this.prevWordEndsStanza) {
             // Tell this tinkerText it's first in the stanza.
@@ -295,7 +297,7 @@ public class StoryManager : MonoBehaviour {
         // Allow multiple scene objects per label as long as they don't overlap.
         if (this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
             // Check for overlap.
-            // TODO 
+            // TODO implement this Util function.
             if (Util.PositionsOverlap(
                     sceneObject.position,
                     this.sceneObjects[this.sceneObjectsLabelToId[sceneObject.label]]

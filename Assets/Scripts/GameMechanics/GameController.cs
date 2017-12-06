@@ -158,8 +158,7 @@ public class GameController : MonoBehaviour {
         // Figure out the orientation of this story and tell SceneDescription.
         this.setOrientation(this.orientations[this.storyName]);
         SceneDescription.SetOrientation(this.orientation);
-        foreach (TextAsset text in textAssets)
-        {
+        foreach (TextAsset text in textAssets) {
             this.storyPages.Add(new SceneDescription(text.text));
         }
         this.setOrientation(this.orientation);
