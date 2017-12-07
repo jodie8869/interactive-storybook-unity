@@ -372,7 +372,9 @@ public class StoryManager : MonoBehaviour {
         // different objects.
         if (this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
             // Check for overlap.
+            Logger.Log("checking for " + sceneObject.label);
             foreach (int existingObject in this.sceneObjectsLabelToId[sceneObject.label]) {
+                Logger.Log("found previous");
                 if (Util.RefersToSameObject(
                         sceneObject.position,
                     this.sceneObjects[existingObject].GetComponent<SceneObjectManipulator>().position)) {

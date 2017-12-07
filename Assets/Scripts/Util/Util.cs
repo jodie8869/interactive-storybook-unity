@@ -55,8 +55,8 @@ public static class Util {
     // Return true if the two positions (rectangles) overlap enough that we
     // think they refer to the same object. Based on a heuristic, not exact.
     public static bool RefersToSameObject(Position first, Position second) {
-        // Check if the area of the rectangle of overlap is larger than 40%
-        // of the size of either of the input rectangles.
+        // Check if the area of the rectangle of overlap is larger than 50%
+        // of the area of the smaller input rectangle.
         Position leftMost = first;
         Position rightMost = second;
         if (first.left > second.left) {
@@ -80,8 +80,8 @@ public static class Util {
             yOverlap = bottomMost.height;
         }
         float overlapArea = xOverlap * yOverlap;
-        float averageArea = (first.width * first.height + second.width * second.height) / 2.0f;
-        return overlapArea / averageArea > 0.4;
+        float minArea = Math.Min(first.width * first.height, second.width * second.height);
+        return overlapArea / minArea > 0.5;
     }
 
     // Returns absolute screen width (meaning width is the larger of the two
