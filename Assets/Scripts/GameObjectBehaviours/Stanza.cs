@@ -62,7 +62,7 @@ public class Stanza : MonoBehaviour {
             if (this.stanzaWasSwiped()) {
                 // Delay for a short while.
                 // TODO: not sure if this is necessary.
-                Thread.Sleep(300);
+                Thread.Sleep(200);
                 this.audioManager.PlayInterval(this.startTimestamp,
                                                this.endTimestamp);
                 // Reset positions so we don't keep trying to play audio.

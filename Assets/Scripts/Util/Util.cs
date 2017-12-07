@@ -63,24 +63,31 @@ public static class Util {
             leftMost = second;
             rightMost = first;
         }
+        //Logger.Log(leftMost.left + " " + rightMost.left);
         float xOverlap = Math.Max(0, (leftMost.left + leftMost.width) - rightMost.left);
         if (rightMost.left + rightMost.width < leftMost.left + rightMost.width) {
             // Special case for complete overlap (rightMost is contained in leftMost).
+            //Logger.Log("x contained");
             xOverlap = rightMost.width;
         }
         Position topMost = first;
         Position bottomMost = second;
-        if (first.top < second.top) {
+        if (first.top - first.height < second.top - second.height) {
             topMost = second;
             bottomMost = first;
         }
+        //Logger.Log(topMost.top + " " + bottomMost.top);
+        //Logger.Log(bottomMost.top + " " + (topMost.top - topMost.height));
         float yOverlap = Math.Max(0, bottomMost.top - (topMost.top - topMost.height));
         if (bottomMost.top - bottomMost.height > topMost.top - topMost.height) {
             // Complete overlap.
+            //Logger.Log("y contained");
             yOverlap = bottomMost.height;
         }
         float overlapArea = xOverlap * yOverlap;
         float minArea = Math.Min(first.width * first.height, second.width * second.height);
+        //Logger.Log("overlap min " + overlapArea + " " + minArea);
+
         return overlapArea / minArea > 0.5;
     }
 

@@ -32,11 +32,13 @@ public class GameController : MonoBehaviour {
     public Button portraitBackButton;
     public Button portraitFinishButton;
 
-    public Button toggleAudioButton;
+    public Button landscapeToggleAudioButton;
+    public Button portraitToggleAudioButton;
 
     private Button nextButton;
     private Button backButton;
     private Button finishButton;
+    private Button toggleAudioButton;
 
     public Button startStoryButton;
 
@@ -103,7 +105,8 @@ public class GameController : MonoBehaviour {
 
         this.startStoryButton.onClick.AddListener(onStartStoryClicked);
 
-        this.toggleAudioButton.onClick.AddListener(toggleAudio);
+        this.landscapeToggleAudioButton.onClick.AddListener(toggleAudio);
+        this.portraitToggleAudioButton.onClick.AddListener(toggleAudio);
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -115,14 +118,7 @@ public class GameController : MonoBehaviour {
         this.storyManager = GetComponent<StoryManager>();
 
         this.stories = new List<string>();
-        // TODO: Read storynames and their orientations here.
-        // Create a stories metadata file with this info.
-        this.stories.Add("the_hungry_toad");
-        this.stories.Add("possum_and_the_peeper");
-        // Set up the orientations.
-        this.orientations["the_hungry_toad"] = ScreenOrientation.Portrait;
-        this.orientations["possum_and_the_peeper"] =
-                ScreenOrientation.Landscape;
+        this.initStories();
 
         // TODO: Check if we are using ROS or not.
         // Either launch the splash screen to connect to ROS, or go straight
@@ -215,6 +211,7 @@ public class GameController : MonoBehaviour {
         this.nextButton = this.landscapeNextButton;
         this.backButton = this.landscapeBackButton;
         this.finishButton = this.landscapeFinishButton;
+        this.toggleAudioButton = this.landscapeToggleAudioButton;
 
         // TODO: is this necessary?
         Screen.orientation = ScreenOrientation.Landscape;
@@ -228,6 +225,7 @@ public class GameController : MonoBehaviour {
         this.nextButton = this.portraitNextButton;
         this.backButton = this.portraitBackButton;
         this.finishButton = this.portraitFinishButton;
+        this.toggleAudioButton = this.portraitToggleAudioButton;
         Screen.orientation = ScreenOrientation.Portrait;
     }
 
@@ -315,6 +313,26 @@ public class GameController : MonoBehaviour {
         } else {
             this.splashPanel.SetActive(false);
         }
+    }
+
+    private void initStories() {
+        // TODO: Read storynames and their orientations here.
+        // Create a stories metadata file with this info.
+        this.stories.Add("the_hungry_toad");
+        //this.stories.Add("possum_and_the_peeper");
+        this.stories.Add("will_clifford_win");
+        this.stories.Add("henrys_happy_birthday");
+        //this.stories.Add("freda_says_please");
+        //this.stories.Add("baby_ducks_new_friend");
+        this.stories.Add("a_rain_forest_day");
+        // Set up the orientations.
+        this.orientations["the_hungry_toad"] = ScreenOrientation.Landscape;
+        //this.orientations["possum_and_the_peeper"] =  ScreenOrientation.Landscape;
+        this.orientations["will_clifford_win"] = ScreenOrientation.Landscape;
+        this.orientations["henrys_happy_birthday"] = ScreenOrientation.Landscape;
+        //this.orientations["freda_says_please"] = ScreenOrientation.Landscape;
+        //this.orientations["baby_ducks_new_friend"] = ScreenOrientation.Portrait;
+        this.orientations["a_rain_forest_day"] = ScreenOrientation.Portrait;
     }
 
 }
