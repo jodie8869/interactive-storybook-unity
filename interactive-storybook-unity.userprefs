@@ -11,7 +11,7 @@
       <File FileName="Assets/Scripts/GameObjectBehaviours/Stanza.cs" Line="44" Column="39" />
       <File FileName="Assets/Scripts/Ros/RosbridgeWebSocketClient.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/Util/Constants.cs" Line="26" Column="61" NotebookId="1" />
-      <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="402" Column="34" NotebookId="1" />
+      <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="402" Column="30" NotebookId="1" />
       <File FileName="Assets/Scripts/Util/Util.cs" Line="51" Column="43" NotebookId="1" />
       <File FileName="Assets/Scripts/Ros/RosbridgeUtilities.cs" Line="1" Column="1" NotebookId="1" />
     </Files>

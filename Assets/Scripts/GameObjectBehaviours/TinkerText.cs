@@ -36,9 +36,11 @@ public class TinkerText : MonoBehaviour
     // convenience when setting sizeDelta.
     // Height of entire TinkerText, including graphic.
     public static float TINKER_TEXT_HEIGHT = 165;
-    public static float MIN_WIDTH = 120; // Based on size of GIFs.
+    //public static float MIN_WIDTH = 120; // Based on size of GIFs.
     // Height of the button and text components.
     public static float BUTTON_TEXT_HEIGHT = 85;
+    public static float GRAPHIC_PANEL_WIDTH = 80;
+    public static float GRAPHIC_PANEL_HEIGHT = 80;
 
     // Set up click handler.
     void Start() {
@@ -78,6 +80,10 @@ public class TinkerText : MonoBehaviour
         // Update size of TinkerText.
         GetComponent<RectTransform>().sizeDelta =
             new Vector2(newWidth, TINKER_TEXT_HEIGHT);
+        // Update size of the Graphics Panel.
+        float newGraphicsWidth = Math.Min(GRAPHIC_PANEL_WIDTH, newWidth);
+        this.graphicPanel.GetComponent<RectTransform>().sizeDelta =
+                new Vector2(newGraphicsWidth, GRAPHIC_PANEL_HEIGHT);
         // Update size of Button.
         this.textButton.GetComponent<RectTransform>().sizeDelta =
             new Vector2(newWidth, BUTTON_TEXT_HEIGHT);

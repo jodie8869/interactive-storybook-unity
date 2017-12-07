@@ -40,7 +40,7 @@ public class StoryManager : MonoBehaviour {
 
     // Variables for loading TinkerTexts.
     private float STANZA_SPACING = 20; // Matches Prefab.
-    private float MIN_TINKER_TEXT_WIDTH = TinkerText.MIN_WIDTH;
+    // private float MIN_TINKER_TEXT_WIDTH = TinkerText.MIN_WIDTH;
 
     // These all need to be set after we determine the screen size.
     // They are set in initPanelSizesOnStartup() and used in resetPanelSizes().
@@ -145,6 +145,9 @@ public class StoryManager : MonoBehaviour {
         foreach (SceneObject sceneObject in description.sceneObjects) {
             this.loadSceneObject(sceneObject);
         }
+
+        // Sort scene objects by size (smallest on top).
+        this.sortSceneObjectLayering();
 
         // Load triggers.
         foreach (Trigger trigger in description.triggers) {
@@ -253,7 +256,8 @@ public class StoryManager : MonoBehaviour {
             LayoutUtility.GetPreferredWidth(
                 newText.GetComponent<RectTransform>()
             );
-        preferredWidth = Math.Max(preferredWidth, this.MIN_TINKER_TEXT_WIDTH);
+        // Commented out to prevent text from being unevenly spaced.
+        // preferredWidth = Math.Max(preferredWidth, this.MIN_TINKER_TEXT_WIDTH);
         // Add new stanza if no more room, or if previous word was terminating
         // punctuation.
         // TODO: only allow beginning of sentences to be swiped.
@@ -352,6 +356,28 @@ public class StoryManager : MonoBehaviour {
         newObj.name = sceneObject.label;
         this.sceneObjects[sceneObject.id] = newObj;
     }
+
+    // Places smallest scene objects higher up in the z direction.
+    private void sortSceneObjectLayering() {
+        Logger.Log("sorting scene objects by area");
+        Dictionary<int, GameObject>.KeyCollection idKeys = this.sceneObjects.Keys;
+        List<int> ids = new List<int>();
+        foreach (int id in idKeys) {
+            ids.Add(id);
+        }
+        ids.Sort((id1, id2) => {
+            Position pos1 = this.sceneObjects[id1].GetComponent<SceneObjectManipulator>().position;
+            Position pos2 = this.sceneObjects[id2].GetComponent<SceneObjectManipulator>().position;
+            return pos2.width * pos2.height - pos1.width * pos1.height;
+        });
+        // Now that they are in reverse sorted order, move them to the front in sequence.
+        foreach (int id in ids) {
+            GameObject sceneObject = this.sceneObjects[id];
+            Logger.Log("object is " + sceneObject.GetComponent<SceneObjectManipulator>().label); 
+            sceneObject.GetComponent<RectTransform>().SetAsLastSibling();
+        }
+    }
+
 
     // Sets up a trigger between TinkerTexts and SceneObjects.
     private void loadTrigger(Trigger trigger) {

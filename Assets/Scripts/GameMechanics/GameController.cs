@@ -266,6 +266,11 @@ public class GameController : MonoBehaviour {
             // Hide the back button because we're at the beginning.
             this.hideElement(this.backButton.gameObject);
         }
+        // Switch away from finish story to next button if we backtrack from the last page.
+        if (this.currentPageNumber == this.storyPages.Count - 2) {
+            this.hideElement(this.finishButton.gameObject);
+            this.showElement(this.nextButton.gameObject);
+        }
     }
 
     private void onStartStoryClicked() {
