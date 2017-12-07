@@ -33,14 +33,13 @@ public class SceneObjectManipulator : MonoBehaviour
     private UnityAction clickUnityAction;
 
     void Start() {
-        Logger.Log("started scene object manipulator");
         // TODO: Add audio and animation to the prefab, then include them.
 
         this.button.onClick.AddListener(this.clickUnityAction);
     }
 
     public void AddClickHandler(Action action) {
-        Logger.Log("Adding click handler for " + this.label);
+        //Logger.Log("Adding click handler for " + this.label);
         this.clickUnityAction += new UnityAction(action);
     }
 

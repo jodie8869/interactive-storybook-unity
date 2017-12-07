@@ -36,19 +36,22 @@ public class Stanza : MonoBehaviour {
     // Know which sentence this stanza is a part of.
     private int sentenceIndex;
 
+    public bool specificStanzaAllowSwipe;
+    public int index;
+
     // References to all of the TinkerText objects that belong to this stanza.
     private List<GameObject> tinkerTexts;
 
     private void Awake() {
-        Logger.Log("Stanza awake");
         this.stanzaPanel = gameObject;
         this.rect = this.stanzaPanel.GetComponent<RectTransform>();
         Stanza.allowSwipe = true;
+        this.specificStanzaAllowSwipe = true;
     }
 
     void Update() {
         // Check for swipes, start the audio for this stanza if swiped.
-        if (Stanza.allowSwipe) {
+        if (Stanza.allowSwipe && this.specificStanzaAllowSwipe) {
             if (Input.GetMouseButtonDown(0)) {
                 this.mouseDownPos = Input.mousePosition;
             }

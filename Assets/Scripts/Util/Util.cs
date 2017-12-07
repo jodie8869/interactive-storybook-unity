@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class Util {
     // TODO: should include comma or not? Sometimes that makes it too vertical.
-    public static string[] punctuation = {";", ".", "?", "\"", "!" };
+    public static string[] punctuation = {";", ".", "?", "\"", "!", ","};
 
     public static string FileNameToStoryName(string fileName) {
         return fileName.Substring(0,
@@ -81,7 +81,6 @@ public static class Util {
         }
         float overlapArea = xOverlap * yOverlap;
         float averageArea = (first.width * first.height + second.width * second.height) / 2.0f;
-        Logger.Log("overlapArea ratio " + (overlapArea / averageArea).ToString());
         return overlapArea / averageArea > 0.4;
     }
 

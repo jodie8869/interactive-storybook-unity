@@ -58,6 +58,8 @@ public class StoryManager : MonoBehaviour {
     private float remainingStanzaWidth = 0; // For loading TinkerTexts.
     private bool prevWordEndsStanza = false; // Know when to start new stanza.
     private List<GameObject> tinkerTextPhraseBuffer;
+    private GameObject lastStartStanza;
+
 
     // Array of sentences where each sentence is an array of stanzas.
     private List<Sentence> sentences;
@@ -130,6 +132,9 @@ public class StoryManager : MonoBehaviour {
                 Logger.LogError("textWords doesn't match timestamps length " +
                                 textWords.Count.ToString() + " " + 
                                description.timestamps.Length.ToString());
+            }
+            if (this.lastStartStanza != null) {
+                Logger.LogError("lastStartStanza should be null");
             }
             for (int i = 0; i < textWords.Count; i++)
             {
@@ -278,34 +283,63 @@ public class StoryManager : MonoBehaviour {
             this.remainingStanzaWidth =
                     this.textPanel.GetComponent<RectTransform>().sizeDelta.x;
             float newStanzaTimestamp = timestamp.start;
+            // Case where we need to copy over some phrases.
             if (!this.prevWordEndsStanza && this.tinkerTextPhraseBuffer.Count > 0) {
-                // Move all the TinkerTexts in the phrase buffer to the new stanza.
-                // This is to ensure that no phrases are broken across multiple stanzas.
-                for (int i = 0; i < this.tinkerTextPhraseBuffer.Count; i++) {
-                    this.moveTinkerTextToStanza(this.tinkerTextPhraseBuffer[i], newStanza);
-                    if (i == 0) {
-                        this.tinkerTextPhraseBuffer[i].GetComponent<TinkerText>().SetFirstInStanza();
-                    }
-                }
                 // Find the previous timestamp.
                 int prevPhraseLastTinkerTextIndex =
                     this.tinkerTexts.Count - 1 - this.tinkerTextPhraseBuffer.Count;
-                newStanzaTimestamp =
-                    this.tinkerTexts[prevPhraseLastTinkerTextIndex].GetComponent<TinkerText>()
-                        .audioEndTime;
+                // TODO: decide if the entire stanza is one phrase, because then we have to break.
+                // This current method is not correct I think.
+                if (prevPhraseLastTinkerTextIndex >= 0) {
+                    // Move all the TinkerTexts in the phrase buffer to the new stanza.
+                    // This is to ensure that no phrases are broken across multiple stanzas.
+                    for (int i = 0; i < this.tinkerTextPhraseBuffer.Count; i++)
+                    {
+                        this.moveTinkerTextToStanza(this.tinkerTextPhraseBuffer[i], newStanza);
+                        if (i == 0)
+                        {
+                            this.tinkerTextPhraseBuffer[i].GetComponent<TinkerText>().SetFirstInStanza();
+                        }
+                    }
+
+                    // This means we can move the last phrase to the new stanza successfully.
+                    newStanzaTimestamp =
+                        this.tinkerTexts[prevPhraseLastTinkerTextIndex].GetComponent<TinkerText>()
+                            .audioEndTime;
+                    Logger.Log("location 1");
+                    this.lastStartStanza = this.currentStanza;
+                    
+                } else {
+                    // This is the case where we have to continue the phrase and break it.
+                    // Make the new stanza unclickable since it's the middle of a phrase.
+                    Logger.Log("unclickable on current stanza, number already is " + this.stanzas.Count);
+                    newStanza.GetComponent<Stanza>().specificStanzaAllowSwipe = false;
+                    this.tinkerTextPhraseBuffer.Clear();
+                    // TODO: not sure if this is exactly right.
+                    this.lastStartStanza = this.currentStanza;
+                }
                 // Clear the buffer.
                 this.tinkerTextPhraseBuffer.Clear();
             } else {
+                // No phrases to copy over, this is either a clean start or a lucky break position.
                 newTinkerText.GetComponent<TinkerText>().SetFirstInStanza();
+                Logger.Log("location 2");
+                this.lastStartStanza = this.currentStanza;
             }
-            // Set the end time of previous stanza and start time of the new
-            // stanza we're adding.
-            if (this.currentStanza != null) {
-                this.currentStanza.GetComponent<Stanza>().SetEndTimestamp(
-                newStanzaTimestamp);
-            }
+
+            // Book keeping.
+            newStanza.GetComponent<Stanza>().index = this.stanzas.Count;
             this.stanzas.Add(newStanza);
             this.currentStanza = newStanza;
+
+            // Set the end time of previous stanza and start time of the new
+            // stanza we're adding.
+            if (this.lastStartStanza != null)
+            {
+                Logger.Log("setting end timestamp number stanzas" + this.stanzas.Count + this.lastStartStanza.GetComponent<Stanza>().index);
+                this.lastStartStanza.GetComponent<Stanza>().SetEndTimestamp(
+                newStanzaTimestamp);
+            }
             this.currentStanza.GetComponent<Stanza>().SetStartTimestamp(
                 newStanzaTimestamp);
 
@@ -336,10 +370,8 @@ public class StoryManager : MonoBehaviour {
     private void loadSceneObject(SceneObject sceneObject) {
         // Allow multiple scene objects per label as long as we believe that they are referring to
         // different objects.
-        Logger.Log("loading object with label " + sceneObject.label);
         if (this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
             // Check for overlap.
-            Logger.Log("checking for " + sceneObject.label);
             foreach (int existingObject in this.sceneObjectsLabelToId[sceneObject.label]) {
                 if (Util.RefersToSameObject(
                         sceneObject.position,
@@ -365,7 +397,6 @@ public class StoryManager : MonoBehaviour {
         manip.id = sceneObject.id;
         manip.label = sceneObject.label;
         manip.position = pos; 
-        Logger.Log("x, y " + storyImageX.ToString() + " " + storyImageY.ToString());
         manip.MoveToPosition(
             new Vector3(this.storyImageX + pos.left * this.imageScaleFactor,
                         this.storyImageY - pos.top * this.imageScaleFactor)
@@ -395,7 +426,6 @@ public class StoryManager : MonoBehaviour {
 
     // Places smallest scene objects higher up in the z direction.
     private void sortSceneObjectLayering() {
-        Logger.Log("sorting scene objects by area");
         Dictionary<int, GameObject>.KeyCollection idKeys = this.sceneObjects.Keys;
         List<int> ids = new List<int>();
         foreach (int id in idKeys) {
@@ -409,7 +439,6 @@ public class StoryManager : MonoBehaviour {
         // Now that they are in reverse sorted order, move them to the front in sequence.
         foreach (int id in ids) {
             GameObject sceneObject = this.sceneObjects[id];
-            Logger.Log("object is " + sceneObject.GetComponent<SceneObjectManipulator>().label); 
             sceneObject.GetComponent<RectTransform>().SetAsLastSibling();
         }
     }
@@ -483,6 +512,7 @@ public class StoryManager : MonoBehaviour {
         // Remove audio triggers.
         this.audioManager.ClearTriggersAndReset();
         this.prevWordEndsStanza = false;
+        this.lastStartStanza = null;
     }
 
     // Update the display mode. We need to update our internal references to
