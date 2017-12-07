@@ -54,8 +54,10 @@ public class StoryManager : MonoBehaviour {
     private float LANDSCAPE_WIDE_TEXT_HEIGHT;
     private float LANDSCAPE_WIDE_WIDTH;
 
+    // Variables for taking care of TinkerText placing and stanza breaking.
     private float remainingStanzaWidth = 0; // For loading TinkerTexts.
     private bool prevWordEndsStanza = false; // Know when to start new stanza.
+    private List<GameObject> tinkerTextPhraseBuffer;
 
     // Array of sentences where each sentence is an array of stanzas.
     private List<Sentence> sentences;
@@ -88,6 +90,8 @@ public class StoryManager : MonoBehaviour {
         this.stanzas = new List<GameObject>();
         this.sceneObjects = new Dictionary<int, GameObject>();
         this.sceneObjectsLabelToId = new Dictionary<string, List<int>>();
+
+        this.tinkerTextPhraseBuffer = new List<GameObject>();
 
         this.initPanelSizesOnStartup();
     }
@@ -258,13 +262,11 @@ public class StoryManager : MonoBehaviour {
             );
         // Commented out to prevent text from being unevenly spaced.
         // preferredWidth = Math.Max(preferredWidth, this.MIN_TINKER_TEXT_WIDTH);
-        // Add new stanza if no more room, or if previous word was terminating
-        // punctuation.
-        // TODO: only allow beginning of sentences to be swiped.
-        if (preferredWidth > this.remainingStanzaWidth ||
-            this.prevWordEndsStanza) {
-            // Tell this tinkerText it's first in the stanza.
-            newTinkerText.GetComponent<TinkerText>().SetFirstInStanza();
+        // Add new stanza if no more room, and remove all TinkerTexts in the buffer from previous
+        // stanza and instead re-add them to this stanza.
+        if (preferredWidth > this.remainingStanzaWidth) {
+            // Tell this tinkerText it's first in the stanza, important for audio playback,
+            // because otherwise the highlighting occurs weirdly when stanzas play.
             GameObject newStanza =
                 Instantiate((GameObject)Resources.Load("Prefabs/StanzaPanel"));
             newStanza.transform.SetParent(this.textPanel.transform, false);
@@ -272,28 +274,62 @@ public class StoryManager : MonoBehaviour {
                 this.audioManager,
                 this.textPanel.GetComponent<RectTransform>().position
             );
+            // Reset the remaining stanza width.
+            this.remainingStanzaWidth =
+                    this.textPanel.GetComponent<RectTransform>().sizeDelta.x;
+            float newStanzaTimestamp = timestamp.start;
+            if (!this.prevWordEndsStanza && this.tinkerTextPhraseBuffer.Count > 0) {
+                // Move all the TinkerTexts in the phrase buffer to the new stanza.
+                // This is to ensure that no phrases are broken across multiple stanzas.
+                for (int i = 0; i < this.tinkerTextPhraseBuffer.Count; i++) {
+                    this.moveTinkerTextToStanza(this.tinkerTextPhraseBuffer[i], newStanza);
+                    if (i == 0) {
+                        this.tinkerTextPhraseBuffer[i].GetComponent<TinkerText>().SetFirstInStanza();
+                    }
+                }
+                // Find the previous timestamp.
+                int prevPhraseLastTinkerTextIndex =
+                    this.tinkerTexts.Count - 1 - this.tinkerTextPhraseBuffer.Count;
+                newStanzaTimestamp =
+                    this.tinkerTexts[prevPhraseLastTinkerTextIndex].GetComponent<TinkerText>()
+                        .audioEndTime;
+                // Clear the buffer.
+                this.tinkerTextPhraseBuffer.Clear();
+            } else {
+                newTinkerText.GetComponent<TinkerText>().SetFirstInStanza();
+            }
             // Set the end time of previous stanza and start time of the new
             // stanza we're adding.
             if (this.currentStanza != null) {
                 this.currentStanza.GetComponent<Stanza>().SetEndTimestamp(
-                timestamp.start);
+                newStanzaTimestamp);
             }
             this.stanzas.Add(newStanza);
             this.currentStanza = newStanza;
             this.currentStanza.GetComponent<Stanza>().SetStartTimestamp(
-                timestamp.start);
-            // Reset the remaining stanza width.
-            this.remainingStanzaWidth =
-                    this.textPanel.GetComponent<RectTransform>().sizeDelta.x;
+                newStanzaTimestamp);
+
         }
         // Initialize the TinkerText width correctly.
         // Set new TinkerText parent to be the stanza.
         newTinkerText.GetComponent<TinkerText>().SetWidth(preferredWidth);
-		newTinkerText.transform.SetParent(this.currentStanza.transform, false);
-        this.remainingStanzaWidth -= preferredWidth;
-        this.remainingStanzaWidth -= STANZA_SPACING;
+        this.moveTinkerTextToStanza(newTinkerText, this.currentStanza);
         this.tinkerTexts.Add(newTinkerText);
+        this.tinkerTextPhraseBuffer.Add(newTinkerText);
         this.prevWordEndsStanza = Util.WordShouldEndStanza(word);
+        // Clear the buffer on end of phrase.
+        if (this.prevWordEndsStanza) {
+            this.tinkerTextPhraseBuffer.Clear();
+        }
+    }
+
+    // Helper that simply moves an existing TinkerText game object into the current stanza.
+    private void moveTinkerTextToStanza(GameObject tinkerText, GameObject stanza) {
+        tinkerText.transform.SetParent(stanza.transform, false);
+        // Subtract the width of this TinkerText and the standard stanza spacing.
+        this.remainingStanzaWidth -= tinkerText.GetComponent<RectTransform>().sizeDelta.x;
+        this.remainingStanzaWidth -= STANZA_SPACING;
+
     }
 
     // Adds a SceneObject to the story scene.
