@@ -35,11 +35,15 @@ public class SceneObjectManipulator : MonoBehaviour
     void Start() {
         // TODO: Add audio and animation to the prefab, then include them.
 
+        this.clickUnityAction += () => {};
+
+        // TODO: It looks like the after setting the listener, it's no longer good
+        // to modify or add to the clickUnityAction. Not sure why.
+        this.AddClickHandler(this.Highlight(Constants.SceneObjectHighlightColor));
         this.button.onClick.AddListener(this.clickUnityAction);
     }
 
     public void AddClickHandler(Action action) {
-        //Logger.Log("Adding click handler for " + this.label);
         this.clickUnityAction += new UnityAction(action);
     }
 

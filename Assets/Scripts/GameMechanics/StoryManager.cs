@@ -491,7 +491,7 @@ public class StoryManager : MonoBehaviour {
                     .GetComponent<SceneObjectManipulator>();
                 TinkerText tinkerText = this.tinkerTexts[trigger.args.textId]
                                             .GetComponent<TinkerText>();
-                Action action = manip.Highlight(new Color(0, 1, 1, 60f / 255));
+                Action action = manip.Highlight(Constants.SceneObjectHighlightColor);
                 tinkerText.AddClickHandler(action);
                 manip.AddClickHandler(tinkerText.Highlight());
                 break;

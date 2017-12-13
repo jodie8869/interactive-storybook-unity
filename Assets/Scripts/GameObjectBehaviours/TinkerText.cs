@@ -96,7 +96,7 @@ public class TinkerText : MonoBehaviour
     public Action Highlight() {
         return () =>
         {
-            this.ChangeTextColor(Color.magenta);
+            this.ChangeTextColor(Color.blue);
             // After some amount of time, remove highlighting.
             StartCoroutine(undoHighlight(2, Color.black));
         };
