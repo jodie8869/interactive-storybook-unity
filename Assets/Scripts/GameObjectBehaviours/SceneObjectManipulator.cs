@@ -23,6 +23,9 @@ public class SceneObjectManipulator : MonoBehaviour
     public string label { get; set; }
     public Position position { get; set; }
 
+    // Original color is clear.
+    private Color unhighlightedColor = new Color(1, 1, 1, 0);
+
     // TODO: Add the concept of variables, so that variables can be
     // saved between scenes. This also implies that we should not Destroy
     // SceneObjects as we change pages, otherwise we lose that memory, and
@@ -53,13 +56,13 @@ public class SceneObjectManipulator : MonoBehaviour
             Color currentColor = gameObject.GetComponent<Image>().color;
             gameObject.GetComponent<Image>().color = color;
             // After some amount of time, remove highlighting.
-            StartCoroutine(undoHighlight(2, currentColor));
+            StartCoroutine(undoHighlight(2));
         };
     }
 
-    private IEnumerator undoHighlight(float secondsDelay, Color originalColor) {
+    private IEnumerator undoHighlight(float secondsDelay) {
         yield return new WaitForSeconds(secondsDelay);
-        gameObject.GetComponent<Image>().color = originalColor;
+        gameObject.GetComponent<Image>().color = this.unhighlightedColor;
     }
 
     public Action MoveToPosition(Vector3 localPosition) {

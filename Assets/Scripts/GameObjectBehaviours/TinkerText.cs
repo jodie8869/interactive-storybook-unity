@@ -32,6 +32,8 @@ public class TinkerText : MonoBehaviour
     // UnityActions for various UI interactions (e.g. clicking).
     private UnityAction clickUnityAction;
 
+    private Color unhighlightedColor = new Color(1, 1, 1, 0);
+
     // These numbers should match the prefab, putting them here is just for
     // convenience when setting sizeDelta.
     // Height of entire TinkerText, including graphic.
@@ -98,14 +100,14 @@ public class TinkerText : MonoBehaviour
         {
             this.ChangeTextColor(Color.blue);
             // After some amount of time, remove highlighting.
-            StartCoroutine(undoHighlight(2, Color.black));
+            StartCoroutine(undoHighlight(2));
         };
     }
 
-    private IEnumerator undoHighlight(float secondsDelay, Color originalColor)
+    private IEnumerator undoHighlight(float secondsDelay)
     {
         yield return new WaitForSeconds(secondsDelay);
-        this.ChangeTextColor(originalColor);
+        this.ChangeTextColor(this.unhighlightedColor);
     }
 
     private void ChangeTextColor(Color color) {
