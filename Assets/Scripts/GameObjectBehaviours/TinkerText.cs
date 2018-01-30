@@ -32,7 +32,8 @@ public class TinkerText : MonoBehaviour
     // UnityActions for various UI interactions (e.g. clicking).
     private UnityAction clickUnityAction;
 
-    private Color unhighlightedColor = new Color(1, 1, 1, 0);
+    // Normal color should be black.
+    private Color unhighlightedColor = new Color(0, 0, 0, 0);
 
     // These numbers should match the prefab, putting them here is just for
     // convenience when setting sizeDelta.

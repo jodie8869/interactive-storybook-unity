@@ -322,7 +322,8 @@ public class GameController : MonoBehaviour {
         //this.stories.Add("possum_and_the_peeper");
         this.stories.Add("will_clifford_win");
         this.stories.Add("henrys_happy_birthday");
-        //this.stories.Add("freda_says_please");
+        this.stories.Add("freda_says_please");
+        this.stories.Add("jazz_class");
         //this.stories.Add("baby_ducks_new_friend");
         this.stories.Add("a_rain_forest_day");
         // Set up the orientations.
@@ -330,7 +331,8 @@ public class GameController : MonoBehaviour {
         //this.orientations["possum_and_the_peeper"] =  ScreenOrientation.Landscape;
         this.orientations["will_clifford_win"] = ScreenOrientation.Landscape;
         this.orientations["henrys_happy_birthday"] = ScreenOrientation.Landscape;
-        //this.orientations["freda_says_please"] = ScreenOrientation.Landscape;
+        this.orientations["freda_says_please"] = ScreenOrientation.Landscape;
+        this.orientations["jazz_class"] = ScreenOrientation.Portrait;
         //this.orientations["baby_ducks_new_friend"] = ScreenOrientation.Portrait;
         this.orientations["a_rain_forest_day"] = ScreenOrientation.Portrait;
     }
