@@ -251,6 +251,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\GameMechanics\GameController.cs" />
     <Compile Include="Assets\Scripts\GameMechanics\SceneDescription.cs" />
+    <Compile Include="Assets\Scripts\GameMechanics\StanzaManager.cs" />
     <Compile Include="Assets\Scripts\GameMechanics\StoryAudioManager.cs" />
     <Compile Include="Assets\Scripts\GameMechanics\StoryManager.cs" />
     <Compile Include="Assets\Scripts\GameObjectBehaviours\SceneManipulatorAPI.cs" />

@@ -85,6 +85,10 @@ public class Stanza : MonoBehaviour {
         this.endTimestamp = end;
     }
 
+    public void SetSwipeable(bool swipeable) {
+        this.specificStanzaAllowSwipe = swipeable;
+    }
+
     public void PlayStanza() {
         this.audioManager.PlayInterval(this.startTimestamp, this.endTimestamp);
     }

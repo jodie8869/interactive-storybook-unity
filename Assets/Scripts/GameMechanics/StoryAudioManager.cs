@@ -131,6 +131,7 @@ public class StoryAudioManager : MonoBehaviour {
 
     // Plays the audio between start seconds and end seconds.
     public void PlayInterval(float start, float end) {
+        Logger.Log("Play Interval");
         this.StopAudio();
         this.audioSource.time = start; // TODO: maybe backtrack a tiny bit?
         this.stopTimestamp = end;

@@ -18,6 +18,7 @@ public class TinkerText : MonoBehaviour
 {
 
     private int id;
+    public string word;
     private float textWidth;
     public float audioStartTime, audioEndTime;
 
@@ -33,7 +34,7 @@ public class TinkerText : MonoBehaviour
     private UnityAction clickUnityAction;
 
     // Normal color should be black.
-    private Color unhighlightedColor = new Color(0, 0, 0, 0);
+    private Color unhighlightedColor = Color.black;
 
     // These numbers should match the prefab, putting them here is just for
     // convenience when setting sizeDelta.
@@ -65,6 +66,7 @@ public class TinkerText : MonoBehaviour
     // should automatically handle that.
     public void Init(int id, string word, AudioTimestamp timestamp, bool isLastWord) {
         this.id = id;
+        this.word = word;
         this.text.GetComponent<Text>().text = word;
         this.audioStartTime = timestamp.start;
         this.audioEndTime = timestamp.end;

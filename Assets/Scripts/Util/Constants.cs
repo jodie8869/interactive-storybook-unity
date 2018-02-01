@@ -5,6 +5,8 @@ using UnityEngine;
 public static class Constants
 {
 
+    public static float EPSILON = 1e-5f;
+
     // Desired ratio of graphics panel width to entire landscape panel width
     // in landscape display mode.
     public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 0.43f;
