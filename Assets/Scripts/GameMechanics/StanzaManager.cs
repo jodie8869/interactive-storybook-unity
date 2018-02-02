@@ -83,8 +83,10 @@ public class StanzaManager : MonoBehaviour {
     // If stanzaIsOnePhrase, then just clear the buffer, reset remaining width,
     // create a new stanza, and add the tinkertext again recursively, setting isMidPhrase.
     // If not stanzaIsOnePhrase, then move the latest phrase to this new stanza,
-    // update the remaining width, update the end time of lastStartStanza,
-    // and try adding again recursively.
+    // update the remaining width, update the end time of lastStartStanza, set isMidphrase
+    // to false and set stanzaIsOnePhrase to true because new stanzas always have it as true,
+    // and try adding the tinkertexts in the buffer recursively.
+    // Finally, add the new tinkertext to the newly created stanza.
     //
     public void AddTinkerText(GameObject tinkerTextObject) {
         TinkerText tinkerText = tinkerTextObject.GetComponent<TinkerText>();
@@ -93,6 +95,7 @@ public class StanzaManager : MonoBehaviour {
         // Set the correct width.
         tinkerText.SetWidth(preferredWidth);
 
+        // Case where we don't need to make a new stanza.
         if (preferredWidth <= this.remainingStanzaWidth) {
             bool firstInStanza = System.Math.Abs(
                 this.remainingStanzaWidth - this.maxStanzaWidth()) < Constants.EPSILON;
@@ -109,6 +112,8 @@ public class StanzaManager : MonoBehaviour {
                     tinkerText.audioStartTime);
             } else {
                 // Check if we've started a new phrase in this stanza.
+                // Only check for this if it's not the first word in the stanza,
+                // otherwise we can't actually know if stanza is one phrase or not.
                 if (this.prevWordEndsPhrase) {
                     this.isMidPhrase = false; // Possibly repetitive setting of this variable.
                     this.stanzaIsOnePhrase = false;
@@ -147,14 +152,12 @@ public class StanzaManager : MonoBehaviour {
             this.remainingStanzaWidth = this.maxStanzaWidth();
 
             if (this.stanzaIsOnePhrase) {
-                Logger.Log("stanzaIsOnePhrase");
                 // Overflow but everything is one phrase, so we can't do anything.
                 // We just set isMidPhrase to true so we know the next stanza is
                 // a continuation of this one.
                 this.isMidPhrase = true;
                 this.tinkerTextPhraseBuffer.Clear();
             } else {
-                Logger.Log("not stanzaIsOnePhrase");
                 // Set the end time of the previous stanza.
                 if (this.lastPhraseStartStanza != null) {
                     if (this.tinkerTextPhraseBuffer.Count > 0) {
@@ -165,6 +168,8 @@ public class StanzaManager : MonoBehaviour {
                 // Add everything from the phrase buffer, recursively.
                 this.isMidPhrase = false;
                 this.stanzaIsOnePhrase = true;
+                // Use a dummy buffer, otherwise will be modifying the real buffer
+                // while also iterating over it, which will cause problems.
                 List<GameObject> buffer = new List<GameObject>();
                 foreach (GameObject tt in this.tinkerTextPhraseBuffer) {
                     buffer.Add(tt);

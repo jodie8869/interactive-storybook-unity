@@ -65,6 +65,7 @@ public class GameController : MonoBehaviour {
     private ScreenOrientation orientation;
     private List<SceneDescription> storyPages;
     private int currentPageNumber = 0; // 0-indexed, index into this.storyPages.
+
     // Orientations of each story. TODO: read from file, for now just hardcode.
     private Dictionary<string, ScreenOrientation> orientations;
 
@@ -249,6 +250,7 @@ public class GameController : MonoBehaviour {
     private void onFinishButtonClick() {
         // For now, just reset and return to the splash screen.
         this.storyManager.ClearPage();
+        this.storyManager.audioManager.StopAudio();
         this.currentPageNumber = 0;
         this.hideElement(this.finishButton.gameObject);
         this.showElement(this.nextButton.gameObject);

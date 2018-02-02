@@ -95,11 +95,10 @@ public class StoryManager : MonoBehaviour {
     // place, and attaching callbacks to created GameObjects, where these
     // callbacks involve functions from SceneManipulatorAPI.
     public void LoadPage(SceneDescription description) {
-        Logger.Log("Loading page");
         this.setDisplayMode(description.displayMode);
-        this.resetPanelSizes();    
+        this.resetPanelSizes();
         // Load audio.
-        // this.audioManager.LoadAudio(description.audioFile);
+        this.audioManager.LoadAudio(description.audioFile);
 
         if (description.isTitle) {
             // Special case for title page.
@@ -115,7 +114,7 @@ public class StoryManager : MonoBehaviour {
             textWords.RemoveAll(String.IsNullOrEmpty);
             List<string> filteredTextWords = new List<string>();
             foreach (string word in textWords) {
-                if (word.Length == 1 && Util.punctuation.Contains(word)) {
+                if (Util.WordHasNoAlphanum(word)) {
                     filteredTextWords[filteredTextWords.Count - 1] += word;
                 } else {
                     filteredTextWords.Add(word);
@@ -238,7 +237,6 @@ public class StoryManager : MonoBehaviour {
 
     // Add a new TinkerText for the given word.
     private void loadTinkerText(string word, AudioTimestamp timestamp, bool isLastWord) {
-        //Logger.Log("adding word: " + word);
         if (word.Length == 0) {
             return;
         }
@@ -249,146 +247,19 @@ public class StoryManager : MonoBehaviour {
         this.tinkerTexts.Add(newTinkerText);
         // Place it correctly within the stanzas.
         this.stanzaManager.AddTinkerText(newTinkerText);
-
-        // Figure out how wide the TinkerText wants to be, then decide if
-        // we need to make a new stanza.
-        //GameObject newText = newTinkerText.GetComponent<TinkerText>().text;
-        //float preferredWidth =
-        //    LayoutUtility.GetPreferredWidth(
-        //        newText.GetComponent<RectTransform>()
-        //    );
-        //Logger.Log(preferredWidth);
-        //// Commented out to prevent text from being unevenly spaced.
-        //// preferredWidth = Math.Max(preferredWidth, this.MIN_TINKER_TEXT_WIDTH);
-        //// Add new stanza if no more room, and remove all TinkerTexts in the buffer from previous
-        //// stanza and instead re-add them to this stanza.
-        //if (preferredWidth > this.remainingStanzaWidth || (this.breakAtNextOpportunity && this.prevWordEndsStanza))
-        //{
-        //    Logger.Log("new stanza when adding " + word);
-        //    if (this.breakAtNextOpportunity && this.prevWordEndsStanza) {
-        //        // Reset.
-        //        this.breakAtNextOpportunity = false;
-        //        Logger.Log("break at next opportunity");
-        //    } else {
-        //        Logger.Log("ran out of space");
-        //    }
-        //    this.shouldUpdateStanzaTimes = false;
-        //    // Tell this tinkerText it's first in the stanza, important for audio playback,
-        //    // because otherwise the highlighting occurs weirdly when stanzas play.
-        //    GameObject newStanza =
-        //        Instantiate((GameObject)Resources.Load("Prefabs/StanzaPanel"));
-        //    newStanza.transform.SetParent(this.textPanel.transform, false);
-        //    newStanza.GetComponent<Stanza>().Init(
-        //        this.audioManager,
-        //        this.textPanel.GetComponent<RectTransform>().position
-        //    );
-
-        //    // Reset the remaining stanza width.
-        //    this.remainingStanzaWidth =
-        //            this.textPanel.GetComponent<RectTransform>().sizeDelta.x;
-        //    float newStanzaTimestamp = timestamp.start;
-        //    // Case where we need to copy over some phrases.
-        //    if (!this.prevWordEndsStanza && this.tinkerTextPhraseBuffer.Count > 0)
-        //    {
-        //        // Needed to find the previous end timestamp.
-        //        int prevPhraseLastTinkerTextIndex =
-        //            this.tinkerTexts.Count - 1 - this.tinkerTextPhraseBuffer.Count;
-        //        //Logger.Log("need to copy some phrases over");
-        //        if (prevPhraseLastTinkerTextIndex >= 0)
-        //        {
-        //            Logger.Log("moving phrase to next stanza");
-        //            // Move all the TinkerTexts in the phrase buffer to the new stanza.
-        //            // This is to ensure that no phrases are broken across multiple stanzas.
-        //            for (int i = 0; i < this.tinkerTextPhraseBuffer.Count; i++)
-        //            {
-        //                Logger.Log("word: " + this.tinkerTextPhraseBuffer[i].GetComponent<TinkerText>().word);
-        //                // TODO Should try to add to current not new stanza if part of previous phrase?
-        //                this.moveTinkerTextToStanza(this.tinkerTextPhraseBuffer[i], newStanza);
-        //                if (i == 0)
-        //                {
-        //                    this.tinkerTextPhraseBuffer[i].GetComponent<TinkerText>().SetFirstInStanza();
-        //                }
-        //            }
-
-        //            // This means we can move the last phrase to the new stanza successfully.
-        //            newStanzaTimestamp =
-        //                this.tinkerTexts[prevPhraseLastTinkerTextIndex].GetComponent<TinkerText>()
-        //                    .audioEndTime;
-        //            this.shouldUpdateStanzaTimes = true;
-
-        //        }
-        //        else
-        //        {
-        //            // This is the case where we have to continue the phrase and break it.
-        //            // Make the new stanza unclickable since it's the middle of a phrase.
-        //            Logger.Log("breaking, unclickable on current stanza, number already is " + this.stanzas.Count);
-        //            this.breakAtNextOpportunity = true;
-        //            newStanza.GetComponent<Stanza>().specificStanzaAllowSwipe = false;
-        //            this.tinkerTextPhraseBuffer.Clear();
-        //        }
-        //        // Clear the buffer.
-        //        this.tinkerTextPhraseBuffer.Clear();
-        //    }
-        //    else
-        //    {
-        //        // No phrases to copy over, this is either a clean start or a lucky break position.
-        //        newTinkerText.GetComponent<TinkerText>().SetFirstInStanza();
-        //        this.shouldUpdateStanzaTimes = true;
-        //        // For the first word, set up lastStartStanza.
-        //        if (this.lastStartStanza == null)
-        //        {
-        //            this.lastStartStanza = newStanza;
-        //            this.shouldUpdateStanzaTimes = false; // Because there's no previous stanza.
-        //        }
-        //    }
-
-        //    // Book keeping.
-        //    newStanza.GetComponent<Stanza>().index = this.stanzas.Count;
-        //    this.stanzas.Add(newStanza);
-        //    this.currentStanza = newStanza;
-
-        //    // Set the end time of previous stanza and start time of the new
-        //    // stanza we're adding.
-        //    if (this.shouldUpdateStanzaTimes)
-        //    {
-        //        Logger.Log("try to update stanza times");
-        //        if (this.lastStartStanza != null)
-        //        {
-        //            this.lastStartStanza.GetComponent<Stanza>().SetEndTimestamp(
-        //            newStanzaTimestamp);
-        //        }
-        //        this.currentStanza.GetComponent<Stanza>().SetStartTimestamp(
-        //            newStanzaTimestamp);
-        //        this.lastStartStanza = newStanza;
-        //    }
-
-        //}
-        //// Initialize the TinkerText width correctly.
-        //// Set new TinkerText parent to be the stanza.
-        //newTinkerText.GetComponent<TinkerText>().SetWidth(preferredWidth);
-        //this.moveTinkerTextToStanza(newTinkerText, this.currentStanza);
-        //this.tinkerTexts.Add(newTinkerText);
-        //this.tinkerTextPhraseBuffer.Add(newTinkerText);
-        //this.prevWordEndsStanza = Util.WordShouldEndStanza(word);
-        //// Clear the buffer on end of phrase.
-        //if (this.prevWordEndsStanza) {
-        //    this.tinkerTextPhraseBuffer.Clear();
-        //}
     }
 
     // Adds a SceneObject to the story scene.
     private void loadSceneObject(SceneObject sceneObject) {
         // Allow multiple scene objects per label as long as we believe that they are referring to
         // different objects.
-        Logger.Log("adding object " + sceneObject.label);
         if (this.sceneObjectsLabelToId.ContainsKey(sceneObject.label)) {
             // Check for overlap.
-            Logger.Log("checking for " + sceneObject.label);
             foreach (int existingObject in this.sceneObjectsLabelToId[sceneObject.label]) {
                 if (Util.RefersToSameObject(
                         sceneObject.position,
                     this.sceneObjects[existingObject].GetComponent<SceneObjectManipulator>().position)) {
-                    Logger.Log("detected overlap");
+                    Logger.Log("Detected overlap for object " + sceneObject.label);
                     return;
                 }
             }
@@ -503,7 +374,6 @@ public class StoryManager : MonoBehaviour {
     // Called by GameController when we should remove all elements we've added
     // to this page (usually in preparration for the creation of another page).
     public void ClearPage() {
-        Logger.Log("StoryManager ClearPage()");
         // Destroy stanzas.
         this.stanzaManager.ClearPage();
 

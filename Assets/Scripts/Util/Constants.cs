@@ -15,7 +15,8 @@ public static class Constants
     public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 0.66f;
     // Desired ratio of graphics panel height to entire landscape panel height
     // in landscape wide display mode.
-    public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.71f;
+    //public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.71f;
+    public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.5f;
 
     // ROS connection.
     public static bool USE_ROS = true;

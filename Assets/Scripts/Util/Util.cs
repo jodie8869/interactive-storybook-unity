@@ -24,6 +24,16 @@ public static class Util {
         return false;
     }
 
+    // Returns true if the word contains no alphanumeric characters.
+    public static bool WordHasNoAlphanum(string word) {
+        foreach (char c in word) {
+            if (char.IsLetterOrDigit(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Gets the sprite for a particular story image file.
     public static Sprite GetStorySprite(string imageFile) {
         string storyName = Util.FileNameToStoryName(imageFile);
