@@ -73,11 +73,9 @@ public class StoryAudioManager : MonoBehaviour {
         this.lastTimestamp = this.currentTimestamp;
 	}
 
-    // Load an audio file.
-    public void LoadAudio(string audioFile) {
-        string storyName = Util.FileNameToStoryName(audioFile);
-        this.audioClip = Resources.Load("StoryAudio/" + storyName + "/" +
-                                        audioFile) as AudioClip;
+    // Load an audio clip as the current clip.
+    public void LoadAudio(AudioClip audioClip) {
+        this.audioClip = audioClip;
         this.audioSource.clip = this.audioClip;
     }
 

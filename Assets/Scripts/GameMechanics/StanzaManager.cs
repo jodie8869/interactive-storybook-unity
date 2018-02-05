@@ -55,11 +55,6 @@ public class StanzaManager : MonoBehaviour {
         this.textPanel = textPanel;
     }
 
-    // Edge case for setting the very last end timestamp after all Tinkertexts are loaded.
-    public void SetFinalEndTimestamp(float endTime) {
-        this.currentStanza().GetComponent<Stanza>().SetEndTimestamp(endTime);
-    }
-
     // Bulk of the work is here, add a new TinkerText to the stanzas, following the rules:
     //  1) Don't break phrases (unless the entire thing doesn't fit in one stanza).
     //  2) Fill up each stanza as much as possible.

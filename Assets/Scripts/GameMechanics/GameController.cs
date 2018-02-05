@@ -161,6 +161,20 @@ public class GameController : MonoBehaviour {
         this.setOrientation(this.orientation);
         this.changeButtonText(this.nextButton, "Begin Story!");
         this.hideElement(this.backButton.gameObject);
+
+        // Download the resources if necessary.
+        if (!Constants.LOAD_ASSETS_LOCALLY) {
+            // Choose to pass lists of strings instead of the SceneDescriptions themselves,
+            // unnecessary but just easier to avoid possibility of mutation down the line.
+            List<string> imageFileNames = new List<string>();
+            List<string> audioFileNames = new List<string>();
+            foreach(SceneDescription d in this.storyPages) {
+                imageFileNames.Add(d.storyImageFile);
+                audioFileNames.Add(d.audioFile);
+            }
+            this.storyManager.DownloadStoryAssets(imageFileNames, audioFileNames);
+        }
+
         this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
     }
 

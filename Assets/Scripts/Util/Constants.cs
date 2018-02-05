@@ -5,6 +5,9 @@ using UnityEngine;
 public static class Constants
 {
 
+    // Flags.
+    public static bool LOAD_ASSETS_LOCALLY = true;
+
     public static float EPSILON = 1e-5f;
 
     // Desired ratio of graphics panel width to entire landscape panel width

@@ -52,6 +52,10 @@ public class StoryManager : MonoBehaviour {
     private float LANDSCAPE_WIDE_TEXT_HEIGHT;
     private float LANDSCAPE_WIDE_WIDTH;
 
+    // Store sprites and audio downloaded from the cloud.
+    private Dictionary<string, Sprite> storySprites;
+    private Dictionary<string, AudioClip> storyAudios;
+
     // Dynamically created TinkerTexts specific to this scene.
     private List<GameObject> tinkerTexts;
     // Dynamically created SceneObjects, keyed by their id.
@@ -71,16 +75,17 @@ public class StoryManager : MonoBehaviour {
     private float imageScaleFactor;
     private DisplayMode displayMode;
 
+
     void Start() {
         Logger.Log("StoryManager start");
 
+        this.storySprites = new Dictionary<string, Sprite>();
+        this.storyAudios = new Dictionary<string, AudioClip>();
         this.tinkerTexts = new List<GameObject>();
-
         this.sceneObjects = new Dictionary<int, GameObject>();
         this.sceneObjectsLabelToId = new Dictionary<string, List<int>>();
 
         this.stanzaManager.SetTextPanel(this.textPanel);
-
         this.initPanelSizesOnStartup();
     }
 
@@ -97,8 +102,9 @@ public class StoryManager : MonoBehaviour {
     public void LoadPage(SceneDescription description) {
         this.setDisplayMode(description.displayMode);
         this.resetPanelSizes();
+
         // Load audio.
-        this.audioManager.LoadAudio(description.audioFile);
+        this.loadAudio(description.audioFile);
 
         if (description.isTitle) {
             // Special case for title page.
@@ -129,9 +135,7 @@ public class StoryManager : MonoBehaviour {
                 this.loadTinkerText(filteredTextWords[i], description.timestamps[i],
                                       i == filteredTextWords.Count - 1);
             }
-            // Set end timestamp of last stanza (edge case).
-            this.stanzaManager.SetFinalEndTimestamp(this.tinkerTexts[this.tinkerTexts.Count - 1]
-                                                    .GetComponent<TinkerText>().audioEndTime);
+
             // Load audio triggers for TinkerText.
             this.loadAudioTriggers();
         }
@@ -151,6 +155,16 @@ public class StoryManager : MonoBehaviour {
 
         if (this.autoplayAudio) {
             this.audioManager.PlayAudio();
+        }
+    }
+
+    private void loadAudio(string audioFile) {
+        if (Constants.LOAD_ASSETS_LOCALLY) {
+            string storyName = Util.FileNameToStoryName(audioFile);
+            this.audioManager.LoadAudio(Resources.Load("StoryAudio/" + storyName + "/" +
+                                                                   audioFile) as AudioClip);
+        } else {
+            this.audioManager.LoadAudio(this.storyAudios[audioFile]);
         }
     }
 
@@ -174,48 +188,61 @@ public class StoryManager : MonoBehaviour {
                   AspectRatioFitter.AspectMode.FitInParent;
         newObj.GetComponent<AspectRatioFitter>().aspectRatio =
                   this.titlePanelAspectRatio;
-        Sprite sprite = Util.GetStorySprite(imageFile);
-        newObj.GetComponent<Image>().sprite = sprite;
+
+        newObj.GetComponent<Image>().sprite = this.getSprite(imageFile);
         newObj.GetComponent<Image>().preserveAspect = true;
         this.storyImage = newObj;
     }
 
-    // Argument imageFile should be something like "the_hungry_toad_01" and then
-    // this function will find it in the Resources directory and load it.
+    private Sprite getSprite(string imageFile) {
+        if (Constants.LOAD_ASSETS_LOCALLY) {
+            return Util.GetStorySprite(imageFile);
+        } else {
+            return  this.storySprites[imageFile];
+        }
+    }
+
     private void loadImage(string imageFile) {
-        string storyName = Util.FileNameToStoryName(imageFile);
         GameObject newObj = new GameObject();
         newObj.AddComponent<Image>();
         newObj.AddComponent<AspectRatioFitter>();
         newObj.GetComponent<AspectRatioFitter>().aspectMode =
           AspectRatioFitter.AspectMode.FitInParent;
-        string fullImagePath = "StoryPages/" + storyName + "/" + imageFile;
-        Sprite sprite = Resources.Load<Sprite>(fullImagePath);
-        newObj.GetComponent<Image>().sprite = sprite;
+
+        // Set the sprite.
+        Sprite imageSprite = this.getSprite(imageFile);
+        newObj.GetComponent<Image>().sprite = imageSprite;
         newObj.GetComponent<Image>().preserveAspect = true;
         newObj.transform.SetParent(this.graphicsPanel.transform, false);
         newObj.transform.localPosition = Vector3.zero;
+
+        Texture imageTexture = imageSprite.texture;
+
         // Figure out sizing so that later scene objects can be loaded relative
         // to the background image for accurate overlay.
-        Texture texture = Resources.Load<Texture>(fullImagePath);
-        float imageAspectRatio = (float)texture.width / (float)texture.height;
+        float imageAspectRatio = (float)imageTexture.width / (float)imageTexture.height;
         newObj.GetComponent<AspectRatioFitter>().aspectRatio =
           imageAspectRatio;
+
         // TODO: If height is constraining factor, then use up all possible
         // width by pushing the image over, only in landscape mode though.
         // Do the symmetric thing in portrait mode if width is constraining.
-        if (imageAspectRatio > this.graphicsPanelAspectRatio) {
+        if (imageAspectRatio > this.graphicsPanelAspectRatio)
+        {
             // Width is the constraining factor.
             this.storyImageWidth = this.graphicsPanelWidth;
             this.storyImageHeight = this.graphicsPanelWidth / imageAspectRatio;
             this.storyImageX = 0;
-            this.storyImageY = 
+            this.storyImageY =
                 -(this.graphicsPanelHeight - this.storyImageHeight) / 2;
-        } else {
+        }
+        else
+        {
             // Height is the constraining factor.
             this.storyImageHeight = this.graphicsPanelHeight;
             this.storyImageWidth = this.graphicsPanelHeight * imageAspectRatio;
-            if (this.displayMode == DisplayMode.Landscape) {
+            if (this.displayMode == DisplayMode.Landscape)
+            {
                 float widthDiff = this.graphicsPanelWidth - this.storyImageWidth;
                 this.graphicsPanelWidth = this.storyImageWidth;
                 this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
@@ -224,14 +251,16 @@ public class StoryManager : MonoBehaviour {
                     this.textPanel.GetComponent<RectTransform>().sizeDelta;
                 this.textPanel.GetComponent<RectTransform>().sizeDelta =
                     new Vector2(currentTextPanelSize.x + widthDiff,
-                                currentTextPanelSize.y);   
+                                currentTextPanelSize.y);
             }
             this.storyImageY = 0;
-            this.storyImageX = 
+            this.storyImageX =
                 (this.graphicsPanelWidth - this.storyImageWidth) / 2;
         }
 
-        this.imageScaleFactor = this.storyImageWidth / texture.width;
+        this.imageScaleFactor = this.storyImageWidth / imageTexture.width;
+        // TODO: Not sure if should destroy object, but I think it's safer to do so, check later.
+        Destroy(this.storyImage);
         this.storyImage = newObj;
     }
 
@@ -309,6 +338,7 @@ public class StoryManager : MonoBehaviour {
     }
 
     // Places smallest scene objects higher up in the z direction.
+    // This guarantees that larger objects do not prevent smaller ones from being clickable.
     private void sortSceneObjectLayering() {
         Dictionary<int, GameObject>.KeyCollection idKeys = this.sceneObjects.Keys;
         List<int> ids = new List<int>();
@@ -395,6 +425,14 @@ public class StoryManager : MonoBehaviour {
         this.audioManager.ClearTriggersAndReset();
     }
 
+    // Called to download the images and audio files needed for a particular story.
+    // The arguments are lists of strings that should be the identifying part of the URL to
+    // download from, and those strings will be used as keys into StoryManager's dictionaries
+    // so that the downloaded image sprites and audio clips can be located later.
+    public void DownloadStoryAssets(List<string> imageFileNames, List<string> audioFileNames) {
+        
+    }
+
     // Update the display mode. We need to update our internal references to
     // textPanel and graphicsPanel.
     private void setDisplayMode(DisplayMode newMode) {
@@ -449,7 +487,7 @@ public class StoryManager : MonoBehaviour {
     // new values as constants so that resetPanelSizes() can use them to
     // dynamically resize the panels between scenes.
     private void initPanelSizesOnStartup() {
-        float landscapeWidth = (float)Util.GetScreenWidth() - 100; // Subtract border
+        float landscapeWidth = (float)Util.GetScreenWidth() - 100f; // Subtract border
         float landscapeHeight = (float)Util.GetScreenHeight() - 330f; // Subtract border + buttons
         float portraitWidth = (float)Util.GetScreenHeight() - 100f; // Subtract border
         float portraitHeight = (float)Util.GetScreenWidth() - 330f; // Subtract border + buttons
