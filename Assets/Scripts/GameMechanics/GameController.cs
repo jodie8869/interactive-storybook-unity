@@ -183,7 +183,6 @@ public class GameController : MonoBehaviour {
             if (!this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
                 this.showElement(this.loadingBar);
                 this.hideElement(this.nextButton.gameObject);
-                this.assetDownloader.PrepForDownload(imageFileNames.Count, audioFileNames.Count);
                 StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames,
                                                                     audioFileNames, this.onDownloadComplete));
             } else {
