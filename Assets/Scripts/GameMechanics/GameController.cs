@@ -41,6 +41,7 @@ public class GameController : MonoBehaviour {
     private Button toggleAudioButton;
 
     public Button startStoryButton;
+    public GameObject loadingBar;
 
     public GameObject landscapePanel;
     public GameObject portraitPanel;
@@ -179,6 +180,8 @@ public class GameController : MonoBehaviour {
                 audioFileNames.Add(d.audioFile);
             }
             if (!this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
+                this.showElement(this.loadingBar);
+                this.hideElement(this.nextButton.gameObject);
                 this.assetDownloader.PrepForDownload(imageFileNames.Count, audioFileNames.Count);
                 StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames,
                                                                     audioFileNames, this.onDownloadComplete));
@@ -194,6 +197,9 @@ public class GameController : MonoBehaviour {
                                     Dictionary<string, AudioClip> audioClips) {
         this.storyManager.StoreDownloadedAssets(this.storyName, sprites, audioClips);
         this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        this.showSplashScreen(false);
+        this.hideElement(this.loadingBar);
+        this.showElement(this.nextButton.gameObject);
     }
 
     private void changeButtonText(Button button, string text) {
@@ -308,7 +314,6 @@ public class GameController : MonoBehaviour {
     private void onStartStoryClicked() {
         // Read the selected value of the story dropdown and start that story.
         int selectedIdx = this.storyDropdown.value;
-        this.showSplashScreen(false);
         this.startStory(this.stories[selectedIdx]);
     }
 
