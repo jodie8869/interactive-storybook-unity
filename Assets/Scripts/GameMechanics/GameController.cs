@@ -41,6 +41,7 @@ public class GameController : MonoBehaviour {
     private Button toggleAudioButton;
 
     public Button startStoryButton;
+    public GameObject loadingBar;
 
     public GameObject landscapePanel;
     public GameObject portraitPanel;
@@ -166,26 +167,26 @@ public class GameController : MonoBehaviour {
         this.changeButtonText(this.nextButton, "Begin Story!");
         this.hideElement(this.backButton.gameObject);
 
-        if (Constants.LOAD_ASSETS_LOCALLY) {
-            this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        if (Constants.LOAD_ASSETS_LOCALLY ||
+            this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
+            // Either we load from memory or we've already cached a previous download.
+            this.loadFirstPage();
         } else {
-            // Download the resources.
-            // Choose to pass lists of strings instead of the SceneDescriptions themselves,
+            // Choose to pass lists of strings instead of the SceneDescriptions objects,
             // unnecessary but just easier to avoid possibility of mutation down the line.
             List<string> imageFileNames = new List<string>();
             List<string> audioFileNames = new List<string>();
-            foreach(SceneDescription d in this.storyPages) {
+            foreach (SceneDescription d in this.storyPages) {
                 imageFileNames.Add(d.storyImageFile);
                 audioFileNames.Add(d.audioFile);
             }
-            if (!this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
-                this.assetDownloader.PrepForDownload(imageFileNames.Count, audioFileNames.Count);
-                StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames,
-                                                                    audioFileNames, this.onDownloadComplete));
-            } else {
-                // The assets have already been downloaded, so just begin the story.
-                this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]); 
-            }
+            // UI stuff to let user know ~something~ is happening.
+            this.showElement(this.loadingBar);
+            this.hideElement(this.nextButton.gameObject);
+            // Start download and pray.
+            StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames, 
+                                                                    audioFileNames,
+                                                                    this.onDownloadComplete));
         }
     }
 
@@ -193,7 +194,14 @@ public class GameController : MonoBehaviour {
     private void onDownloadComplete(Dictionary<string, Sprite> sprites,
                                     Dictionary<string, AudioClip> audioClips) {
         this.storyManager.StoreDownloadedAssets(this.storyName, sprites, audioClips);
+        this.loadFirstPage();
+    }
+
+    private void loadFirstPage() {
         this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        this.showSplashScreen(false);
+        this.hideElement(this.loadingBar);
+        this.showElement(this.nextButton.gameObject);
     }
 
     private void changeButtonText(Button button, string text) {
@@ -308,7 +316,6 @@ public class GameController : MonoBehaviour {
     private void onStartStoryClicked() {
         // Read the selected value of the story dropdown and start that story.
         int selectedIdx = this.storyDropdown.value;
-        this.showSplashScreen(false);
         this.startStory(this.stories[selectedIdx]);
     }
 
