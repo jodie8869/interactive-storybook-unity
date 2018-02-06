@@ -180,13 +180,16 @@ public class GameController : MonoBehaviour {
                 imageFileNames.Add(d.storyImageFile);
                 audioFileNames.Add(d.audioFile);
             }
-            // UI stuff to let user know ~something~ is happening.
-            this.showElement(this.loadingBar);
-            this.hideElement(this.nextButton.gameObject);
-            // Start download and pray.
-            StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames, 
-                                                                    audioFileNames,
-                                                                    this.onDownloadComplete));
+            if (!this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
+                this.showElement(this.loadingBar);
+                this.hideElement(this.nextButton.gameObject);
+                this.assetDownloader.PrepForDownload(imageFileNames.Count, audioFileNames.Count);
+                StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames,
+                                                                    audioFileNames, this.onDownloadComplete));
+            } else {
+                // The assets have already been downloaded, so just begin the story.
+                this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]); 
+            }
         }
     }
 
