@@ -6,7 +6,7 @@ public static class Constants
 {
 
     // Flags.
-    public static bool LOAD_ASSETS_LOCALLY = true;
+    public static bool LOAD_ASSETS_LOCALLY = false;
 
     public static float EPSILON = 1e-5f;
 
@@ -32,6 +32,8 @@ public static class Constants
 
     // ROS topics.
 
+    // Download URLs.
+    public static string IMAGE_BASE_URL = "https://s3.amazonaws.com/storycorpus-images-without-text/images/";
 }
 
 // Display Modes.

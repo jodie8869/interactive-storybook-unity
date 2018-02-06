@@ -5,9 +5,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 
 public class StoryManager : MonoBehaviour {
@@ -53,6 +51,7 @@ public class StoryManager : MonoBehaviour {
     private float LANDSCAPE_WIDE_WIDTH;
 
     // Store sprites and audio downloaded from the cloud.
+    private Dictionary<string, bool> downloadedStories;
     private Dictionary<string, Sprite> storySprites;
     private Dictionary<string, AudioClip> storyAudios;
 
@@ -79,6 +78,7 @@ public class StoryManager : MonoBehaviour {
     void Start() {
         Logger.Log("StoryManager start");
 
+        this.downloadedStories = new Dictionary<string, bool>();
         this.storySprites = new Dictionary<string, Sprite>();
         this.storyAudios = new Dictionary<string, AudioClip>();
         this.tinkerTexts = new List<GameObject>();
@@ -159,19 +159,37 @@ public class StoryManager : MonoBehaviour {
     }
 
     private void loadAudio(string audioFile) {
+        // TODO: Don't forget to remove this! 
+        //Constants.LOAD_ASSETS_LOCALLY = true;
         if (Constants.LOAD_ASSETS_LOCALLY) {
             string storyName = Util.FileNameToStoryName(audioFile);
             this.audioManager.LoadAudio(Resources.Load("StoryAudio/" + storyName + "/" +
                                                                    audioFile) as AudioClip);
         } else {
-            this.audioManager.LoadAudio(this.storyAudios[audioFile]);
+            // Make sure that the audio is actually there.
+            if (!this.storyAudios.ContainsKey(audioFile)) {
+                Logger.Log("no audio file found " + audioFile);
+                Logger.Log(this.storyAudios.Count);
+            } else {
+                this.audioManager.LoadAudio(this.storyAudios[audioFile]);
+            }
         }
     }
 
-    // Begin playing the audio. Can be called by GameController in response
-    // to UI events like button clicks or swipes.
-    public void ToggleAudio() {
-        this.audioManager.ToggleAudio();
+    private Sprite getSprite(string imageFile) {
+        if (Constants.LOAD_ASSETS_LOCALLY) {
+            return Util.GetStorySprite(imageFile);
+        } else {
+            // Make sure the sprite is there.
+            if (!this.storySprites.ContainsKey(imageFile)) {
+                Logger.Log("no sprite found " + imageFile);
+                Logger.Log(this.storySprites.Count);
+                return null;
+            } else {
+                Logger.Log("found this sprite!!!");
+                return this.storySprites[imageFile];   
+            }
+        }
     }
 
     private void loadTitlePage(SceneDescription description) {
@@ -189,17 +207,10 @@ public class StoryManager : MonoBehaviour {
         newObj.GetComponent<AspectRatioFitter>().aspectRatio =
                   this.titlePanelAspectRatio;
 
+        Logger.Log("loading title page");
         newObj.GetComponent<Image>().sprite = this.getSprite(imageFile);
         newObj.GetComponent<Image>().preserveAspect = true;
         this.storyImage = newObj;
-    }
-
-    private Sprite getSprite(string imageFile) {
-        if (Constants.LOAD_ASSETS_LOCALLY) {
-            return Util.GetStorySprite(imageFile);
-        } else {
-            return  this.storySprites[imageFile];
-        }
     }
 
     private void loadImage(string imageFile) {
@@ -227,17 +238,14 @@ public class StoryManager : MonoBehaviour {
         // TODO: If height is constraining factor, then use up all possible
         // width by pushing the image over, only in landscape mode though.
         // Do the symmetric thing in portrait mode if width is constraining.
-        if (imageAspectRatio > this.graphicsPanelAspectRatio)
-        {
+        if (imageAspectRatio > this.graphicsPanelAspectRatio) {
             // Width is the constraining factor.
             this.storyImageWidth = this.graphicsPanelWidth;
             this.storyImageHeight = this.graphicsPanelWidth / imageAspectRatio;
             this.storyImageX = 0;
             this.storyImageY =
                 -(this.graphicsPanelHeight - this.storyImageHeight) / 2;
-        }
-        else
-        {
+        } else {
             // Height is the constraining factor.
             this.storyImageHeight = this.graphicsPanelHeight;
             this.storyImageWidth = this.graphicsPanelHeight * imageAspectRatio;
@@ -401,6 +409,32 @@ public class StoryManager : MonoBehaviour {
         this.autoplayAudio = newValue;
     } 
 
+    // Begin playing the audio. Can be called by GameController in response
+    // to UI events like button clicks or swipes.
+    public void ToggleAudio() {
+        this.audioManager.ToggleAudio();
+    }
+
+    // Called by GameController to determine if a particular story's assets have been downloaded.
+    public bool StoryHasBeenDownloaded(string storyName) {
+        return this.downloadedStories.ContainsKey(storyName);
+    }
+
+    // Called by GameController after a new set of assets has been downloaded.
+    // GameController should have called CheckAlreadyDownloaded before attempting to download,
+    // so here we assume that these are new assets. If this happens to be false, the only cost
+    // is overwriting ~15 objects in a dictionary, so it's not the worst.
+    public void StoreDownloadedAssets(string storyName, Dictionary<string, Sprite> newSprites,
+                                      Dictionary<string,AudioClip> newAudioClips) {
+        this.downloadedStories.Add(storyName, true);
+        foreach (KeyValuePair<string, Sprite> s in newSprites) {
+            this.storySprites.Add(s.Key, s.Value);
+        }
+        foreach (KeyValuePair<string, AudioClip> a in newAudioClips) {
+            this.storyAudios.Add(a.Key, a.Value);
+        }
+    }
+
     // Called by GameController when we should remove all elements we've added
     // to this page (usually in preparration for the creation of another page).
     public void ClearPage() {
@@ -423,14 +457,6 @@ public class StoryManager : MonoBehaviour {
         this.storyImage = null;
         // Remove audio triggers.
         this.audioManager.ClearTriggersAndReset();
-    }
-
-    // Called to download the images and audio files needed for a particular story.
-    // The arguments are lists of strings that should be the identifying part of the URL to
-    // download from, and those strings will be used as keys into StoryManager's dictionaries
-    // so that the downloaded image sprites and audio clips can be located later.
-    public void DownloadStoryAssets(List<string> imageFileNames, List<string> audioFileNames) {
-        
     }
 
     // Update the display mode. We need to update our internal references to

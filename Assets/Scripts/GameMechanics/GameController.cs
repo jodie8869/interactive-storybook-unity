@@ -11,8 +11,8 @@
 // GameController is a singleton.
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -56,6 +56,9 @@ public class GameController : MonoBehaviour {
 
     // Reference to SceneManager so we can load and manipulate story scenes.
     private StoryManager storyManager;
+
+    // Reference to AssetDownloader.
+    private AssetDownloader assetDownloader;
 
     // List of stories to populate dropdown.
     private List<string> stories;
@@ -117,6 +120,7 @@ public class GameController : MonoBehaviour {
         this.orientations = new Dictionary<string, ScreenOrientation>();
 
         this.storyManager = GetComponent<StoryManager>();
+        this.assetDownloader = GetComponent<AssetDownloader>();
 
         this.stories = new List<string>();
         this.initStories();
@@ -162,8 +166,10 @@ public class GameController : MonoBehaviour {
         this.changeButtonText(this.nextButton, "Begin Story!");
         this.hideElement(this.backButton.gameObject);
 
-        // Download the resources if necessary.
-        if (!Constants.LOAD_ASSETS_LOCALLY) {
+        if (Constants.LOAD_ASSETS_LOCALLY) {
+            this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        } else {
+            // Download the resources.
             // Choose to pass lists of strings instead of the SceneDescriptions themselves,
             // unnecessary but just easier to avoid possibility of mutation down the line.
             List<string> imageFileNames = new List<string>();
@@ -172,9 +178,21 @@ public class GameController : MonoBehaviour {
                 imageFileNames.Add(d.storyImageFile);
                 audioFileNames.Add(d.audioFile);
             }
-            this.storyManager.DownloadStoryAssets(imageFileNames, audioFileNames);
+            if (!this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
+                this.assetDownloader.PrepForDownload(imageFileNames.Count, audioFileNames.Count);
+                StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames,
+                                                                    audioFileNames, this.onDownloadComplete));
+            } else {
+                // The assets have already been downloaded, so just begin the story.
+                this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]); 
+            }
         }
+    }
 
+    // Handle the newly downloaded sprites and audio clips.
+    private void onDownloadComplete(Dictionary<string, Sprite> sprites,
+                                    Dictionary<string, AudioClip> audioClips) {
+        this.storyManager.StoreDownloadedAssets(this.storyName, sprites, audioClips);
         this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
     }
 
