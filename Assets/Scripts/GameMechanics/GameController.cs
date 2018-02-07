@@ -159,9 +159,8 @@ public class GameController : MonoBehaviour {
         this.storyPages.Clear();
         // Figure out the orientation of this story and tell SceneDescription.
         this.setOrientation(this.orientations[this.storyName]);
-        SceneDescription.SetOrientation(this.orientation);
         foreach (TextAsset text in textAssets) {
-            this.storyPages.Add(new SceneDescription(text.text));
+            this.storyPages.Add(new SceneDescription(text.text, this.orientation));
         }
         this.setOrientation(this.orientation);
         this.changeButtonText(this.nextButton, "Begin Story!");
@@ -370,6 +369,7 @@ public class GameController : MonoBehaviour {
         this.stories.Add("jazz_class");
         //this.stories.Add("baby_ducks_new_friend");
         this.stories.Add("a_rain_forest_day");
+        this.stories.Add("a_cub_can");
         // Set up the orientations.
         this.orientations["the_hungry_toad"] = ScreenOrientation.Landscape;
         //this.orientations["possum_and_the_peeper"] =  ScreenOrientation.Landscape;
@@ -379,6 +379,7 @@ public class GameController : MonoBehaviour {
         this.orientations["jazz_class"] = ScreenOrientation.Portrait;
         //this.orientations["baby_ducks_new_friend"] = ScreenOrientation.Portrait;
         this.orientations["a_rain_forest_day"] = ScreenOrientation.Portrait;
+        this.orientations["a_cub_can"] = ScreenOrientation.Landscape;
     }
 
 }

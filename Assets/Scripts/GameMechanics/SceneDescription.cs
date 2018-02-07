@@ -64,9 +64,8 @@ public struct Trigger {
 // can be stored easily as JSON files and can be sent over the network.
 [Serializable]
 public class SceneDescription {
-    private static ScreenOrientation orientation;
-
-    public DisplayMode displayMode;
+    public ScreenOrientation orientation; // Set when story is selected.
+    public DisplayMode displayMode; // Set when a particular page's aspect ratio is inspected.
 
     public bool isTitle;
 
@@ -94,17 +93,13 @@ public class SceneDescription {
     // Constructor for SceneDescription. Takes either a file name or the raw
     // data. If a file name is given, it is just the name not the full path,
     // for example should give simply "the_hungry_toad_04".
-    public SceneDescription(string jsonFileOrData, bool isData=true) {
+    public SceneDescription(string jsonFileOrData, ScreenOrientation orientation, bool isData=true) {
         if (isData) {
             this.loadFromJSONData(jsonFileOrData);
         } else {
             this.loadFromJSONFile(jsonFileOrData);
         }
-    }
-
-    // To be called by GameController. We need to this to determine displayMode.
-    public static void SetOrientation(ScreenOrientation o) {
-        SceneDescription.orientation = o;
+        this.orientation = orientation;
     }
 
     // Populate this SceneDescription with JSON data from the given file.
@@ -122,28 +117,5 @@ public class SceneDescription {
     // Populate this SceneDescription with the given JSON data.
     private void loadFromJSONData(string jsonData) {
         JsonUtility.FromJsonOverwrite(jsonData, this);
-        this.setDisplayMode();
     }
-
-    private void setDisplayMode() {
-        string storyName = this.storyImageFile.Substring(0,
-            this.storyImageFile.LastIndexOf("_",StringComparison.CurrentCulture)
-        );
-        string fullImagePath = "StoryPages/" + storyName + "/" +
-            this.storyImageFile;
-        Texture texture = Resources.Load<Texture>(fullImagePath);
-        float imageAspectRatio = (float)texture.width / (float)texture.height;
-        if (SceneDescription.orientation == ScreenOrientation.Landscape) {
-            // TODO: pick a reasonable constant (maybe 2) and give it a name.
-            if (imageAspectRatio > 2) {
-                this.displayMode = DisplayMode.LandscapeWide;
-            } else {
-                this.displayMode = DisplayMode.Landscape;
-            }
-    
-        } else if (SceneDescription.orientation == ScreenOrientation.Portrait) {
-            this.displayMode = DisplayMode.Portrait;
-        }
-    }
-
 }

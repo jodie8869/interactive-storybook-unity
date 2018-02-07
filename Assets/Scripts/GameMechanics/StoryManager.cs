@@ -100,7 +100,7 @@ public class StoryManager : MonoBehaviour {
     // place, and attaching callbacks to created GameObjects, where these
     // callbacks involve functions from SceneManipulatorAPI.
     public void LoadPage(SceneDescription description) {
-        this.setDisplayMode(description.displayMode);
+        this.setDisplayModeFromSceneDescription(description);
         this.resetPanelSizes();
 
         // Load audio.
@@ -457,6 +457,33 @@ public class StoryManager : MonoBehaviour {
         this.storyImage = null;
         // Remove audio triggers.
         this.audioManager.ClearTriggersAndReset();
+    }
+
+    // Based on the image and orientation, determine an aspect ratio and decide the display mode.
+    private void setDisplayModeFromSceneDescription(SceneDescription description) {
+        if (description.isTitle) {
+            if (description.orientation == ScreenOrientation.Landscape) {
+                this.setDisplayMode(DisplayMode.Landscape);
+            } else {
+                this.setDisplayMode(DisplayMode.Portrait);
+            }
+        } else {
+            if (description.orientation == ScreenOrientation.Landscape) {
+                // Need to look at aspect ratio to decide between Landscape and LandscapeWide.
+                Texture texture = this.getSprite(description.storyImageFile).texture;
+                float aspectRatio = (float)texture.width / (float)texture.height;
+                if (aspectRatio > 2.0) {
+                    this.setDisplayMode(DisplayMode.LandscapeWide);
+                } else {
+                    this.setDisplayMode(DisplayMode.Landscape);
+                }
+            } else if (description.orientation == ScreenOrientation.Portrait) {
+                this.setDisplayMode(DisplayMode.Portrait);
+            } else {
+                // If it's something else, then idk, put it as DisplayMode.Landscape as default.
+                this.setDisplayMode(DisplayMode.Landscape);
+            }
+        }
     }
 
     // Update the display mode. We need to update our internal references to
