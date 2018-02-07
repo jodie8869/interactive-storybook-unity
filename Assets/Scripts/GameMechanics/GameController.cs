@@ -296,6 +296,7 @@ public class GameController : MonoBehaviour {
         this.currentPageNumber = 0;
         this.hideElement(this.finishButton.gameObject);
         this.showElement(this.nextButton.gameObject);
+        this.setLandscapeOrientation();
         this.showSplashScreen(true);
     }
 
