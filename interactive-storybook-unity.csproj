@@ -259,7 +259,7 @@
     <Compile Include="Assets\Scripts\Ros\RosbridgeUtilities.cs" />
     <Compile Include="Assets\Scripts\Ros\RosbridgeWebSocketClient.cs" />
     <Compile Include="Assets\Scripts\Ros\RosManager.cs" />
-    <Compile Include="Assets\Scripts\Util\AssetDownloader.cs" />
+    <Compile Include="Assets\Scripts\Util\AssetManager.cs" />
     <Compile Include="Assets\Scripts\Util\Constants.cs" />
     <Compile Include="Assets\Scripts\Util\Logger.cs" />
     <Compile Include="Assets\Scripts\Util\Util.cs" />

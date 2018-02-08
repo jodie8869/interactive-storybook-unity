@@ -59,7 +59,8 @@ public class GameController : MonoBehaviour {
     private StoryManager storyManager;
 
     // Reference to AssetDownloader.
-    private AssetDownloader assetDownloader;
+    private AssetManager assetManager;
+    private bool downloadedTitles = false;
 
     // List of stories to populate dropdown.
     private List<string> stories;
@@ -121,7 +122,7 @@ public class GameController : MonoBehaviour {
         this.orientations = new Dictionary<string, ScreenOrientation>();
 
         this.storyManager = GetComponent<StoryManager>();
-        this.assetDownloader = GetComponent<AssetDownloader>();
+        this.assetManager = GetComponent<AssetManager>();
 
         this.stories = new List<string>();
         this.initStories();
@@ -132,9 +133,6 @@ public class GameController : MonoBehaviour {
 
         this.storyManager.SetAutoplay(true);
 
-        // Set up the dropdown, load splash screen.
-        this.setupStoryDropdown();
-        this.showSplashScreen(true);
     }
 
     // Update() is called once per frame.
@@ -147,6 +145,26 @@ public class GameController : MonoBehaviour {
                 this.taskQueue.Dequeue().Invoke();
             } catch (Exception e) {
                 Logger.LogError("Error invoking action on main thread!\n" + e);
+            }
+        }
+        // Kinda sketch, make sure this happens once after everyone's start
+        // has been called.
+        if (!this.downloadedTitles) {
+            this.downloadedTitles = true;
+            // Set up the dropdown, load splash screen.
+            if (Constants.LOAD_ASSETS_LOCALLY)
+            {
+                this.setupStoryDropdown();
+                this.showSplashScreen(true);
+            }
+            else
+            {
+                StartCoroutine(this.assetManager.DownloadTitlePages(this.stories,
+                (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
+                // Callback for when download is complete.
+                    this.setupStoryDropdown();
+                    this.showSplashScreen(true);
+                }));
             }
         }
     }
@@ -167,7 +185,7 @@ public class GameController : MonoBehaviour {
         this.hideElement(this.backButton.gameObject);
 
         if (Constants.LOAD_ASSETS_LOCALLY ||
-            this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
+            this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
             // Either we load from memory or we've already cached a previous download.
             this.loadFirstPage();
         } else {
@@ -179,11 +197,11 @@ public class GameController : MonoBehaviour {
                 imageFileNames.Add(d.storyImageFile);
                 audioFileNames.Add(d.audioFile);
             }
-            if (!this.storyManager.StoryHasBeenDownloaded(this.storyName)) {
+            if (!this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
                 this.showElement(this.loadingBar);
                 this.hideElement(this.nextButton.gameObject);
-                StartCoroutine(this.assetDownloader.DownloadStoryAssets(story, imageFileNames,
-                                                                    audioFileNames, this.onDownloadComplete));
+                StartCoroutine(this.assetManager.DownloadStoryAssets(story, imageFileNames,
+                                                                    audioFileNames, this.onSelectedStoryDownloaded));
             } else {
                 // The assets have already been downloaded, so just begin the story.
                 this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]); 
@@ -192,9 +210,8 @@ public class GameController : MonoBehaviour {
     }
 
     // Handle the newly downloaded sprites and audio clips.
-    private void onDownloadComplete(Dictionary<string, Sprite> sprites,
+    private void onSelectedStoryDownloaded(Dictionary<string, Sprite> sprites,
                                     Dictionary<string, AudioClip> audioClips) {
-        this.storyManager.StoreDownloadedAssets(this.storyName, sprites, audioClips);
         this.loadFirstPage();
     }
 

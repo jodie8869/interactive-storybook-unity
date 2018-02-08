@@ -14,6 +14,7 @@ public class StoryManager : MonoBehaviour {
     public GameController gameController;
     public StoryAudioManager audioManager;
     public StanzaManager stanzaManager;
+    private AssetManager assetManager;
 
 	public GameObject portraitGraphicsPanel;
     public GameObject portraitTextPanel;
@@ -50,11 +51,7 @@ public class StoryManager : MonoBehaviour {
     private float LANDSCAPE_WIDE_TEXT_HEIGHT;
     private float LANDSCAPE_WIDE_WIDTH;
 
-    // Store sprites and audio downloaded from the cloud.
-    private Dictionary<string, bool> downloadedStories;
-    private Dictionary<string, Sprite> storySprites;
-    private Dictionary<string, AudioClip> storyAudios;
-
+   
     // Dynamically created TinkerTexts specific to this scene.
     private List<GameObject> tinkerTexts;
     // Dynamically created SceneObjects, keyed by their id.
@@ -78,9 +75,8 @@ public class StoryManager : MonoBehaviour {
     void Start() {
         Logger.Log("StoryManager start");
 
-        this.downloadedStories = new Dictionary<string, bool>();
-        this.storySprites = new Dictionary<string, Sprite>();
-        this.storyAudios = new Dictionary<string, AudioClip>();
+        this.assetManager = GetComponent<AssetManager>();
+
         this.tinkerTexts = new List<GameObject>();
         this.sceneObjects = new Dictionary<int, GameObject>();
         this.sceneObjectsLabelToId = new Dictionary<string, List<int>>();
@@ -104,7 +100,7 @@ public class StoryManager : MonoBehaviour {
         this.resetPanelSizes();
 
         // Load audio.
-        this.loadAudio(description.audioFile);
+        this.audioManager.LoadAudio(this.assetManager.GetAudioClip(description.audioFile));
 
         if (description.isTitle) {
             // Special case for title page.
@@ -158,40 +154,6 @@ public class StoryManager : MonoBehaviour {
         }
     }
 
-    private void loadAudio(string audioFile) {
-        // TODO: Don't forget to remove this! 
-        //Constants.LOAD_ASSETS_LOCALLY = true;
-        if (Constants.LOAD_ASSETS_LOCALLY) {
-            string storyName = Util.FileNameToStoryName(audioFile);
-            this.audioManager.LoadAudio(Resources.Load("StoryAudio/" + storyName + "/" +
-                                                                   audioFile) as AudioClip);
-        } else {
-            // Make sure that the audio is actually there.
-            if (!this.storyAudios.ContainsKey(audioFile)) {
-                Logger.Log("no audio file found " + audioFile);
-                Logger.Log(this.storyAudios.Count);
-            } else {
-                this.audioManager.LoadAudio(this.storyAudios[audioFile]);
-            }
-        }
-    }
-
-    private Sprite getSprite(string imageFile) {
-        if (Constants.LOAD_ASSETS_LOCALLY) {
-            return Util.GetStorySprite(imageFile);
-        } else {
-            // Make sure the sprite is there.
-            if (!this.storySprites.ContainsKey(imageFile)) {
-                Logger.Log("no sprite found " + imageFile);
-                Logger.Log(this.storySprites.Count);
-                return null;
-            } else {
-                Logger.Log("found this sprite!!!");
-                return this.storySprites[imageFile];   
-            }
-        }
-    }
-
     private void loadTitlePage(SceneDescription description) {
         // Load the into the title panel without worrying about anything except
         // for fitting the space and making the aspect ratio correct.
@@ -208,7 +170,7 @@ public class StoryManager : MonoBehaviour {
                   this.titlePanelAspectRatio;
 
         Logger.Log("loading title page");
-        newObj.GetComponent<Image>().sprite = this.getSprite(imageFile);
+        newObj.GetComponent<Image>().sprite = this.assetManager.GetSprite(imageFile);
         newObj.GetComponent<Image>().preserveAspect = true;
         this.storyImage = newObj;
     }
@@ -221,7 +183,7 @@ public class StoryManager : MonoBehaviour {
           AspectRatioFitter.AspectMode.FitInParent;
 
         // Set the sprite.
-        Sprite imageSprite = this.getSprite(imageFile);
+        Sprite imageSprite = this.assetManager.GetSprite(imageFile);
         newObj.GetComponent<Image>().sprite = imageSprite;
         newObj.GetComponent<Image>().preserveAspect = true;
         newObj.transform.SetParent(this.graphicsPanel.transform, false);
@@ -415,26 +377,6 @@ public class StoryManager : MonoBehaviour {
         this.audioManager.ToggleAudio();
     }
 
-    // Called by GameController to determine if a particular story's assets have been downloaded.
-    public bool StoryHasBeenDownloaded(string storyName) {
-        return this.downloadedStories.ContainsKey(storyName);
-    }
-
-    // Called by GameController after a new set of assets has been downloaded.
-    // GameController should have called CheckAlreadyDownloaded before attempting to download,
-    // so here we assume that these are new assets. If this happens to be false, the only cost
-    // is overwriting ~15 objects in a dictionary, so it's not the worst.
-    public void StoreDownloadedAssets(string storyName, Dictionary<string, Sprite> newSprites,
-                                      Dictionary<string,AudioClip> newAudioClips) {
-        this.downloadedStories.Add(storyName, true);
-        foreach (KeyValuePair<string, Sprite> s in newSprites) {
-            this.storySprites.Add(s.Key, s.Value);
-        }
-        foreach (KeyValuePair<string, AudioClip> a in newAudioClips) {
-            this.storyAudios.Add(a.Key, a.Value);
-        }
-    }
-
     // Called by GameController when we should remove all elements we've added
     // to this page (usually in preparration for the creation of another page).
     public void ClearPage() {
@@ -470,7 +412,7 @@ public class StoryManager : MonoBehaviour {
         } else {
             if (description.orientation == ScreenOrientation.Landscape) {
                 // Need to look at aspect ratio to decide between Landscape and LandscapeWide.
-                Texture texture = this.getSprite(description.storyImageFile).texture;
+                Texture texture = this.assetManager.GetSprite(description.storyImageFile).texture;
                 float aspectRatio = (float)texture.width / (float)texture.height;
                 if (aspectRatio > 2.0) {
                     this.setDisplayMode(DisplayMode.LandscapeWide);
