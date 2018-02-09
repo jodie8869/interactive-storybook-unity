@@ -34,6 +34,18 @@ public static class Util {
         return true;
     }
 
+    // Turns a positive integer (0 <= x < 100) into a 2 digit string.
+    public static string TwoDigitStringFromInt(int num) {
+        if (num < 0 || num > 100) {
+            return "";
+        }
+        if (num < 10) {
+            return "0" + num.ToString();
+        } else {
+            return num.ToString();
+        }
+    }
+
     // Gets the sprite for a particular story image file.
     public static Sprite GetStorySprite(string imageFile) {
         string storyName = Util.FileNameToStoryName(imageFile);

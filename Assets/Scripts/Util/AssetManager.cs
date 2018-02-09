@@ -8,23 +8,28 @@ public class AssetManager : MonoBehaviour {
 
     private int expectedNumSprites;
     private int expectedNumAudioClips;
+    private int expectedNumJsons;
     private ConcurrentDictionary<string, Sprite> spritesMidDownload;
     private ConcurrentDictionary<string, AudioClip> audioClipsMidDownload;
+    private ConcurrentDictionary<string, StoryJson> jsonMidDownload;
 
     // The assets we have already downloaded and are storing in memory until the app
     // is shut down.
-    private Dictionary<string, bool> downloadedStories; // Names of stories we have downloaded completely.
+    private Dictionary<string, bool> downloadedStories; // Names of stories we have downloaded assets for (sprites + audio).
     private Dictionary<string, Sprite> storySprites;
     private Dictionary<string, AudioClip> storyAudioClips;
+    private Dictionary<string, List<StoryJson>> storyJsons;
 
     // Use this for initialization
     void Start() {
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
+        this.jsonMidDownload = new ConcurrentDictionary<string, StoryJson>();
 
         this.downloadedStories = new Dictionary<string, bool>();
         this.storySprites = new Dictionary<string, Sprite>();
         this.storyAudioClips = new Dictionary<string, AudioClip>();
+        this.storyJsons = new Dictionary<string, List<StoryJson>>();
     }
 
     // Update is called once per frame
@@ -66,7 +71,32 @@ public class AssetManager : MonoBehaviour {
         }
     }
 
-    // Called by GameController to check if a story has already been downloaded.
+    // Called when GameController wants to get the json files for a story.
+    public List<StoryJson> GetStoryJson(StoryMetadata story) {
+        string storyName = story.GetName();
+        if (Constants.LOAD_ASSETS_LOCALLY) {
+            TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + storyName);
+            List<StoryJson> jsons = new List<StoryJson>();
+            foreach (TextAsset t in textAssets) {
+                jsons.Add(new StoryJson(t.name, t.text));
+            }
+            return jsons;
+        } else {
+            if (!this.storyJsons.ContainsKey(storyName)) {
+                Logger.Log("No json files found for " + storyName);
+                return null;
+            } else {
+                return this.storyJsons[storyName];
+            }
+        }
+    }
+
+    // Called by GameController to check if the json of a story has already been downloaded.
+    public bool JsonHasBeenDownloaded(string storyName) {
+        return this.storyJsons.ContainsKey(storyName);
+    }
+
+    // Called by GameController to check if a story's assets has already been downloaded.
     public bool StoryHasBeenDownloaded(string storyName) {
         return this.downloadedStories.ContainsKey(storyName);
     }
@@ -91,6 +121,27 @@ public class AssetManager : MonoBehaviour {
             StartCoroutine(downloadImage(storyName, imageFile, onDownloadComplete, false));
         }
         yield return null;
+    }
+
+    // Called to download story json files.
+    public IEnumerator DownloadStoryJson(StoryMetadata story,
+                                         Action<Dictionary<string, StoryJson>> onDownloadComplete) {
+        string storyName = story.GetName();
+        int numPages = story.GetNumPages();
+        if (this.storyJsons.ContainsKey(storyName)) {
+            Logger.Log("Not downloading json files, already have them: " + storyName);
+            yield return null;
+        } else {
+            Logger.Log("Downloading json files for " + storyName);
+            this.jsonMidDownload.Clear();
+            this.expectedNumJsons = numPages;
+
+            for (int i = 0; i < numPages; i ++) {
+                string jFile = storyName + "_" + Util.TwoDigitStringFromInt(i + 1);
+                StartCoroutine(downloadJson(storyName, jFile, onDownloadComplete));
+            }
+
+        }
     }
 
     // Called to download the images and audio files needed for a particular story.
@@ -142,14 +193,14 @@ public class AssetManager : MonoBehaviour {
         this.spritesMidDownload[imageFile] = sprite;
         this.storySprites[imageFile] = sprite;
         Logger.Log("completed download of image " + imageFile);
-        this.checkEntireDownloadComplete(onDownloadComplete, storyName, wholeStory);
+        this.checkStoryAssetDownloadComplete(onDownloadComplete, storyName, wholeStory);
     }
 
     private IEnumerator downloadAudio(string storyName, string audioFile,
                                       Action<Dictionary<string, Sprite>,
                                       Dictionary<string, AudioClip>> onDownloadComplete,
                                       bool wholeStory=true) {
-        string url = "https://s3.amazonaws.com/storycorpus-audio/" + storyName + "/" + audioFile + ".wav";
+        string url = Constants.AUDIO_BASE_URL + storyName + "/" + audioFile + ".wav";
         Logger.Log("started downloaded of audio " + audioFile);
         WWW www = new WWW(url);
         yield return www;
@@ -157,12 +208,25 @@ public class AssetManager : MonoBehaviour {
         this.audioClipsMidDownload[audioFile] = audioClip;
         this.storyAudioClips[audioFile] = audioClip;
         Logger.Log("completed downloaded of audio " + audioFile);
-        this.checkEntireDownloadComplete(onDownloadComplete, storyName, wholeStory);
+        this.checkStoryAssetDownloadComplete(onDownloadComplete, storyName, wholeStory);
+    }
+
+    private IEnumerator downloadJson(string storyName, string jsonFile,
+                                     Action<Dictionary<string, StoryJson>> onDownloadComplete) {
+        string url = Constants.JSON_BASE_URL + storyName + '/' + jsonFile + ".json";
+        Logger.Log("started download of json " + url);
+        WWW www = new WWW(url);
+        yield return www;
+        StoryJson json = new StoryJson(jsonFile, www.text);
+        Logger.Log(jsonFile);
+        Logger.Log(www.text);
+        this.jsonMidDownload[jsonFile] = json;
+        this.checkJsonDownloadComplete(storyName, onDownloadComplete);
     }
 
     // If all files have been downloaded, call the onDownloadComplete callback with the newly
     // downloaded assets, and then clear them out of our local concurrent dictionaries.
-    public void checkEntireDownloadComplete(Action<Dictionary<string, Sprite>,
+    public void checkStoryAssetDownloadComplete(Action<Dictionary<string, Sprite>,
                                             Dictionary<string, AudioClip>> onDownloadComplete,
                                             string storyName=null, bool wholeStory=true) {
         if (this.spritesMidDownload.Count == this.expectedNumSprites &&
@@ -183,6 +247,26 @@ public class AssetManager : MonoBehaviour {
 
             this.spritesMidDownload.Clear();
             this.audioClipsMidDownload.Clear();
+        }
+    }
+
+    // If all json files have been downloaded, then call the callback and make sure to save the
+    // downloaded files in this.storyJsons.
+    public void checkJsonDownloadComplete(string storyName,
+                                          Action<Dictionary<string, StoryJson>> onDownloadComplete) {
+        if (this.jsonMidDownload.Count == this.expectedNumJsons) {
+            // Save them all.
+            this.storyJsons[storyName] = new List<StoryJson>();
+            foreach (KeyValuePair<string, StoryJson> j in this.jsonMidDownload) {
+                this.storyJsons[storyName].Add(j.Value);
+            }
+
+            Dictionary<string, StoryJson> nonConcurrentJsons =
+                new Dictionary<string, StoryJson>(this.jsonMidDownload);
+            onDownloadComplete(nonConcurrentJsons);
+
+            this.jsonMidDownload.Clear();
+
         }
     }
 }

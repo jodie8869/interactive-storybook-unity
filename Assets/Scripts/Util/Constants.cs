@@ -37,6 +37,8 @@ public static class Constants
 
     // Download URLs.
     public static string IMAGE_BASE_URL = "https://s3.amazonaws.com/storycorpus-images-without-text/images/";
+    public static string AUDIO_BASE_URL = "https://s3.amazonaws.com/storycorpus-audio/";
+    public static string JSON_BASE_URL = "https://s3.amazonaws.com/storycorpus-interactive-storybook-json/";
 }
 
 // Display Modes.

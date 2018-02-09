@@ -184,15 +184,27 @@ public class GameController : MonoBehaviour {
 
     private void startStory(StoryMetadata story) {
         this.storyName = story.GetName();
-        // TODO: will need to download story json here.
-        TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + this.storyName);
+
+        // Check if we need to download the json files.
+        if (!Constants.LOAD_ASSETS_LOCALLY && !this.assetManager.JsonHasBeenDownloaded(story.GetName())) {
+            StartCoroutine(this.assetManager.DownloadStoryJson(story, (_) => {
+                List<StoryJson> storyJsons = this.assetManager.GetStoryJson(story);
+                this.startStoryHelper(story, storyJsons);    
+            }));
+        } else {
+            List<StoryJson> storyJsons = this.assetManager.GetStoryJson(story);
+            this.startStoryHelper(story, storyJsons);
+        }
+    }
+
+    private void startStoryHelper(StoryMetadata story, List<StoryJson> storyJsons) {
         // Sort to ensure pages are in order.
-        Array.Sort(textAssets, (f1, f2) => string.Compare(f1.name, f2.name));
+        storyJsons.Sort((s1, s2) => string.Compare(s1.GetName(), s2.GetName()));
         this.storyPages.Clear();
         // Figure out the orientation of this story and tell SceneDescription.
         this.setOrientation(story.GetOrientation());
-        foreach (TextAsset text in textAssets) {
-            this.storyPages.Add(new SceneDescription(text.text, this.orientation));
+        foreach (StoryJson json in storyJsons) {
+            this.storyPages.Add(new SceneDescription(json.GetText(), this.orientation));
         }
         this.setOrientation(this.orientation);
         this.changeButtonText(this.nextButton, "Begin Story!");
