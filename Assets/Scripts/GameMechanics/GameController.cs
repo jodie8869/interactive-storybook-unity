@@ -66,16 +66,13 @@ public class GameController : MonoBehaviour {
     private bool downloadedTitles = false;
 
     // List of stories to populate dropdown.
-    private List<string> stories;
+    private List<StoryMetadata> stories;
 
     // Stores the scene descriptions for the current story.
     private string storyName;
     private ScreenOrientation orientation;
     private List<SceneDescription> storyPages;
     private int currentPageNumber = 0; // 0-indexed, index into this.storyPages.
-
-    // Orientations of each story. TODO: read from file, for now just hardcode.
-    private Dictionary<string, ScreenOrientation> orientations;
 
     void Awake()
     {
@@ -122,12 +119,11 @@ public class GameController : MonoBehaviour {
         this.resizePanelsOnStartup();
 
         this.storyPages = new List<SceneDescription>();
-        this.orientations = new Dictionary<string, ScreenOrientation>();
 
         this.storyManager = GetComponent<StoryManager>();
         this.assetManager = GetComponent<AssetManager>();
 
-        this.stories = new List<string>();
+        this.stories = new List<StoryMetadata>();
         this.initStories();
 
         // TODO: Check if we are using ROS or not.
@@ -172,7 +168,11 @@ public class GameController : MonoBehaviour {
             }
             else
             {
-                StartCoroutine(this.assetManager.DownloadTitlePages(this.stories,
+                List<string> storyNames = new List<string>();
+                foreach (StoryMetadata story in this.stories) {
+                    storyNames.Add(story.GetName());
+                }
+                StartCoroutine(this.assetManager.DownloadTitlePages(storyNames,
                 (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
                 // Callback for when download is complete.
                     this.setupStoryDropdown();
@@ -182,14 +182,15 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    private void startStory(string story) {
-        this.storyName = story;
-        TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + story);
+    private void startStory(StoryMetadata story) {
+        this.storyName = story.GetName();
+        // TODO: will need to download story json here.
+        TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + this.storyName);
         // Sort to ensure pages are in order.
         Array.Sort(textAssets, (f1, f2) => string.Compare(f1.name, f2.name));
         this.storyPages.Clear();
         // Figure out the orientation of this story and tell SceneDescription.
-        this.setOrientation(this.orientations[this.storyName]);
+        this.setOrientation(story.GetOrientation());
         foreach (TextAsset text in textAssets) {
             this.storyPages.Add(new SceneDescription(text.text, this.orientation));
         }
@@ -213,7 +214,7 @@ public class GameController : MonoBehaviour {
             if (!this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
                 this.showElement(this.loadingBar);
                 this.hideElement(this.nextButton.gameObject);
-                StartCoroutine(this.assetManager.DownloadStoryAssets(story, imageFileNames,
+                StartCoroutine(this.assetManager.DownloadStoryAssets(this.storyName, imageFileNames,
                                                                     audioFileNames, this.onSelectedStoryDownloaded));
             } else {
                 // The assets have already been downloaded, so just begin the story.
@@ -367,10 +368,10 @@ public class GameController : MonoBehaviour {
     private void setupStoryDropdown() {
         this.storyDropdown.ClearOptions();
         List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-        foreach (string story in this.stories) {
+        foreach (StoryMetadata story in this.stories) {
             // Get human readable text and load the image.
             Dropdown.OptionData newOption = new Dropdown.OptionData();
-            newOption.text = Util.HumanReadableStoryName(story);
+            newOption.text = story.GetHumanReadableName();
             newOption.image = Util.GetTitleSprite(story);
             options.Add(newOption);
         }
@@ -389,27 +390,17 @@ public class GameController : MonoBehaviour {
     }
 
     private void initStories() {
-        // TODO: Read storynames and their orientations here.
-        // Create a stories metadata file with this info.
-        this.stories.Add("the_hungry_toad");
-        //this.stories.Add("possum_and_the_peeper");
-        this.stories.Add("will_clifford_win");
-        this.stories.Add("henrys_happy_birthday");
-        this.stories.Add("freda_says_please");
-        this.stories.Add("jazz_class");
-        //this.stories.Add("baby_ducks_new_friend");
-        this.stories.Add("a_rain_forest_day");
-        this.stories.Add("a_cub_can");
-        // Set up the orientations.
-        this.orientations["the_hungry_toad"] = ScreenOrientation.Landscape;
-        //this.orientations["possum_and_the_peeper"] =  ScreenOrientation.Landscape;
-        this.orientations["will_clifford_win"] = ScreenOrientation.Landscape;
-        this.orientations["henrys_happy_birthday"] = ScreenOrientation.Landscape;
-        this.orientations["freda_says_please"] = ScreenOrientation.Landscape;
-        this.orientations["jazz_class"] = ScreenOrientation.Portrait;
-        //this.orientations["baby_ducks_new_friend"] = ScreenOrientation.Portrait;
-        this.orientations["a_rain_forest_day"] = ScreenOrientation.Portrait;
-        this.orientations["a_cub_can"] = ScreenOrientation.Landscape;
+        // TODO: Read story metadata from the cloud here instead of hardcoding this stuff.
+        // It should all be read from a single file, whose url is known.
+        // In the future, consider using AmazonS3 API to manually read all the buckets.
+        // Don't really want to do that now because it seems like more effort than worth.
+        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("will_clifford_win", 9, "landscape"));
+        this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
+        this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
+        this.stories.Add(new StoryMetadata("jazz_class", 12, "portrait"));
+        this.stories.Add(new StoryMetadata("a_rain_forest_day", 15,"portrait"));
+        this.stories.Add(new StoryMetadata("a_cub_can", 11,"portrait"));
     }
 
 }

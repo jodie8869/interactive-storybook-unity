@@ -101,12 +101,13 @@ public class AssetManager : MonoBehaviour {
                                            List<string> audioFileNames,
                                            Action<Dictionary<string, Sprite>,
                                            Dictionary<string, AudioClip>> onDownloadComplete) {
-
         // Don't redo downloads, this is an extra check, caller should have already verified this.
         if (this.downloadedStories.ContainsKey(storyName)) {
+            Logger.Log("Not downloading story assets, already have them: " + storyName);
             yield return null;
         } else {
             // Duplication of clearing, but just to be safe.
+            Logger.Log("Downloading story assets: " + storyName);
             this.spritesMidDownload.Clear();
             this.audioClipsMidDownload.Clear();
 
@@ -114,9 +115,11 @@ public class AssetManager : MonoBehaviour {
             this.expectedNumAudioClips = audioFileNames.Count;
 
             foreach (string iFile in imageFileNames) {
+                Logger.Log(iFile);
                 StartCoroutine(downloadImage(storyName, iFile, onDownloadComplete));
             }
             foreach (string aFile in audioFileNames) {
+                Logger.Log(aFile);
                 StartCoroutine(downloadAudio(storyName, aFile, onDownloadComplete));
             }
             yield return null;
@@ -130,6 +133,7 @@ public class AssetManager : MonoBehaviour {
         string url = Constants.IMAGE_BASE_URL + storyName + "/" + imageFile + ".png?raw=1";
         // Using yield return for the new www object will wait until the download is complete
         // but without blocking the rest of the game.
+        Logger.Log("started download of image " + imageFile);
         WWW www = new WWW(url);
         yield return www;
         Sprite sprite = Sprite.Create(www.texture,
@@ -146,6 +150,7 @@ public class AssetManager : MonoBehaviour {
                                       Dictionary<string, AudioClip>> onDownloadComplete,
                                       bool wholeStory=true) {
         string url = "https://s3.amazonaws.com/storycorpus-audio/" + storyName + "/" + audioFile + ".wav";
+        Logger.Log("started downloaded of audio " + audioFile);
         WWW www = new WWW(url);
         yield return www;
         AudioClip audioClip = www.GetAudioClip();

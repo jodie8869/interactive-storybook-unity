@@ -58,8 +58,8 @@ public static class Util {
     }
 
     // Get the title page sprite for a story name.
-    public static Sprite GetTitleSprite(string story) {
-        return Util.GetStorySprite(story + "_01");
+    public static Sprite GetTitleSprite(StoryMetadata story) {
+        return Util.GetStorySprite(story.GetName() + "_01");
     }
 
     // Return true if the two positions (rectangles) overlap enough that we

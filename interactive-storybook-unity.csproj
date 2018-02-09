@@ -262,6 +262,7 @@
     <Compile Include="Assets\Scripts\Util\AssetManager.cs" />
     <Compile Include="Assets\Scripts\Util\Constants.cs" />
     <Compile Include="Assets\Scripts\Util\Logger.cs" />
+    <Compile Include="Assets\Scripts\Util\StoryMetadata.cs" />
     <Compile Include="Assets\Scripts\Util\Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
