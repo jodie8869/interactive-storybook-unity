@@ -55,6 +55,9 @@ public class GameController : MonoBehaviour {
     public Button connectButton;
     private RosManager ros;
 
+    // RosManager for handling connection to Ros, sending messages, etc.
+    private RosManager rosManager;
+
     // Reference to SceneManager so we can load and manipulate story scenes.
     private StoryManager storyManager;
 
@@ -130,6 +133,16 @@ public class GameController : MonoBehaviour {
         // TODO: Check if we are using ROS or not.
         // Either launch the splash screen to connect to ROS, or go straight
         // into the story selection process.
+
+        if (Constants.USE_ROS) {
+            this.rosManager = new RosManager(Constants.DEFAULT_ROSBRIDGE_IP,
+                                             Constants.DEFAULT_ROSBRIDGE_PORT, this);
+            // TODO: move this to when someone clicks the connect to ROS button.
+            if (this.rosManager.Connect()) {
+                Logger.Log("Sent hello world status: " + this.rosManager.SendHelloWorld());
+            }
+
+        }
 
         this.storyManager.SetAutoplay(true);
 

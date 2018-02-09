@@ -1,22 +1,21 @@
 ﻿<Properties StartupConfiguration="{BE773929-B95A-B392-E269-3DE0AFC1ECA5}|">
   <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GameMechanics/StoryManager.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Ros/RosManager.cs">
     <Files>
       <File FileName="Assets/Scripts/GameMechanics/GameController.cs" Line="154" Column="44" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/TinkerText.cs" Line="115" Column="5" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/SceneObjectManipulator.cs" Line="68" Column="58" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/Sentence.cs" Line="25" Column="2" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/Stanza.cs" Line="86" Column="1" />
-      <File FileName="Assets/Scripts/Ros/RosbridgeWebSocketClient.cs" Line="77" Column="43" />
-      <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="102" Column="46" />
-      <File FileName="Assets/Scripts/Util/Constants.cs" Line="42" Column="2" NotebookId="1" />
+      <File FileName="Assets/Scripts/Ros/RosbridgeWebSocketClient.cs" Line="226" Column="22" />
+      <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="51" Column="46" />
+      <File FileName="Assets/Scripts/Ros/RosbridgeUtilities.cs" Line="55" Column="46" />
+      <File FileName="Assets/Scripts/Util/Constants.cs" Line="34" Column="35" NotebookId="1" />
       <File FileName="Assets/Scripts/Util/Util.cs" Line="43" Column="5" NotebookId="1" />
-      <File FileName="Assets/Scripts/Ros/RosbridgeUtilities.cs" Line="38" Column="23" NotebookId="1" />
       <File FileName="Assets/Scripts/GameMechanics/StanzaManager.cs" Line="160" Column="51" NotebookId="1" />
       <File FileName="Assets/Scripts/GameMechanics/StoryAudioManager.cs" Line="80" Column="6" NotebookId="1" />
-      <File FileName="Assets/Scripts/Util/AssetDownloader.cs" Line="34" Column="48" NotebookId="1" />
       <File FileName="Assets/Scripts/GameMechanics/SceneDescription.cs" Line="119" Column="54" NotebookId="1" />
-      <File FileName="Assets/Scripts/Ros/RosManager.cs" Line="30" Column="1" NotebookId="1" />
+      <File FileName="Assets/Scripts/Ros/RosManager.cs" Line="38" Column="35" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
