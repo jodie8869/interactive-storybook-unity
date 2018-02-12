@@ -121,6 +121,7 @@ public class StanzaManager : MonoBehaviour {
             // Check for phrase endings.
             if (Util.WordShouldEndStanza(tinkerText.word)) {
                 this.prevWordEndsPhrase = true;
+                this.isMidPhrase = false;
                 // Set the end timestamp of this stanza. It will be overwritten later if
                 // a phrase is moved out of this stanza to the next one.
                 this.lastPhraseStartStanza.GetComponent<Stanza>().SetEndTimestamp(
@@ -146,7 +147,7 @@ public class StanzaManager : MonoBehaviour {
             // Reset remainingStanzaWidth.
             this.remainingStanzaWidth = this.maxStanzaWidth();
 
-            if (this.stanzaIsOnePhrase) {
+            if (this.stanzaIsOnePhrase && !this.prevWordEndsPhrase) {
                 // Overflow but everything is one phrase, so we can't do anything.
                 // We just set isMidPhrase to true so we know the next stanza is
                 // a continuation of this one.
