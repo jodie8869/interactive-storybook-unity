@@ -65,6 +65,9 @@ public class GameController : MonoBehaviour {
     private AssetManager assetManager;
     private bool downloadedTitles = false;
 
+    // Reference to AudioReocrder for when we need to record child and stream to SpeechACE.
+    private AudioRecorder audioRecorder;
+
     // List of stories to populate dropdown.
     private List<StoryMetadata> stories;
 
@@ -135,7 +138,7 @@ public class GameController : MonoBehaviour {
                                              Constants.DEFAULT_ROSBRIDGE_PORT, this);
             // TODO: move this to when someone clicks the connect to ROS button.
             if (this.rosManager.Connect()) {
-                Logger.Log("Sent hello world status: " + this.rosManager.SendHelloWorld());
+                Logger.Log("Sent hello world, status: " + this.rosManager.SendHelloWorld());
             }
 
         }
@@ -187,6 +190,7 @@ public class GameController : MonoBehaviour {
 
         // Check if we need to download the json files.
         if (!Constants.LOAD_ASSETS_LOCALLY && !this.assetManager.JsonHasBeenDownloaded(story.GetName())) {
+            this.showElement(this.loadingBar);
             StartCoroutine(this.assetManager.DownloadStoryJson(story, (_) => {
                 List<StoryJson> storyJsons = this.assetManager.GetStoryJson(story);
                 this.startStoryHelper(story, storyJsons);    
@@ -224,7 +228,6 @@ public class GameController : MonoBehaviour {
                 audioFileNames.Add(d.audioFile);
             }
             if (!this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
-                this.showElement(this.loadingBar);
                 this.hideElement(this.nextButton.gameObject);
                 StartCoroutine(this.assetManager.DownloadStoryAssets(this.storyName, imageFileNames,
                                                                     audioFileNames, this.onSelectedStoryDownloaded));

@@ -215,7 +215,8 @@ public static class RosbridgeUtilities
 		}
 		// otherwise, we got properties!
 		Logger.Log("[decode ROS msg] deserialized " + msgParamDict.Count + " properties from JSON!");
-		Logger.Log(msgParamDict);
+        msgParams = msgParamDict;
+        Logger.Log(msgParamDict);
 
 	}
 

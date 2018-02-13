@@ -184,7 +184,7 @@ public class AssetManager : MonoBehaviour {
         string url = Constants.IMAGE_BASE_URL + storyName + "/" + imageFile + ".png?raw=1";
         // Using yield return for the new www object will wait until the download is complete
         // but without blocking the rest of the game.
-        Logger.Log("started download of image " + imageFile);
+        //Logger.Log("started download of image " + imageFile);
         WWW www = new WWW(url);
         yield return www;
         Sprite sprite = Sprite.Create(www.texture,
@@ -192,7 +192,7 @@ public class AssetManager : MonoBehaviour {
                                       new Vector2(0, 0));
         this.spritesMidDownload[imageFile] = sprite;
         this.storySprites[imageFile] = sprite;
-        Logger.Log("completed download of image " + imageFile);
+        //Logger.Log("completed download of image " + imageFile);
         this.checkStoryAssetDownloadComplete(onDownloadComplete, storyName, wholeStory);
     }
 
@@ -201,26 +201,27 @@ public class AssetManager : MonoBehaviour {
                                       Dictionary<string, AudioClip>> onDownloadComplete,
                                       bool wholeStory=true) {
         string url = Constants.AUDIO_BASE_URL + storyName + "/" + audioFile + ".wav";
-        Logger.Log("started downloaded of audio " + audioFile);
+        //Logger.Log("started downloaded of audio " + audioFile);
         WWW www = new WWW(url);
         yield return www;
         AudioClip audioClip = www.GetAudioClip();
         this.audioClipsMidDownload[audioFile] = audioClip;
         this.storyAudioClips[audioFile] = audioClip;
-        Logger.Log("completed downloaded of audio " + audioFile);
+        //Logger.Log("completed downloaded of audio " + audioFile);
         this.checkStoryAssetDownloadComplete(onDownloadComplete, storyName, wholeStory);
     }
 
     private IEnumerator downloadJson(string storyName, string jsonFile,
                                      Action<Dictionary<string, StoryJson>> onDownloadComplete) {
         string url = Constants.JSON_BASE_URL + storyName + '/' + jsonFile + ".json";
-        Logger.Log("started download of json " + url);
+        //Logger.Log("started download of json " + url);
         WWW www = new WWW(url);
         yield return www;
         StoryJson json = new StoryJson(jsonFile, www.text);
         Logger.Log(jsonFile);
         Logger.Log(www.text);
         this.jsonMidDownload[jsonFile] = json;
+        Logger.Log("completed download of json " + url);
         this.checkJsonDownloadComplete(storyName, onDownloadComplete);
     }
 

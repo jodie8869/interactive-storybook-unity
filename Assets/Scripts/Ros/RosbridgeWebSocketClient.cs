@@ -274,7 +274,9 @@ public class RosbridgeWebSocketClient
 		{
 			Logger.LogWarning("[websocket] Received byte array in message but we " +
 				"were expecting a string message.");
-		}
+        } else {
+            Logger.Log("[websocket] Received message of unknown type");
+        }
 	}
 
 	/// <summary>

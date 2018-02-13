@@ -34,8 +34,8 @@ public class RosManager {
     }
 
     private void onMessageReceived(object sender, int command, object properties) {
-        Logger.Log("ROS Manager received message " + sender + " " + 
-                   command.ToString() + " " + properties);
+        Logger.Log("ROS Manager received message handler " + sender + " " + 
+                   command.ToString() + " " + ((Dictionary<string, object>)properties)["obj1"]);
 
         // First need to decode, then do something with it. 
 
@@ -44,10 +44,15 @@ public class RosManager {
 
     public bool SendHelloWorld() {
         Logger.Log("Sending hello world");
+        Dictionary<string, object> publish = new Dictionary<string, object>();
+        publish.Add("topic", Constants.STORYBOOK_TO_ROSCORE_TOPIC);
+        publish.Add("op", "publish");
         Dictionary<string, object> message = new Dictionary<string, object>();
-        message.Add("topic", Constants.STORYBOOK_TO_ROSCORE_TOPIC);
-        // Or, have different functions for different messages, and they all end up calling this.
-        return this.rosClient.SendMessage(Json.Serialize(message));
+        message.Add("message", "hello world");
+        message.Add("header", RosbridgeUtilities.GetROSHeader());
+        publish.Add("msg", message);
+        Logger.Log(Json.Serialize(publish));
+        return this.rosClient.SendMessage(Json.Serialize(publish));
     }
 
 }

@@ -7,7 +7,7 @@ public static class Constants
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = false;
+    public static bool USE_ROS = true;
 
     public static float EPSILON = 1e-5f;
 
@@ -24,16 +24,16 @@ public static class Constants
 
     // ROS connection.
     public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.193";
-    public static string DEFAULT_ROSBRIDGE_PORT = "11311";
+    public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // UI things.
     public static Color SceneObjectHighlightColor = new Color(0, 1, 1, 60f / 255);
 
     // ROS topics.
     public static string STORYBOOK_TO_ROSCORE_TOPIC = "/storybook_to_roscore";
-    public static string STORYBOOK_TO_ROSCORE_MESSAGE_TYPE = "STORYBOOK_TO_ROSCORE_MESSAGE_TYPE";
+    public static string STORYBOOK_TO_ROSCORE_MESSAGE_TYPE = "/unity_game_msgs/StorybookGameInfo";
     public static string ROSCORE_TO_STORYBOOK_TOPIC = "/roscore_to_storybook";
-    public static string ROSCORE_TO_STORYBOOK_MESSAGE_TYPE = "STORYBOOK_TO_ROSCORE_MESSAGE_TYPE";
+    public static string ROSCORE_TO_STORYBOOK_MESSAGE_TYPE = "/unity_game_msgs/StorybookCommand";
 
     // Download URLs.
     public static string IMAGE_BASE_URL = "https://s3.amazonaws.com/storycorpus-images-without-text/images/";
