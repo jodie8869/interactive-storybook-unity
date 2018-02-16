@@ -11,12 +11,16 @@
 // GameController is a singleton.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour {
+
+    private bool foo = false;
+    private AudioClip recorded;
 
     // The singleton instance.
     public static GameController instance = null;
@@ -125,6 +129,7 @@ public class GameController : MonoBehaviour {
 
         this.storyManager = GetComponent<StoryManager>();
         this.assetManager = GetComponent<AssetManager>();
+        this.audioRecorder = GetComponent<AudioRecorder>();
 
         this.stories = new List<StoryMetadata>();
         this.initStories();
@@ -251,6 +256,115 @@ public class GameController : MonoBehaviour {
         this.showElement(this.nextButton.gameObject);
     }
 
+        // Show human readable story names and pull title images when possible.
+    private void setupStoryDropdown() {
+        this.storyDropdown.ClearOptions();
+        List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+        foreach (StoryMetadata story in this.stories) {
+            // Get human readable text and load the image.
+            Dropdown.OptionData newOption = new Dropdown.OptionData();
+            newOption.text = story.GetHumanReadableName();
+            newOption.image = Util.GetTitleSprite(story);
+            options.Add(newOption);
+        }
+
+        this.storyDropdown.AddOptions(options);
+    }
+
+    private void showSplashScreen(bool show) {
+        if (show) {
+            this.splashPanel.SetActive(true);
+            this.landscapePanel.SetActive(false);
+            this.portraitPanel.SetActive(false);
+        } else {
+            this.splashPanel.SetActive(false);
+        }
+    }
+
+    // All button handlers.
+    private void onNextButtonClick() {
+        Logger.Log("Next Button clicked.");
+        this.currentPageNumber += 1;
+        this.storyManager.ClearPage();
+        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        if (this.currentPageNumber == 1) {
+            // Special case, need to change the text and show the back button.
+            this.changeButtonText(this.nextButton, "Next Page");
+            this.showElement(this.backButton.gameObject);
+        }
+        if (this.currentPageNumber == this.storyPages.Count - 1) {
+            this.hideElement(this.nextButton.gameObject);
+            this.showElement(this.finishButton.gameObject);
+        }
+	}
+
+    private void onFinishButtonClick() {
+        // For now, just reset and return to the splash screen.
+        this.storyManager.ClearPage();
+        this.storyManager.audioManager.StopAudio();
+        this.currentPageNumber = 0;
+        this.hideElement(this.finishButton.gameObject);
+        this.showElement(this.nextButton.gameObject);
+        this.setLandscapeOrientation();
+        this.showSplashScreen(true);
+    }
+
+    private void onBackButtonClick() {
+        Logger.Log("Back Button clicked.");
+        this.currentPageNumber -= 1;
+        this.storyManager.ClearPage();
+        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        if (this.currentPageNumber == 0) {
+            // Hide the back button because we're at the beginning.
+            this.hideElement(this.backButton.gameObject);
+        }
+        // Switch away from finish story to next button if we backtrack from the last page.
+        if (this.currentPageNumber == this.storyPages.Count - 2) {
+            this.hideElement(this.finishButton.gameObject);
+            this.showElement(this.nextButton.gameObject);
+        }
+    }
+
+    private void onStartStoryClicked() {
+        // Read the selected value of the story dropdown and start that story.
+        //int selectedIdx = this.storyDropdown.value;
+        //this.startStory(this.stories[selectedIdx]);
+        if (!foo)
+        {
+            this.AudioTest();
+            Logger.Log("happens at all?");
+        } else {
+            Logger.Log("second time");
+            Logger.Log(this.recorded.length);
+            this.storyManager.audioManager.LoadAudio(recorded);
+            this.storyManager.audioManager.PlayAudio();
+            Logger.Log("Audio test over");
+        }
+    }
+
+    // All ROS message handlers.
+    // They should add tasks to the task queue.
+    // Don't worry about this yet. Use ROS Manager class to handle this.
+
+    private void onStopReadingReceived() {
+        // Robot wants to intervene, so we should stop the automatic reading.    
+    }
+
+    // Helpers.
+
+    private void AudioTest() {
+        Logger.Log("In audio test");
+        StartCoroutine(this.audioRecorder.RecordForDuration(3, (clip) => {
+            recorded = clip;
+            foo = true;
+        }));
+        Logger.Log("happens without blocking??");
+    }
+
+    private void toggleAudio() {
+        this.storyManager.ToggleAudio();
+    }
+
     private void changeButtonText(Button button, string text) {
         button.GetComponentInChildren<Text>().text = text;
     }
@@ -315,93 +429,6 @@ public class GameController : MonoBehaviour {
         this.finishButton = this.portraitFinishButton;
         this.toggleAudioButton = this.portraitToggleAudioButton;
         Screen.orientation = ScreenOrientation.Portrait;
-    }
-
-    // All UI handlers.
-    private void onNextButtonClick() {
-        Logger.Log("Next Button clicked.");
-        this.currentPageNumber += 1;
-        this.storyManager.ClearPage();
-        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
-        if (this.currentPageNumber == 1) {
-            // Special case, need to change the text and show the back button.
-            this.changeButtonText(this.nextButton, "Next Page");
-            this.showElement(this.backButton.gameObject);
-        }
-        if (this.currentPageNumber == this.storyPages.Count - 1) {
-            this.hideElement(this.nextButton.gameObject);
-            this.showElement(this.finishButton.gameObject);
-        }
-	}
-
-    private void onFinishButtonClick() {
-        // For now, just reset and return to the splash screen.
-        this.storyManager.ClearPage();
-        this.storyManager.audioManager.StopAudio();
-        this.currentPageNumber = 0;
-        this.hideElement(this.finishButton.gameObject);
-        this.showElement(this.nextButton.gameObject);
-        this.setLandscapeOrientation();
-        this.showSplashScreen(true);
-    }
-
-    private void onBackButtonClick() {
-        Logger.Log("Back Button clicked.");
-        this.currentPageNumber -= 1;
-        this.storyManager.ClearPage();
-        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
-        if (this.currentPageNumber == 0) {
-            // Hide the back button because we're at the beginning.
-            this.hideElement(this.backButton.gameObject);
-        }
-        // Switch away from finish story to next button if we backtrack from the last page.
-        if (this.currentPageNumber == this.storyPages.Count - 2) {
-            this.hideElement(this.finishButton.gameObject);
-            this.showElement(this.nextButton.gameObject);
-        }
-    }
-
-    private void onStartStoryClicked() {
-        // Read the selected value of the story dropdown and start that story.
-        int selectedIdx = this.storyDropdown.value;
-        this.startStory(this.stories[selectedIdx]);
-    }
-
-    // All ROS message handlers.
-    // They should add tasks to the task queue.
-    // Don't worry about this yet. Use ROS Manager class to handle this.
-
-    private void onStopReadingReceived() {
-        // Robot wants to intervene, so we should stop the automatic reading.    
-    }
-
-    private void toggleAudio() {
-        this.storyManager.ToggleAudio();
-    }
-
-    // Show human readable story names and pull title images when possible.
-    private void setupStoryDropdown() {
-        this.storyDropdown.ClearOptions();
-        List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-        foreach (StoryMetadata story in this.stories) {
-            // Get human readable text and load the image.
-            Dropdown.OptionData newOption = new Dropdown.OptionData();
-            newOption.text = story.GetHumanReadableName();
-            newOption.image = Util.GetTitleSprite(story);
-            options.Add(newOption);
-        }
-
-        this.storyDropdown.AddOptions(options);
-    }
-
-    private void showSplashScreen(bool show) {
-        if (show) {
-            this.splashPanel.SetActive(true);
-            this.landscapePanel.SetActive(false);
-            this.portraitPanel.SetActive(false);
-        } else {
-            this.splashPanel.SetActive(false);
-        }
     }
 
     private void initStories() {

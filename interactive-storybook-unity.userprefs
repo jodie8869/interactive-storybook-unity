@@ -1,23 +1,24 @@
 ﻿<Properties StartupConfiguration="{BE773929-B95A-B392-E269-3DE0AFC1ECA5}|">
   <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Ros/RosbridgeUtilities.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Util/AudioRecorder.cs">
     <Files>
-      <File FileName="Assets/Scripts/GameMechanics/GameController.cs" Line="140" Column="41" />
+      <File FileName="Assets/Scripts/GameMechanics/GameController.cs" Line="181" Column="46" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/TinkerText.cs" Line="115" Column="5" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/SceneObjectManipulator.cs" Line="68" Column="58" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/Sentence.cs" Line="25" Column="2" />
       <File FileName="Assets/Scripts/GameObjectBehaviours/Stanza.cs" Line="86" Column="1" />
-      <File FileName="Assets/Scripts/Ros/RosbridgeWebSocketClient.cs" Line="255" Column="4" />
+      <File FileName="Assets/Scripts/Ros/RosbridgeWebSocketClient.cs" Line="270" Column="31" />
       <File FileName="Assets/Scripts/GameMechanics/StoryManager.cs" Line="42" Column="54" />
       <File FileName="Assets/Scripts/Util/StoryMetadata.cs" Line="14" Column="39" />
-      <File FileName="Assets/Scripts/Util/Constants.cs" Line="30" Column="79" NotebookId="1" />
-      <File FileName="Assets/Scripts/Util/Util.cs" Line="45" Column="35" NotebookId="1" />
-      <File FileName="Assets/Scripts/GameMechanics/StanzaManager.cs" Line="125" Column="44" NotebookId="1" />
-      <File FileName="Assets/Scripts/GameMechanics/StoryAudioManager.cs" Line="88" Column="57" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/Constants.cs" Line="49" Column="17" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/Util.cs" Line="48" Column="5" NotebookId="1" />
+      <File FileName="Assets/Scripts/GameMechanics/StanzaManager.cs" Line="129" Column="37" NotebookId="1" />
+      <File FileName="Assets/Scripts/GameMechanics/StoryAudioManager.cs" Line="61" Column="79" NotebookId="1" />
       <File FileName="Assets/Scripts/Ros/RosManager.cs" Line="28" Column="10" NotebookId="1" />
-      <File FileName="Assets/Scripts/Util/AssetManager.cs" Line="202" Column="47" NotebookId="1" />
-      <File FileName="Assets/Scripts/Util/AudioRecorder.cs" Line="17" Column="36" NotebookId="1" />
-      <File FileName="Assets/Scripts/Ros/RosbridgeUtilities.cs" Line="125" Column="20" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/AssetManager.cs" Line="1" Column="1" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/AudioRecorder.cs" Line="34" Column="5" NotebookId="1" />
+      <File FileName="Assets/Scripts/Ros/RosbridgeUtilities.cs" Line="218" Column="34" NotebookId="1" />
+      <File FileName="Assets/Scripts/Util/SavWav.cs" Line="57" Column="33" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

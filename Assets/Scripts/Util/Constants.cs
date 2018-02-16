@@ -7,8 +7,9 @@ public static class Constants
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = true;
+    public static bool USE_ROS = false;
 
+    // For float comparison.
     public static float EPSILON = 1e-5f;
 
     // Desired ratio of graphics panel width to entire landscape panel width
@@ -22,12 +23,12 @@ public static class Constants
     //public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.71f;
     public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.5f;
 
-    // ROS connection.
-    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.193";
-    public static string DEFAULT_ROSBRIDGE_PORT = "9090";
-
     // UI things.
     public static Color SceneObjectHighlightColor = new Color(0, 1, 1, 60f / 255);
+
+    // ROS connection information.
+    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.193";
+    public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.
     public static string STORYBOOK_TO_ROSCORE_TOPIC = "/storybook_to_roscore";
