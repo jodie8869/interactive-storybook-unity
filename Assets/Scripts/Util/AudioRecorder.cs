@@ -35,7 +35,7 @@ public class AudioRecorder : MonoBehaviour {
 
     public void EndRecording(Action<AudioClip> callback) {
         Microphone.End(BUILTIN_MICROPHONE);
-        Logger.Log(this.audioClipMidRecord.length);
+        Logger.Log("end recording " + this.audioClipMidRecord.length.ToString());
         callback(this.audioClipMidRecord);
     }
 
@@ -51,39 +51,27 @@ public class AudioRecorder : MonoBehaviour {
         callback(this.audioClipMidRecord);
     }
 
-    public void RecordAndSave(int seconds) {
-        
-    }
-
-    public void EndRecordingAndSave() {
-        
-    }
-
     // The filepath argument is with respect to persistentDataPath, prefix not necessary.
     public void SaveAudioAtPath(string filepath, AudioClip audio) {
         SavWav.Save(Application.persistentDataPath + "/" + filepath, audio);
-
-
-        // Try loading it back.
-        this.LoadAudioLocal(filepath, (AudioClip loadedClip) => {
-            Logger.Log("In callback");
-            // TODO: pass to StoryAudioManager and make it play back to test.
-        });
-
     }
 
     // Same filepath as passed to SaveAudioAtPath().
-    IEnumerator LoadAudioLocal(string filepath, Action<AudioClip> callback) {
+    public IEnumerator LoadAudioLocal(string filepath, Action<AudioClip> callback) {
         string path = Application.persistentDataPath + "/" + filepath;
         if (System.IO.File.Exists(path)) {
-            WWW www = new WWW(path);
-            yield return www;
-            AudioClip loadedAudio = www.GetAudioClip();
-            Logger.Log("Possibly loaded audio?");
-            callback(loadedAudio);
+            StartCoroutine(loadAudioLocal(path, callback));
         } else {
-            Logger.Log("File doesn't exist");
-            yield return null;
+            Logger.Log("File doesn't exist, sad");
         }
+        yield return null;
+    }
+
+    private IEnumerator loadAudioLocal(string path, Action<AudioClip> callback) {
+        WWW www = new WWW(path);
+        yield return www;
+        AudioClip loadedAudio = www.GetAudioClip();
+        Logger.Log("Possibly loaded audio?");
+        callback(loadedAudio);
     }
 }

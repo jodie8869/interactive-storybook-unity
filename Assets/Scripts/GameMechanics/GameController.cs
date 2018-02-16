@@ -335,10 +335,25 @@ public class GameController : MonoBehaviour {
             Logger.Log("happens at all?");
         } else {
             Logger.Log("second time");
-            Logger.Log(this.recorded.length);
-            this.storyManager.audioManager.LoadAudio(recorded);
-            this.storyManager.audioManager.PlayAudio();
-            Logger.Log("Audio test over");
+            this.audioRecorder.EndRecording((clip) => {
+                Logger.Log("callback!!");
+                //this.storyManager.audioManager.LoadAudio(clip);
+                //this.storyManager.audioManager.PlayAudio();
+                //Logger.Log("Audio test over"); 
+
+
+                // Save it.
+                this.audioRecorder.SaveAudioAtPath("test_audio.wav", clip);
+
+                // Try loading it back.
+                StartCoroutine(this.audioRecorder.LoadAudioLocal("test_audio.wav", (AudioClip loadedClip) => {
+                    Logger.Log("In callback");
+                    Logger.Log(loadedClip.length);
+                    this.storyManager.audioManager.LoadAudio(loadedClip);
+                    this.storyManager.audioManager.PlayAudio();
+                }));
+                Logger.Log("Before callback");
+            });
         }
     }
 
@@ -354,10 +369,12 @@ public class GameController : MonoBehaviour {
 
     private void AudioTest() {
         Logger.Log("In audio test");
-        StartCoroutine(this.audioRecorder.RecordForDuration(3, (clip) => {
-            recorded = clip;
-            foo = true;
-        }));
+        //StartCoroutine(this.audioRecorder.RecordForDuration(3, (clip) => {
+        //    recorded = clip;
+        //    foo = true;
+        //}));
+        this.audioRecorder.StartRecording();
+        foo = true;
         Logger.Log("happens without blocking??");
     }
 

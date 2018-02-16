@@ -66,6 +66,7 @@ public static class SavWav {
         float[] dataFloat = new float[clip.samples * clip.channels];
         clip.GetData(dataFloat, 0);
         clipdata.samplesData = dataFloat;
+        Logger.Log("length of dataFloat " + dataFloat.Length);
         using (var fileStream = CreateEmpty(filepath)) {
             MemoryStream memstrm = new MemoryStream();
             ConvertAndWrite(memstrm, clipdata);
