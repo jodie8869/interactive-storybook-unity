@@ -19,9 +19,6 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour {
 
-    private bool foo = false;
-    private AudioClip recorded;
-
     // The singleton instance.
     public static GameController instance = null;
 
@@ -329,32 +326,14 @@ public class GameController : MonoBehaviour {
         // Read the selected value of the story dropdown and start that story.
         //int selectedIdx = this.storyDropdown.value;
         //this.startStory(this.stories[selectedIdx]);
-        if (!foo)
-        {
-            this.AudioTest();
-            Logger.Log("happens at all?");
-        } else {
-            Logger.Log("second time");
-            this.audioRecorder.EndRecording((clip) => {
-                Logger.Log("callback!!");
-                //this.storyManager.audioManager.LoadAudio(clip);
-                //this.storyManager.audioManager.PlayAudio();
-                //Logger.Log("Audio test over"); 
 
-
-                // Save it.
-                this.audioRecorder.SaveAudioAtPath("test_audio.wav", clip);
-
-                // Try loading it back.
-                StartCoroutine(this.audioRecorder.LoadAudioLocal("test_audio.wav", (AudioClip loadedClip) => {
-                    Logger.Log("In callback");
-                    Logger.Log(loadedClip.length);
-                    this.storyManager.audioManager.LoadAudio(loadedClip);
-                    this.storyManager.audioManager.PlayAudio();
-                }));
-                Logger.Log("Before callback");
-            });
-        }
+        // Test recording, saving and loading an audio clip.
+        StartCoroutine(audioRecorder.RecordForDuration(1, (clip) => {
+            this.audioRecorder.SaveAudioAtPath("test2.wav", clip);
+            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test2.wav");
+            this.storyManager.audioManager.LoadAudio(loadedClip);
+            this.storyManager.audioManager.PlayAudio();
+        }));
     }
 
     // All ROS message handlers.
@@ -366,17 +345,6 @@ public class GameController : MonoBehaviour {
     }
 
     // Helpers.
-
-    private void AudioTest() {
-        Logger.Log("In audio test");
-        //StartCoroutine(this.audioRecorder.RecordForDuration(3, (clip) => {
-        //    recorded = clip;
-        //    foo = true;
-        //}));
-        this.audioRecorder.StartRecording();
-        foo = true;
-        Logger.Log("happens without blocking??");
-    }
 
     private void toggleAudio() {
         this.storyManager.ToggleAudio();

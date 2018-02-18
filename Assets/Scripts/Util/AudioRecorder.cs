@@ -16,7 +16,6 @@ public class AudioRecorder : MonoBehaviour {
 
     // Use this for initialization
 	void Start() {
-        Logger.Log(Microphone.devices);
         for (int i = 0; i < Microphone.devices.Length; i++) {
             Logger.Log(Microphone.devices[i]);
         }
@@ -35,7 +34,7 @@ public class AudioRecorder : MonoBehaviour {
 
     public void EndRecording(Action<AudioClip> callback) {
         Microphone.End(BUILTIN_MICROPHONE);
-        Logger.Log("end recording " + this.audioClipMidRecord.length.ToString());
+        Logger.Log("end recording with length " + this.audioClipMidRecord.length.ToString());
         callback(this.audioClipMidRecord);
     }
 
@@ -53,25 +52,34 @@ public class AudioRecorder : MonoBehaviour {
 
     // The filepath argument is with respect to persistentDataPath, prefix not necessary.
     public void SaveAudioAtPath(string filepath, AudioClip audio) {
-        SavWav.Save(Application.persistentDataPath + "/" + filepath, audio);
+        string path = Application.persistentDataPath + "/" + filepath;
+        SavWav.Save(path, audio);
     }
 
     // Same filepath as passed to SaveAudioAtPath().
-    public IEnumerator LoadAudioLocal(string filepath, Action<AudioClip> callback) {
+    public AudioClip LoadAudioLocal(string filepath) {
         string path = Application.persistentDataPath + "/" + filepath;
         if (System.IO.File.Exists(path)) {
-            StartCoroutine(loadAudioLocal(path, callback));
+            byte[] audioBytes = System.IO.File.ReadAllBytes(path);
+            int numBytes = audioBytes.Length - SavWav.HEADER_SIZE;
+            if (numBytes % 2 != 0) {
+                Logger.Log("odd number of bytes, something is wrong");
+            }
+            int numSamples = numBytes / 2;
+            // Convert bytes to int.
+            Int16[] audioInts = new Int16[numSamples];
+            // Copy the bytes into the ints, excluding the first HEADER_SIZE bytes.
+            Buffer.BlockCopy(audioBytes, SavWav.HEADER_SIZE, audioInts, 0, audioInts.Length);
+            float[] audioFloats = new float[numSamples];
+            for (int i = 0; i < numSamples; i++) {
+                audioFloats[i] = (float)audioInts[i] / SavWav.RESCALE_FACTOR;
+            }
+            AudioClip newClip = AudioClip.Create(filepath, numSamples, 1, 44100, false);
+            newClip.SetData(audioFloats, 0);
+            return newClip;
         } else {
             Logger.Log("File doesn't exist, sad");
+            return null;
         }
-        yield return null;
-    }
-
-    private IEnumerator loadAudioLocal(string path, Action<AudioClip> callback) {
-        WWW www = new WWW(path);
-        yield return www;
-        AudioClip loadedAudio = www.GetAudioClip();
-        Logger.Log("Possibly loaded audio?");
-        callback(loadedAudio);
     }
 }

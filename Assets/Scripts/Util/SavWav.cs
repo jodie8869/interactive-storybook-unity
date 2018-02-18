@@ -39,7 +39,8 @@ using System.Threading;
 // Used by AudioRecorder as a utility class.
 public static class SavWav {
 
-    const int HEADER_SIZE = 44;
+    public const int HEADER_SIZE = 44;
+    public const float RESCALE_FACTOR = 32767; // to convert float to Int16
 
     struct ClipData {
 
@@ -63,10 +64,10 @@ public static class SavWav {
         ClipData clipdata = new ClipData();
         clipdata.samples = clip.samples;
         clipdata.channels = clip.channels;
+        Logger.Log(clip.samples + " " + clip.channels);
         float[] dataFloat = new float[clip.samples * clip.channels];
-        clip.GetData(dataFloat, 0);
+        clip.GetData(dataFloat, 0); // Fill clipdata starting from beginning of clip.
         clipdata.samplesData = dataFloat;
-        Logger.Log("length of dataFloat " + dataFloat.Length);
         using (var fileStream = CreateEmpty(filepath)) {
             MemoryStream memstrm = new MemoryStream();
             ConvertAndWrite(memstrm, clipdata);
@@ -132,13 +133,12 @@ public static class SavWav {
 
         Byte[] bytesData = new Byte[samples.Length * 2];
 
-        const float rescaleFactor = 32767; //to convert float to Int16
-
         for (int i = 0; i < samples.Length; i++) {
-            intData[i] = (short)(samples[i] * rescaleFactor);
+            intData[i] = (short)(samples[i] * RESCALE_FACTOR);
             //Debug.Log (samples [i]);
         }
         Buffer.BlockCopy(intData, 0, bytesData, 0, bytesData.Length);
+        Logger.Log("number of bytes written for clip data: " + bytesData.Length);
         memStream.Write(bytesData, 0, bytesData.Length);
     }
 
@@ -190,7 +190,7 @@ public static class SavWav {
         fileStream.Write(datastring, 0, 4);
 
         // TODO: deleted "* channels"
-        Byte[] subChunk2 = BitConverter.GetBytes(samples * 2);
+        Byte[] subChunk2 = BitConverter.GetBytes(samples * channels * 2);
         fileStream.Write(subChunk2, 0, 4);
 
         fileStream.Close();
