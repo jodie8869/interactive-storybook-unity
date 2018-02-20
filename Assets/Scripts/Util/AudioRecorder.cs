@@ -29,6 +29,7 @@ public class AudioRecorder : MonoBehaviour {
     // Caller should call EndRecording() to stop the recording.
     public void StartRecording() {
         // Pass null as the device name to use the default microphone. 
+        Logger.Log("start recording");
         this.audioClipMidRecord = Microphone.Start(BUILTIN_MICROPHONE, false, 30, 44100);
     }
 
@@ -45,8 +46,10 @@ public class AudioRecorder : MonoBehaviour {
     }
 
     private IEnumerator recordForDuration(int seconds, Action<AudioClip> callback) {
+        Logger.Log("begin recording for " + seconds + " seconds"); 
         this.audioClipMidRecord = Microphone.Start(BUILTIN_MICROPHONE, false, seconds, 44100);
         yield return new WaitForSeconds(seconds);
+        Logger.Log("finished recording for " + seconds + " seconds");
         callback(this.audioClipMidRecord);
     }
 
