@@ -66,8 +66,10 @@ public class GameController : MonoBehaviour {
     private AssetManager assetManager;
     private bool downloadedTitles = false;
 
-    // Reference to AudioReocrder for when we need to record child and stream to SpeechACE.
+    // Reference to AudioRecorder for when we need to record child and stream to SpeechACE.
     private AudioRecorder audioRecorder;
+    // SpeechAceManager sends web requests and gets responses from SpeechACE.
+    private SpeechAceManager speechAceManager;
 
     // List of stories to populate dropdown.
     private List<StoryMetadata> stories;
@@ -127,6 +129,7 @@ public class GameController : MonoBehaviour {
         this.storyManager = GetComponent<StoryManager>();
         this.assetManager = GetComponent<AssetManager>();
         this.audioRecorder = GetComponent<AudioRecorder>();
+        this.speechAceManager = GetComponent<SpeechAceManager>();
 
         this.stories = new List<StoryMetadata>();
         this.initStories();
@@ -328,12 +331,14 @@ public class GameController : MonoBehaviour {
         //this.startStory(this.stories[selectedIdx]);
 
         // Test recording, saving and loading an audio clip.
-        StartCoroutine(audioRecorder.RecordForDuration(1, (clip) => {
-            this.audioRecorder.SaveAudioAtPath("test2.wav", clip);
-            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test2.wav");
+        StartCoroutine(audioRecorder.RecordForDuration(6, (clip) => {
+            this.audioRecorder.SaveAudioAtPath("test_toad.wav", clip);
+            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test_toad.wav");
             this.storyManager.audioManager.LoadAudio(loadedClip);
             this.storyManager.audioManager.PlayAudio();
+            this.speechAceManager.AnalyzeTextSample("test_toad.wav", "there once was a toad named toad");
         }));
+       
     }
 
     // All ROS message handlers.

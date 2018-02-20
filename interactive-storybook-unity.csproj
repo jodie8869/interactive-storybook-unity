@@ -264,6 +264,7 @@
     <Compile Include="Assets\Scripts\Util\Constants.cs" />
     <Compile Include="Assets\Scripts\Util\Logger.cs" />
     <Compile Include="Assets\Scripts\Util\SavWav.cs" />
+    <Compile Include="Assets\Scripts\Util\SpeechAceManager.cs" />
     <Compile Include="Assets\Scripts\Util\StoryJson.cs" />
     <Compile Include="Assets\Scripts\Util\StoryMetadata.cs" />
     <Compile Include="Assets\Scripts\Util\Util.cs" />
