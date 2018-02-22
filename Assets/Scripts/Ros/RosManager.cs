@@ -4,6 +4,7 @@
 // RosManager heavily relies on RosbridgeUtilities and RosbridgeWebSocketClient.
 
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using MiniJSON;
 
@@ -16,6 +17,8 @@ public class RosManager {
 
     private GameController gameController; // Keep a reference to the game controller.
     private RosbridgeWebSocketClient rosClient;
+    // TODO: note that for now only one handler can be registered per command.
+    private Dictionary<int, Action<Dictionary<string, object>>> commandHandlers;
 
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
@@ -24,6 +27,7 @@ public class RosManager {
 
         this.rosClient = new RosbridgeWebSocketClient(rosIP, portNum);
         this.rosClient.receivedMsgEvent += this.onMessageReceived;
+        this.commandHandlers = new Dictionary<int, Action<Dictionary<string, object>>>();
     }
 
     public bool Connect() {
@@ -38,13 +42,26 @@ public class RosManager {
         return this.rosClient.SendMessage(pubMessage) && this.rosClient.SendMessage(subMessage);
     }
 
+    // Registers a message handler for a particular command the app might receive from the controller. 
+    public void RegisterHandler(int command, Action<Dictionary<string, object>> handler) {
+        this.commandHandlers.Add(command, handler);
+    }
+
     private void onMessageReceived(object sender, int command, object properties) {
         Logger.Log("ROS Manager received message handler " + sender + " " + 
-                   command.ToString() + " " + ((Dictionary<string, object>)properties)["obj1"]);
+                   command.ToString());
 
         // First need to decode, then do something with it. 
 
-        // TODO: Depending on the message type, take some actions.
+        if (this.commandHandlers.ContainsKey(command)) {
+            if (properties == null) {
+                this.commandHandlers[command].Invoke(null); 
+            } else {
+                this.commandHandlers[command].Invoke((Dictionary<string, object>)properties);
+            }
+        } else {
+            Logger.LogError("Don't know how to handle this command: " + command);
+        }
     }
 
     // Simple message to verify connection when we initialize connection to ROS.

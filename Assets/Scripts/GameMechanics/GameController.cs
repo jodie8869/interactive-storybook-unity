@@ -54,7 +54,6 @@ public class GameController : MonoBehaviour {
     // Objects for ROS connection.
     public GameObject rosPanel;
     public Button connectButton;
-    private RosManager ros;
 
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
@@ -145,6 +144,8 @@ public class GameController : MonoBehaviour {
             if (this.rosManager.Connect()) {
                 Logger.Log("Sent hello message, status: " + this.rosManager.SendHelloWorld());
             }
+            // Set up the command handlers.
+            this.rosManager.RegisterHandler(4, this.onHelloWorldAckReceived);
 
         }
 
@@ -327,20 +328,20 @@ public class GameController : MonoBehaviour {
 
     private void onStartStoryClicked() {
         // Read the selected value of the story dropdown and start that story.
-        //int selectedIdx = this.storyDropdown.value;
-        //this.startStory(this.stories[selectedIdx]);
+        int selectedIdx = this.storyDropdown.value;
+        this.startStory(this.stories[selectedIdx]);
 
         // Test recording, saving and loading an audio clip.
         StartCoroutine(audioRecorder.RecordForDuration(2, (clip) => {
             this.audioRecorder.SaveAudioAtPath("test2.wav", clip);
-            this.speechAceManager.AnalyzeTextSample(
+            Logger.Log("in recorder callback");
+            StartCoroutine(this.speechAceManager.AnalyzeTextSample(
                 "test_toad.wav", "there once was a toad named toad",
                 (speechAceResult) => {
                     Logger.Log("in SpeechACE callback");
-                    string dummy = "{\"text_score\":{\"quality_score\":80}}";
-                    this.rosManager.SendSpeechAceResult(dummy);
-
-            });
+                    this.rosManager.SendSpeechAceResult(speechAceResult);
+            }));
+            Logger.Log("happens immediately after recorder callback");
             AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test2.wav");
             this.storyManager.audioManager.LoadAudio(loadedClip);
             this.storyManager.audioManager.PlayAudio();
@@ -353,8 +354,9 @@ public class GameController : MonoBehaviour {
     // They should add tasks to the task queue.
     // Don't worry about this yet. Use ROS Manager class to handle this.
 
-    private void onStopReadingReceived() {
-        // Robot wants to intervene, so we should stop the automatic reading.    
+    private void onHelloWorldAckReceived(Dictionary<string, object> properties) {
+        // Test that this is called from rosManager.
+        Logger.Log("in hello world ack received in game controller");
     }
 
     // Helpers.
