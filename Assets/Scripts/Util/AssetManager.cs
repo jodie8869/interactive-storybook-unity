@@ -126,11 +126,11 @@ public class AssetManager : MonoBehaviour {
     // Called to download story json files.
     public IEnumerator DownloadStoryJson(StoryMetadata story,
                                          Action<Dictionary<string, StoryJson>> onDownloadComplete) {
+        yield return null;
         string storyName = story.GetName();
         int numPages = story.GetNumPages();
         if (this.storyJsons.ContainsKey(storyName)) {
             Logger.Log("Not downloading json files, already have them: " + storyName);
-            yield return null;
         } else {
             Logger.Log("Downloading json files for " + storyName);
             this.jsonMidDownload.Clear();
@@ -140,7 +140,6 @@ public class AssetManager : MonoBehaviour {
                 string jFile = storyName + "_" + Util.TwoDigitStringFromInt(i + 1);
                 StartCoroutine(downloadJson(storyName, jFile, onDownloadComplete));
             }
-
         }
     }
 

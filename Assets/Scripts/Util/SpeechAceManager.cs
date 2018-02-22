@@ -3,6 +3,7 @@
 
 using System.Net;
 using System.IO;
+using System.Threading.Tasks;
 using System.Security.Authentication;
 using UnityEngine;
 using System.Collections;
@@ -25,23 +26,40 @@ public class SpeechAceManager : MonoBehaviour {
 
     // Sends off a request to SpeechACE and deals with the result.
     // Same filename as we used to save recording in AudioRecorder.
-    public void AnalyzeTextSample(string filename, string text, Action<string> callback = null) {
+    public IEnumerator AnalyzeTextSample(string filename, string text, Action<string> callback=null, bool block = false) {
+        if (!block) {
+            yield return null;
+        }
+
         // Get the raw bytes of the audio file.
         string path = Application.persistentDataPath + "/" + filename;
         if (!File.Exists(path)) {
             Logger.Log("No such file " + path);
         }
         byte[] audioBytes = File.ReadAllBytes(path);
-        this.analyzeTextSample(filename, audioBytes, text, callback);
+        StartCoroutine(this.analyzeTextSample(filename, audioBytes, text, callback));
+    
+        if (block) {
+            yield return null;
+        }
     }
 
     // Provide raw bytes of audio data. Filename can be anything but should correspond
     // to the name of a the audio file if we have saved it using AudioRecorder.
-    public void AnalyzeTextSample(string filename, byte[] audioData, string text, Action<string> callback = null) {
-        this.analyzeTextSample(filename, audioData, text, callback);
+    public IEnumerator AnalyzeTextSample(string filename, byte[] audioData, string text, Action<string> callback=null, bool block=false) {
+        // Note: need to yield return null before calling the code that does HTTP requests,
+        // otherwise the calling thread will block, which is not good.
+        if (!block) {
+            yield return null;
+        }
+        StartCoroutine(this.analyzeTextSample(filename, audioData, text, callback));
+        if (block) {
+            yield return null;
+        }
     }
 
-    private void analyzeTextSample(string filename, byte[] audioBytes, string text,  Action<string> callback = null) {
+    private IEnumerator analyzeTextSample(string filename, byte[] audioBytes, string text,  Action<string> callback=null) {
+        // Immediately yield return null so that the calling thread doesn't block.
 
         // Send HTTP request.
         HttpWebRequest request = WebRequest.CreateHttp("http://api.speechace.co/api/scoring/text/v0.1/json?key=po%2Fc4gm%2Bp4KIrcoofC5QoiFHR2BTrgfUdkozmpzHFuP%2BEuoCI1sSoDFoYOCtaxj8N6Y%2BXxYpVqtvj1EeYqmXYSp%2BfgNfgoSr5urt6%2FPQzAQwieDDzlqZhWO2qFqYKslE&user_id=1234&dialect=en-us");
@@ -60,7 +78,7 @@ public class SpeechAceManager : MonoBehaviour {
         requestStream.Close();
 
         Logger.Log("Sending request");
-        HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
         StreamReader reader = new StreamReader(response.GetResponseStream());
         Logger.Log("Got response!");
         string speechAceResult = reader.ReadToEnd();
@@ -70,6 +88,7 @@ public class SpeechAceManager : MonoBehaviour {
         response.Close();
 
         callback?.Invoke(speechAceResult);
+        yield return null;
     }
 
     private void AddStandardFormValue(Stream requestStream, string formFieldName, string value) {
