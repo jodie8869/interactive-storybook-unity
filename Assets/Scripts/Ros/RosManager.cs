@@ -11,6 +11,11 @@ using MiniJSON;
 public enum StoryInfoMessageType {
     HELLO_WORLD = 0,
     SPEECH_ACE_RESULT = 1,
+    REQUEST_ROBOT_FEEDBACK = 2,
+}
+
+public enum StorybookCommand {
+    PING_TEST = 0,
 }
 
 public class RosManager {
@@ -18,7 +23,7 @@ public class RosManager {
     private GameController gameController; // Keep a reference to the game controller.
     private RosbridgeWebSocketClient rosClient;
     // TODO: note that for now only one handler can be registered per command.
-    private Dictionary<int, Action<Dictionary<string, object>>> commandHandlers;
+    private Dictionary<StorybookCommand, Action<Dictionary<string, object>>> commandHandlers;
 
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
@@ -27,7 +32,7 @@ public class RosManager {
 
         this.rosClient = new RosbridgeWebSocketClient(rosIP, portNum);
         this.rosClient.receivedMsgEvent += this.onMessageReceived;
-        this.commandHandlers = new Dictionary<int, Action<Dictionary<string, object>>>();
+        this.commandHandlers = new Dictionary<StorybookCommand, Action<Dictionary<string, object>>>();
     }
 
     public bool Connect() {
@@ -43,16 +48,17 @@ public class RosManager {
     }
 
     // Registers a message handler for a particular command the app might receive from the controller. 
-    public void RegisterHandler(int command, Action<Dictionary<string, object>> handler) {
+    public void RegisterHandler(StorybookCommand command, Action<Dictionary<string, object>> handler) {
         this.commandHandlers.Add(command, handler);
     }
 
-    private void onMessageReceived(object sender, int command, object properties) {
+    private void onMessageReceived(object sender, int cmd, object properties) {
         Logger.Log("ROS Manager received message handler " + sender + " " + 
-                   command.ToString());
+                   cmd.ToString());
+
+        StorybookCommand command = (StorybookCommand)Enum.Parse(typeof(StorybookCommand), cmd.ToString());
 
         // First need to decode, then do something with it. 
-
         if (this.commandHandlers.ContainsKey(command)) {
             if (properties == null) {
                 this.commandHandlers[command].Invoke(null); 

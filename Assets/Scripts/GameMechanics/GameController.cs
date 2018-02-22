@@ -145,7 +145,7 @@ public class GameController : MonoBehaviour {
                 Logger.Log("Sent hello message, status: " + this.rosManager.SendHelloWorld());
             }
             // Set up the command handlers.
-            this.rosManager.RegisterHandler(4, this.onHelloWorldAckReceived);
+            this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
 
         }
 
