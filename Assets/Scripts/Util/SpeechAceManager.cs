@@ -25,23 +25,23 @@ public class SpeechAceManager : MonoBehaviour {
 
     // Sends off a request to SpeechACE and deals with the result.
     // Same filename as we used to save recording in AudioRecorder.
-    public void AnalyzeTextSample(string filename, string text) {
+    public void AnalyzeTextSample(string filename, string text, Action<string> callback = null) {
         // Get the raw bytes of the audio file.
         string path = Application.persistentDataPath + "/" + filename;
         if (!File.Exists(path)) {
             Logger.Log("No such file " + path);
         }
         byte[] audioBytes = File.ReadAllBytes(path);
-        this.analyzeTextSample(filename, audioBytes, text);
+        this.analyzeTextSample(filename, audioBytes, text, callback);
     }
 
     // Provide raw bytes of audio data. Filename can be anything but should correspond
     // to the name of a the audio file if we have saved it using AudioRecorder.
-    public void AnalyzeTextSample(string filename, byte[] audioData, string text) {
-        this.analyzeTextSample(filename, audioData, text);
+    public void AnalyzeTextSample(string filename, byte[] audioData, string text, Action<string> callback = null) {
+        this.analyzeTextSample(filename, audioData, text, callback);
     }
 
-    private void analyzeTextSample(string filename, byte[] audioBytes, string text) {
+    private void analyzeTextSample(string filename, byte[] audioBytes, string text,  Action<string> callback = null) {
 
         // Send HTTP request.
         HttpWebRequest request = WebRequest.CreateHttp("http://api.speechace.co/api/scoring/text/v0.1/json?key=po%2Fc4gm%2Bp4KIrcoofC5QoiFHR2BTrgfUdkozmpzHFuP%2BEuoCI1sSoDFoYOCtaxj8N6Y%2BXxYpVqtvj1EeYqmXYSp%2BfgNfgoSr5urt6%2FPQzAQwieDDzlqZhWO2qFqYKslE&user_id=1234&dialect=en-us");
@@ -63,10 +63,13 @@ public class SpeechAceManager : MonoBehaviour {
         HttpWebResponse response = (HttpWebResponse) request.GetResponse();
         StreamReader reader = new StreamReader(response.GetResponseStream());
         Logger.Log("Got response!");
-        Logger.Log(reader.ReadToEnd());
+        string speechAceResult = reader.ReadToEnd();
+        Logger.Log(speechAceResult);
 
         reader.Close();
         response.Close();
+
+        callback?.Invoke(speechAceResult);
     }
 
     private void AddStandardFormValue(Stream requestStream, string formFieldName, string value) {

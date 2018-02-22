@@ -7,6 +7,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using MiniJSON;
 
+public enum StoryInfoMessageType {
+    HELLO_WORLD = 0,
+    SPEECH_ACE_RESULT = 1,
+}
+
 public class RosManager {
 
     private GameController gameController; // Keep a reference to the game controller.
@@ -42,16 +47,27 @@ public class RosManager {
         // TODO: Depending on the message type, take some actions.
     }
 
+    // Simple message to verify connection when we initialize connection to ROS.
     public bool SendHelloWorld() {
-        Logger.Log("Sending hello world");
+        return this.sendMessageToController(StoryInfoMessageType.HELLO_WORLD, "hello world");
+    }
+
+    // Send the SpeechACE results.
+    public bool SendSpeechAceResult(string jsonResults) {
+        return this.sendMessageToController(StoryInfoMessageType.SPEECH_ACE_RESULT, jsonResults);
+    }
+
+    private bool sendMessageToController(StoryInfoMessageType messageType, string message) {
         Dictionary<string, object> publish = new Dictionary<string, object>();
         publish.Add("topic", Constants.STORYBOOK_TO_ROSCORE_TOPIC);
         publish.Add("op", "publish");
-        Dictionary<string, object> message = new Dictionary<string, object>();
-        message.Add("message", "hello world");
-        message.Add("header", RosbridgeUtilities.GetROSHeader());
-        publish.Add("msg", message);
-        Logger.Log(Json.Serialize(publish));
+        // Build data to send.
+        Dictionary<string, object> data = new Dictionary<string, object>();
+        data.Add("message_type", (int)messageType);
+        data.Add("header", RosbridgeUtilities.GetROSHeader());
+        data.Add("message", message);
+        publish.Add("msg", data);
+        Logger.Log("Sending ROS message: " + Json.Serialize(publish));
         return this.rosClient.SendMessage(Json.Serialize(publish));
     }
 

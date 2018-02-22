@@ -7,7 +7,7 @@ public static class Constants
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = false;
+    public static bool USE_ROS = true;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -27,7 +27,7 @@ public static class Constants
     public static Color SceneObjectHighlightColor = new Color(0, 1, 1, 60f / 255);
 
     // ROS connection information.
-    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.193";
+    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.229";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.

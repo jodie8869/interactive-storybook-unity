@@ -143,7 +143,7 @@ public class GameController : MonoBehaviour {
                                              Constants.DEFAULT_ROSBRIDGE_PORT, this);
             // TODO: move this to when someone clicks the connect to ROS button.
             if (this.rosManager.Connect()) {
-                Logger.Log("Sent hello world, status: " + this.rosManager.SendHelloWorld());
+                Logger.Log("Sent hello message, status: " + this.rosManager.SendHelloWorld());
             }
 
         }
@@ -331,12 +331,20 @@ public class GameController : MonoBehaviour {
         //this.startStory(this.stories[selectedIdx]);
 
         // Test recording, saving and loading an audio clip.
-        StartCoroutine(audioRecorder.RecordForDuration(6, (clip) => {
-            this.audioRecorder.SaveAudioAtPath("test_toad.wav", clip);
-            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test_toad.wav");
+        StartCoroutine(audioRecorder.RecordForDuration(2, (clip) => {
+            this.audioRecorder.SaveAudioAtPath("test2.wav", clip);
+            this.speechAceManager.AnalyzeTextSample(
+                "test_toad.wav", "there once was a toad named toad",
+                (speechAceResult) => {
+                    Logger.Log("in SpeechACE callback");
+                    string dummy = "{\"text_score\":{\"quality_score\":80}}";
+                    this.rosManager.SendSpeechAceResult(dummy);
+
+            });
+            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test2.wav");
             this.storyManager.audioManager.LoadAudio(loadedClip);
             this.storyManager.audioManager.PlayAudio();
-            this.speechAceManager.AnalyzeTextSample("test_toad.wav", "there once was a toad named toad");
+
         }));
        
     }
