@@ -8,12 +8,16 @@ using System;
 using System.Collections.Generic;
 using MiniJSON;
 
+// Messages from the storybook to the controller.
 public enum StoryInfoMessageType {
     HELLO_WORLD = 0,
     SPEECH_ACE_RESULT = 1,
     REQUEST_ROBOT_FEEDBACK = 2,
+    WORD_TAPPED = 3,
 }
 
+// Messages coming from the controller to the storybook.
+// We will need to deal with each one by registering a handler.
 public enum StorybookCommand {
     PING_TEST = 0,
 }
@@ -70,17 +74,32 @@ public class RosManager {
         }
     }
 
+    // Note that these all return Action so that they can be set as click handlers.
+
     // Simple message to verify connection when we initialize connection to ROS.
-    public bool SendHelloWorld() {
-        return this.sendMessageToController(StoryInfoMessageType.HELLO_WORLD, "hello world");
+    public Action SendHelloWorld() {
+        return () => {
+            this.sendMessageToController(StoryInfoMessageType.HELLO_WORLD, "hello world");
+        };
     }
 
     // Send the SpeechACE results.
-    public bool SendSpeechAceResult(string jsonResults) {
-        return this.sendMessageToController(StoryInfoMessageType.SPEECH_ACE_RESULT, jsonResults);
+    public Action SendSpeechAceResult(string jsonResults) {
+        return () => {
+            this.sendMessageToController(StoryInfoMessageType.SPEECH_ACE_RESULT, jsonResults);
+        };
     }
 
-    private bool sendMessageToController(StoryInfoMessageType messageType, string message) {
+    // Send when TinkerText has been tapped.
+    public Action SendTinkerTextTapped(string text) {
+        return () => {
+            Logger.Log("sending tinkertext tapped");
+            this.sendMessageToController(StoryInfoMessageType.WORD_TAPPED, text);
+        };
+    }
+
+    // Send until received.
+    private void sendMessageToController(StoryInfoMessageType messageType, string message) {
         Dictionary<string, object> publish = new Dictionary<string, object>();
         publish.Add("topic", Constants.STORYBOOK_TO_ROSCORE_TOPIC);
         publish.Add("op", "publish");
@@ -91,7 +110,12 @@ public class RosManager {
         data.Add("message", message);
         publish.Add("msg", data);
         Logger.Log("Sending ROS message: " + Json.Serialize(publish));
-        return this.rosClient.SendMessage(Json.Serialize(publish));
+        bool sent = false;
+        while (!sent) {
+            sent = this.rosClient.SendMessage(Json.Serialize(publish));
+        }
     }
+
+
 
 }

@@ -2,8 +2,7 @@
 
 using UnityEngine;
 
-public static class Constants
-{
+public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
@@ -44,9 +43,16 @@ public static class Constants
 
 // Display Modes.
 // Related to ScreenOrientation but also deals with layout of the scene.
-public enum DisplayMode
-{
+public enum DisplayMode {
     LandscapeWide,
     Landscape,
     Portrait
 };
+
+// Game Modes.
+// Determines whether or not the tablet should autoplay the audio, if we should be evaluating
+// the child's speech, if graphics/words are touchable, etc.
+public enum GameMode {
+    Explore, // No evaluation, just ask what is this, what is that?
+    Coaching, // Robot prompts child to read, does evaluation, asks questions.
+}

@@ -15,6 +15,7 @@ public class StoryManager : MonoBehaviour {
     public StoryAudioManager audioManager;
     public StanzaManager stanzaManager;
     private AssetManager assetManager;
+    private RosManager rosManager;
 
 	public GameObject portraitGraphicsPanel;
     public GameObject portraitTextPanel;
@@ -88,6 +89,10 @@ public class StoryManager : MonoBehaviour {
     void Update() {
         // Update whether or not we are accepting user interaction.
         Stanza.allowSwipe = !this.audioManager.IsPlaying();
+    }
+
+    public void SetRosManager(RosManager ros) {
+        this.rosManager = ros;
     }
 
     // Main function to be called by GameController.
@@ -243,6 +248,11 @@ public class StoryManager : MonoBehaviour {
             Instantiate((GameObject)Resources.Load("Prefabs/TinkerText"));
         newTinkerText.GetComponent<TinkerText>()
              .Init(this.tinkerTexts.Count, word, timestamp, isLastWord);
+        // If we're using ROS, attach a click handler to the tinkertext so that there's a message
+        // sent over ROS whenever the user taps on a word.
+        if (Constants.USE_ROS) {
+            newTinkerText.GetComponent<TinkerText>().AddClickHandler(this.rosManager.SendTinkerTextTapped(word));
+        }
         this.tinkerTexts.Add(newTinkerText);
         // Place it correctly within the stanzas.
         this.stanzaManager.AddTinkerText(newTinkerText);
