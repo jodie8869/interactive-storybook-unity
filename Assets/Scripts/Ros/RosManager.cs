@@ -28,6 +28,7 @@ public class RosManager {
     private RosbridgeWebSocketClient rosClient;
     // TODO: note that for now only one handler can be registered per command.
     private Dictionary<StorybookCommand, Action<Dictionary<string, object>>> commandHandlers;
+    private bool connected;
 
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
@@ -48,7 +49,12 @@ public class RosManager {
             Constants.STORYBOOK_TO_ROSCORE_TOPIC, Constants.STORYBOOK_TO_ROSCORE_MESSAGE_TYPE);
         string subMessage = RosbridgeUtilities.GetROSJsonSubscribeMsg(
             Constants.ROSCORE_TO_STORYBOOK_TOPIC, Constants.ROSCORE_TO_STORYBOOK_MESSAGE_TYPE);
-        return this.rosClient.SendMessage(pubMessage) && this.rosClient.SendMessage(subMessage);
+        this.connected = this.rosClient.SendMessage(pubMessage) && this.rosClient.SendMessage(subMessage);
+        return this.connected;
+    }
+
+    public bool isConnected() {
+        return this.connected;
     }
 
     // Registers a message handler for a particular command the app might receive from the controller. 

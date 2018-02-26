@@ -47,13 +47,18 @@ public class GameController : MonoBehaviour {
     public GameObject landscapePanel;
     public GameObject portraitPanel;
 
-    // Objects for Splash Screen, Story Selection and Mode Selection.
-    public GameObject splashPanel;
+    // Objects for Library Screen, Story Selection and Mode Selection.
+    public GameObject libraryPanel;
     public Dropdown storyDropdown;
 
     // Objects for ROS connection.
     public GameObject rosPanel;
-    public Button connectButton;
+    public Button rosConnectButton;
+    public Text rosStatusText;
+    public Text rosInputText;
+    public Text rosPlaceholderText;
+
+    public Button enterLibraryButton;
 
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
@@ -100,24 +105,26 @@ public class GameController : MonoBehaviour {
         // Get references to objects if necessary.
         Logger.Log("Game Controller start");
         this.landscapeNextButton.interactable = true;
-        this.landscapeNextButton.onClick.AddListener(onNextButtonClick);
+        this.landscapeNextButton.onClick.AddListener(this.onNextButtonClick);
         this.portraitNextButton.interactable = true;
-        this.portraitNextButton.onClick.AddListener(onNextButtonClick);
+        this.portraitNextButton.onClick.AddListener(this.onNextButtonClick);
 
         this.landscapeBackButton.interactable = true;
-        this.landscapeBackButton.onClick.AddListener(onBackButtonClick);
+        this.landscapeBackButton.onClick.AddListener(this.onBackButtonClick);
         this.portraitBackButton.interactable = true;
-        this.portraitBackButton.onClick.AddListener(onBackButtonClick);
+        this.portraitBackButton.onClick.AddListener(this.onBackButtonClick);
 
         this.landscapeFinishButton.interactable = true;
-        this.landscapeFinishButton.onClick.AddListener(onFinishButtonClick);
+        this.landscapeFinishButton.onClick.AddListener(this.onFinishButtonClick);
         this.portraitFinishButton.interactable = true;
-        this.portraitFinishButton.onClick.AddListener(onFinishButtonClick);
+        this.portraitFinishButton.onClick.AddListener(this.onFinishButtonClick);
 
-        this.startStoryButton.onClick.AddListener(onStartStoryClicked);
+        this.rosConnectButton.onClick.AddListener(this.onRosConnectButtonClicked);
+        this.enterLibraryButton.onClick.AddListener(this.onEnterLibraryButtonClicked);
+        this.startStoryButton.onClick.AddListener(this.onStartStoryClicked);
 
-        this.landscapeToggleAudioButton.onClick.AddListener(toggleAudio);
-        this.portraitToggleAudioButton.onClick.AddListener(toggleAudio);
+        this.landscapeToggleAudioButton.onClick.AddListener(this.toggleAudio);
+        this.portraitToggleAudioButton.onClick.AddListener(this.toggleAudio);
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -133,24 +140,13 @@ public class GameController : MonoBehaviour {
         this.stories = new List<StoryMetadata>();
         this.initStories();
 
-        // TODO: Check if we are using ROS or not.
-        // Either launch the splash screen to connect to ROS, or go straight
-        // into the story selection process.
+        // Either show the rosPanel to connect to ROS, or wait to go into story selection.
 
         if (Constants.USE_ROS) {
-            this.rosManager = new RosManager(Constants.DEFAULT_ROSBRIDGE_IP,
-                                             Constants.DEFAULT_ROSBRIDGE_PORT, this);
-            this.storyManager.SetRosManager(this.rosManager);
-            // TODO: move this to when someone clicks the connect to ROS button.
-            if (this.rosManager.Connect()) {
-                this.rosManager.SendHelloWorld().Invoke();
-                Logger.Log("Sent hello message");
-            }
-            // Set up the command handlers.
-            this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
-
+            this.setupRosScreen();
         }
 
+        // TODO: figure out when to actually set this, should be dependent on game mode.
         this.storyManager.SetAutoplay(false);
 
     }
@@ -167,30 +163,33 @@ public class GameController : MonoBehaviour {
                 Logger.LogError("Error invoking action on main thread!\n" + e);
             }
         }
-        // Kinda sketch, make sure this happens once after everyone's start
+        // Kinda sketch, make sure this happens once after everyone's Start
         // has been called.
-        if (!this.downloadedTitles) {
+        // TODO: Move some things in other classes to Awake and then call this in Start?
+        if (!this.downloadedTitles && !Constants.USE_ROS) {
             this.downloadedTitles = true;
-            // Set up the dropdown, load splash screen.
-            if (Constants.LOAD_ASSETS_LOCALLY)
-            {
+            // Set up the dropdown, load library panel.
+            if (Constants.LOAD_ASSETS_LOCALLY) {
                 this.setupStoryDropdown();
-                this.showSplashScreen(true);
+                this.showLibraryPanel(true);
             }
-            else
-            {
-                List<string> storyNames = new List<string>();
-                foreach (StoryMetadata story in this.stories) {
-                    storyNames.Add(story.GetName());
-                }
-                StartCoroutine(this.assetManager.DownloadTitlePages(storyNames,
-                (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
-                // Callback for when download is complete.
-                    this.setupStoryDropdown();
-                    this.showSplashScreen(true);
-                }));
+            else {
+                this.downloadStoryTitles();
             }
         }
+    }
+
+    private void downloadStoryTitles() {
+        List<string> storyNames = new List<string>();
+        foreach (StoryMetadata story in this.stories) {
+            storyNames.Add(story.GetName());
+        }
+        StartCoroutine(this.assetManager.DownloadTitlePages(storyNames,
+        (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
+            // Callback for when download is complete.
+            this.setupStoryDropdown();
+            this.showLibraryPanel(true);
+        }));
     }
 
     private void startStory(StoryMetadata story) {
@@ -254,7 +253,7 @@ public class GameController : MonoBehaviour {
 
     private void loadFirstPage() {
         this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
-        this.showSplashScreen(false);
+        this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
         this.showElement(this.nextButton.gameObject);
     }
@@ -274,17 +273,65 @@ public class GameController : MonoBehaviour {
         this.storyDropdown.AddOptions(options);
     }
 
-    private void showSplashScreen(bool show) {
+    private void showLibraryPanel(bool show) {
         if (show) {
-            this.splashPanel.SetActive(true);
+            this.libraryPanel.SetActive(true);
             this.landscapePanel.SetActive(false);
             this.portraitPanel.SetActive(false);
+            this.rosPanel.SetActive(false);
         } else {
-            this.splashPanel.SetActive(false);
+            this.libraryPanel.SetActive(false);
         }
     }
 
+    // Called at startup if Constants.USE_ROS is true.
+    private void setupRosScreen() {
+        // Set placeholder text to be default IP.
+        this.rosPlaceholderText.text = Constants.DEFAULT_ROSBRIDGE_IP;
+        this.rosPanel.SetActive(true);
+        this.landscapePanel.SetActive(false);
+        this.portraitPanel.SetActive(false);
+        this.libraryPanel.SetActive(false);
+    }
+
     // All button handlers.
+    private void onRosConnectButtonClicked() {
+        Logger.Log("Ros Connect Button clicked");
+        string rosbridgeIp = Constants.DEFAULT_ROSBRIDGE_IP;
+        // If user entered a different IP, use it, otherwise stick to default.
+        if (this.rosInputText.text != "") {
+            rosbridgeIp = this.rosInputText.text;
+        }
+        if (this.rosManager == null) {
+            this.rosManager = new RosManager(rosbridgeIp, Constants.DEFAULT_ROSBRIDGE_PORT, this);
+            this.storyManager.SetRosManager(this.rosManager);
+        }
+        // Attempt to connect if not already connected.
+        if (!this.rosManager.isConnected()) {
+            if (this.rosManager.Connect()) {
+                // If connection succesful, update status text.
+                this.rosStatusText.text = "Connected!";
+                this.rosStatusText.color = Color.green;
+                this.hideElement(this.rosConnectButton.gameObject);
+                this.showElement(this.enterLibraryButton.gameObject);
+                this.rosManager.SendHelloWorld().Invoke();
+                Logger.Log("Sent hello message");
+                // Set up the command handlers, happens the first time connection is established.
+                this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
+            } else {
+                this.rosStatusText.text = "Failed to connect, try again.";
+                this.rosStatusText.color = Color.red;
+            }
+        } else {
+            Logger.Log("Already connected to ROS, not trying to connect again");
+        }
+    }
+
+    private void onEnterLibraryButtonClicked() {
+        // Prepares the assets for showing the library, and then displays the panel.
+        this.downloadStoryTitles();
+    }
+
     private void onNextButtonClick() {
         Logger.Log("Next Button clicked.");
         this.currentPageNumber += 1;
@@ -302,14 +349,14 @@ public class GameController : MonoBehaviour {
 	}
 
     private void onFinishButtonClick() {
-        // For now, just reset and return to the splash screen.
+        // For now, just reset and return to the library panel.
         this.storyManager.ClearPage();
         this.storyManager.audioManager.StopAudio();
         this.currentPageNumber = 0;
         this.hideElement(this.finishButton.gameObject);
         this.showElement(this.nextButton.gameObject);
         this.setLandscapeOrientation();
-        this.showSplashScreen(true);
+        this.showLibraryPanel(true);
     }
 
     private void onBackButtonClick() {
@@ -365,6 +412,7 @@ public class GameController : MonoBehaviour {
     }
 
     private void toggleAudio() {
+        // TODO: uncomment this and change it back.
         //this.storyManager.ToggleAudio();
         this.TestAudio();
     }
@@ -383,7 +431,7 @@ public class GameController : MonoBehaviour {
 
     private void resizePanelsOnStartup() {
         // Panels that need to be resized are landscapePanel, portraitPanel,
-        // and splashPanel.
+        // and libraryPanel.
         int width = Util.GetScreenWidth();
         int height = Util.GetScreenHeight();
         Vector2 landscape = new Vector2(width, height);
@@ -391,7 +439,7 @@ public class GameController : MonoBehaviour {
 
         this.landscapePanel.GetComponent<RectTransform>().sizeDelta = landscape;
         this.portraitPanel.GetComponent<RectTransform>().sizeDelta = portrait;
-        this.splashPanel.GetComponent<RectTransform>().sizeDelta = landscape;
+        this.libraryPanel.GetComponent<RectTransform>().sizeDelta = landscape;
     }
 
     private void setOrientation(ScreenOrientation o) {
