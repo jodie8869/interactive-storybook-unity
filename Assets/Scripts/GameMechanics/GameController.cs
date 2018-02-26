@@ -11,6 +11,7 @@
 // GameController is a singleton.
 
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -302,22 +303,20 @@ public class GameController : MonoBehaviour {
         if (this.rosInputText.text != "") {
             rosbridgeIp = this.rosInputText.text;
         }
-        if (this.rosManager == null) {
+        if (this.rosManager == null || !this.rosManager.isConnected()) {
             this.rosManager = new RosManager(rosbridgeIp, Constants.DEFAULT_ROSBRIDGE_PORT, this);
             this.storyManager.SetRosManager(this.rosManager);
-        }
-        // Attempt to connect if not already connected.
-        if (!this.rosManager.isConnected()) {
             if (this.rosManager.Connect()) {
-                // If connection succesful, update status text.
+                // If connection successful, update status text.
                 this.rosStatusText.text = "Connected!";
                 this.rosStatusText.color = Color.green;
                 this.hideElement(this.rosConnectButton.gameObject);
                 this.showElement(this.enterLibraryButton.gameObject);
-                this.rosManager.SendHelloWorld().Invoke();
-                Logger.Log("Sent hello message");
                 // Set up the command handlers, happens the first time connection is established.
                 this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
+                Thread.Sleep(500); // Wait for a bit to make sure connection is established.
+                this.rosManager.SendHelloWorld().Invoke();
+                Logger.Log("Sent hello message");
             } else {
                 this.rosStatusText.text = "Failed to connect, try again.";
                 this.rosStatusText.color = Color.red;

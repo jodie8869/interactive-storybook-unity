@@ -43,10 +43,12 @@ public delegate void ReceivedMessageEventHandler(object sender,
  * */
 public class RosbridgeWebSocketClient
 {
-	private string SERVER = "";
-	private string PORT_NUM = null;
+    private string SERVER = "";
+    private string PORT_NUM = null;
+    public static int CONNECTION_TIMEOUT_SECONDS = 3;
+    public static int MILLISECONDS_UNTIL_RECONNECT_ATTEMPT = 1000;
 	// create a timer to use when trying to reconnect the websocket
-	private System.Timers.Timer timer = new System.Timers.Timer(1000); // in ms
+	private System.Timers.Timer timer = new System.Timers.Timer(MILLISECONDS_UNTIL_RECONNECT_ATTEMPT);
 
 	public event ReceivedMessageEventHandler receivedMsgEvent;
 
@@ -107,7 +109,7 @@ public class RosbridgeWebSocketClient
 
 	/// <summary>
 	/// Set up the web socket for communication through rosbridge
-	/// and register handlers for messages
+	/// and register handlers for messages.
 	/// </summary>
 	public bool SetupSocket()
 	{
@@ -140,8 +142,16 @@ public class RosbridgeWebSocketClient
 			this.clientSocket.OnClose += HandleOnClose;
 
 			Logger.Log("[websocket] connecting to websocket...");
-			// connect to the server
-			this.clientSocket.Connect(); // TODO connectasync?
+
+            // Connect to the server
+            DateTime start = DateTime.Now;
+			this.clientSocket.ConnectAsync();
+            Logger.Log(this.clientSocket.IsAlive);
+            while (!this.clientSocket.IsAlive) {
+                if (DateTime.Now.Subtract(start).TotalSeconds > CONNECTION_TIMEOUT_SECONDS) {
+                    return false;
+                }
+            }
 			return true;
 		}
 		catch (Exception e)
@@ -288,6 +298,8 @@ public class RosbridgeWebSocketClient
 	{
 		Logger.LogError("[websocket] Error in websocket! " + e.Message + "\n" +
 			e.Exception);
+
+        this.clientSocket.Close();
 	}
 
 	/// <summary>
@@ -302,10 +314,12 @@ public class RosbridgeWebSocketClient
 		Logger.Log("[websocket] Websocket closed with status: " + e.Reason +
 			 "\nCode: " + e.Code + "\nClean close? " + e.WasClean);
 
-		// turn on timer so we try reconnecting later
-		// probably sets timer enabled twice - here and in reconnect
-		this.timer.Enabled = true;
-		this.Reconnect();
+		// Begin the timer and attempt reconnect if unless it was an initial connection error,
+        // in which case we allow the user to retry instead of automatically reconnecting.
+        if (e.Code != 1006) {
+            this.timer.Enabled = true;
+            this.Reconnect();   
+        }
 	}
 
 	/// <summary>
