@@ -6,7 +6,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = true;
+    public static bool USE_ROS = false;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;

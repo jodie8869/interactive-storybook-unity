@@ -400,13 +400,14 @@ public class GameController : MonoBehaviour {
                 "test_toad.wav", "there once was a toad named toad",
                 (speechAceResult) => {
                     Logger.Log("in SpeechACE callback");
-                    this.rosManager.SendSpeechAceResult(speechAceResult).Invoke();
+                    if (Constants.USE_ROS) {
+                        this.rosManager.SendSpeechAceResult(speechAceResult).Invoke();
+                    }
                 }));
             Logger.Log("happens immediately after recorder callback");
             AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test2.wav");
             this.storyManager.audioManager.LoadAudio(loadedClip);
             this.storyManager.audioManager.PlayAudio();
-
         }));
     }
 

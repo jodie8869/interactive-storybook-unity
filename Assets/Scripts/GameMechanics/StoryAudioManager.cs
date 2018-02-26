@@ -53,6 +53,7 @@ public class StoryAudioManager : MonoBehaviour {
         foreach (KeyValuePair<float, List<AudioTrigger>> trigger in this.triggers) {
             if (trigger.Key > minCutoffTime &&
                 trigger.Key <= maxCutoffTime) {
+                Logger.Log(trigger.Key + " " + minCutoffTime);
                 // Invoke this trigger's action.
                 foreach (AudioTrigger t in trigger.Value) {
                     if (!t.disallowInvokePastStop) {
@@ -81,6 +82,7 @@ public class StoryAudioManager : MonoBehaviour {
 
     // For StoryManager to call when it's setting up the scene.
     public void AddTrigger(float timestamp, Action action, bool disallowAfterStop = false) {
+        Logger.Log("trigger timestamp " + timestamp);
         if (!this.triggers.ContainsKey(timestamp)) {
             this.triggers[timestamp] = new List<AudioTrigger>();
         }
@@ -145,7 +147,7 @@ public class StoryAudioManager : MonoBehaviour {
         this.audioSource.time = 0;
         this.lastTimestamp = float.MinValue;
         this.currentTimestamp = 0.0f;
-        this.startTimestamp = float.MinValue;
+        this.startTimestamp = 0;
         this.stopTimestamp = float.MaxValue;
     }
 
