@@ -40,7 +40,7 @@ public class AssetManager : MonoBehaviour {
         this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
 
         this.S3GetStoryJson("the_hungry_toad_02");
-        this.S3UploadChildAudio(null);
+        this.S3UploadChildAudio("test_toad.wav");
 
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
@@ -56,7 +56,11 @@ public class AssetManager : MonoBehaviour {
 
     }
 
-    // Happens asynchronously, even though Visual Studio complains, Unity seems to have no issues.
+    // Test downloading a json file from S3.
+    // TODO: think about using S3 API for all of the downloading, right now it's straight WWW.
+    //
+    // Note that this happens asynchronously (caller doesn't block),
+    // and that even though Visual Studio complains, Unity seems to have no issues.
     public async void S3GetStoryJson (string jsonFileName, Action<StoryJson> callback = null) {
         string storyName = Util.FileNameToStoryName(jsonFileName);
         this.s3Client.GetObjectAsync(
@@ -75,19 +79,20 @@ public class AssetManager : MonoBehaviour {
     }
 
     // Upload an audio file to the collected child audio bucket in S3.
-    public async void S3UploadChildAudio(byte[] audioData) {
+    // Argument audioPath should be the same as what was passed into SaveAudioAtPath in AudioRecorder.
+    public async void S3UploadChildAudio(string audioPath) {
         // Use a prefix that includes story, page number, first 2 words of stanza, and date.
-        string path = DateTime.Now.ToString("yyyy-MM-dd") + "/child1/" + "the_hungry_toad/"
-                                               + DateTime.Now.ToString("HH:mm:ss") + "_" + "the_hungry_toad_02_there_once"
-                                               + ".txt";
+        string s3Path = DateTime.Now.ToString("yyyy-MM-dd") + "/child1/" + "the_hungry_toad/"
+                                               + DateTime.Now.ToString("HH:mm:ss") + "_" + "test_toad.wav"
+                                               + ".wav";
         PutObjectRequest request = new PutObjectRequest {
             BucketName = Constants.S3_CHILD_AUDIO_BUCKET,
-            Key = path,
-            ContentBody = "this is a test"
+            Key = s3Path,
+            FilePath = Application.persistentDataPath + "/" + audioPath
         };
         this.s3Client.PutObjectAsync(request, (responseObj) => {
             if (responseObj.Exception == null) {
-                Logger.Log("successful upload " + path);
+                Logger.Log("successful upload " + s3Path);
             } else {
                 Logger.Log("upload failed");
             }

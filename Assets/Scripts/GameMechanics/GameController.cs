@@ -405,7 +405,7 @@ public class GameController : MonoBehaviour {
                     }
                 }));
             Logger.Log("happens immediately after recorder callback");
-            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test2.wav");
+            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test_toad.wav");
             this.storyManager.audioManager.LoadAudio(loadedClip);
             this.storyManager.audioManager.PlayAudio();
         }));
