@@ -1,8 +1,15 @@
 ﻿using UnityEngine;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using Amazon;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Amazon.Runtime;
+using Amazon.CognitoIdentity;
 
 public class AssetManager : MonoBehaviour {
 
@@ -20,8 +27,53 @@ public class AssetManager : MonoBehaviour {
     private Dictionary<string, AudioClip> storyAudioClips;
     private Dictionary<string, List<StoryJson>> storyJsons;
 
+    private AmazonS3Client s3Client;
+    private AWSCredentials awsCredentials;
+
     // Use this for initialization
     void Start() {
+        // TODO: Use credentials, but for now everything is public.
+        Logger.Log("Starting Amazon S3 testing...");
+        // UnityInitializer.AttachToGameObject(this.gameObject);
+        AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
+
+        this.awsCredentials = new CognitoAWSCredentials(
+            Constants.IDENTITY_POOL_ID,
+            RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
+        );
+        this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
+        //try {
+        //    Logger.Log("before");
+        //    Task<Boolean> task = this.s3Client.DoesS3BucketExistAsync("storycorpus-interactive-storybook-json");
+        //    Logger.Log("after");
+        //    task.Wait(2000);
+        //    Logger.Log("after waiting");
+        //    if (task.IsCompleted) {
+        //        Logger.Log(task.Status + " " + task.Result);
+        //    }
+        //} catch (AmazonS3Exception e) {
+        //    Logger.LogError(e);
+        //}
+
+        GetObjectRequest request = new GetObjectRequest{
+            BucketName = "storycorpus-interactive-storybook-json",
+            Key = "the_hungry_toad/the_hungry_toad_01.json"
+        };
+        Logger.Log("hi?");
+        this.s3Client.GetObjectAsync("storycorpus-interactive-storybook-json",
+                                     "the_hungry_toad/the_hungry_toad_01.json",
+                                     (response) =>
+                                     {
+                                         Logger.Log("got a response...");
+                                         using (Stream responseStream = response.Response.ResponseStream)
+                                         using (StreamReader reader = new StreamReader(responseStream))
+                                         {
+                                             string responseBody = reader.ReadToEnd();
+                                             Logger.Log("what the");
+                                             Logger.Log(responseBody);
+                                         }
+                                     });
+
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
         this.jsonMidDownload = new ConcurrentDictionary<string, StoryJson>();

@@ -1,0 +1,281 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETFramework,Version=v4.6": {
+      "AWSSDK.Core/3.3.21.14": {
+        "type": "package",
+        "compile": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        }
+      },
+      "AWSSDK.S3/3.3.17": {
+        "type": "package",
+        "dependencies": {
+          "AWSSDK.Core": "[3.3.21.6, 3.4.0)"
+        },
+        "compile": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        }
+      },
+      "interactive-storybook-unity.Plugins/1.0.0": {
+        "type": "project",
+        "compile": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.6/win": {
+      "AWSSDK.Core/3.3.21.14": {
+        "type": "package",
+        "compile": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        }
+      },
+      "AWSSDK.S3/3.3.17": {
+        "type": "package",
+        "dependencies": {
+          "AWSSDK.Core": "[3.3.21.6, 3.4.0)"
+        },
+        "compile": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        }
+      },
+      "interactive-storybook-unity.Plugins/1.0.0": {
+        "type": "project",
+        "compile": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.6/win-x64": {
+      "AWSSDK.Core/3.3.21.14": {
+        "type": "package",
+        "compile": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        }
+      },
+      "AWSSDK.S3/3.3.17": {
+        "type": "package",
+        "dependencies": {
+          "AWSSDK.Core": "[3.3.21.6, 3.4.0)"
+        },
+        "compile": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        }
+      },
+      "interactive-storybook-unity.Plugins/1.0.0": {
+        "type": "project",
+        "compile": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.6/win-x86": {
+      "AWSSDK.Core/3.3.21.14": {
+        "type": "package",
+        "compile": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.Core.dll": {}
+        }
+      },
+      "AWSSDK.S3/3.3.17": {
+        "type": "package",
+        "dependencies": {
+          "AWSSDK.Core": "[3.3.21.6, 3.4.0)"
+        },
+        "compile": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        },
+        "runtime": {
+          "lib/net45/AWSSDK.S3.dll": {}
+        }
+      },
+      "interactive-storybook-unity.Plugins/1.0.0": {
+        "type": "project",
+        "compile": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/interactive-storybook-unity.Plugins.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AWSSDK.Core/3.3.21.14": {
+      "sha512": "s6gosO9PGHgD/WMFoMIf5UwWUVr51qMac3xTa/23E2m0+VV3+tJmLh/OTVCKH1XtXpBmzDiVb2lfcXyp8JqnxQ==",
+      "type": "package",
+      "path": "awssdk.core/3.3.21.14",
+      "files": [
+        "awssdk.core.3.3.21.14.nupkg.sha512",
+        "awssdk.core.nuspec",
+        "lib/MonoAndroid10/AWSSDK.Core.XML",
+        "lib/MonoAndroid10/AWSSDK.Core.dll",
+        "lib/MonoAndroid10/AWSSDK.Core.pdb",
+        "lib/MonoTouch10/AWSSDK.Core.XML",
+        "lib/MonoTouch10/AWSSDK.Core.dll",
+        "lib/Xamarin.Mac20/AWSSDK.Core.XML",
+        "lib/Xamarin.Mac20/AWSSDK.Core.dll",
+        "lib/Xamarin.iOS10/AWSSDK.Core.XML",
+        "lib/Xamarin.iOS10/AWSSDK.Core.dll",
+        "lib/net35/AWSSDK.Core.dll",
+        "lib/net35/AWSSDK.Core.pdb",
+        "lib/net35/AWSSDK.Core.xml",
+        "lib/net45/AWSSDK.Core.dll",
+        "lib/net45/AWSSDK.Core.pdb",
+        "lib/net45/AWSSDK.Core.xml",
+        "lib/netstandard1.3/AWSSDK.Core.dll",
+        "lib/netstandard1.3/AWSSDK.Core.pdb",
+        "lib/netstandard1.3/AWSSDK.Core.xml",
+        "lib/portable-net45+win8+wpa81+wp8/AWSSDK.Core.XML",
+        "lib/portable-net45+win8+wpa81+wp8/AWSSDK.Core.dll",
+        "lib/portable-net45+win8+wpa81+wp8/AWSSDK.Core.pdb",
+        "lib/uap/AWSSDK.Core.XML",
+        "lib/uap/AWSSDK.Core.dll",
+        "lib/uap/AWSSDK.Core.pdb",
+        "lib/win8/AWSSDK.Core.XML",
+        "lib/win8/AWSSDK.Core.dll",
+        "lib/win8/AWSSDK.Core.pdb",
+        "lib/wp8/AWSSDK.Core.XML",
+        "lib/wp8/AWSSDK.Core.dll",
+        "lib/wp8/AWSSDK.Core.pdb",
+        "lib/wpa81/AWSSDK.Core.XML",
+        "lib/wpa81/AWSSDK.Core.dll",
+        "lib/wpa81/AWSSDK.Core.pdb",
+        "tools/account-management.ps1"
+      ]
+    },
+    "AWSSDK.S3/3.3.17": {
+      "sha512": "7WTwBydVJPZmxvaWt3w84pVDRszzaHCmUtGbDnt9aozpIcRIE5ztUep2t0sJqxA6IMPF9AGysybpNwY2xBNsBQ==",
+      "type": "package",
+      "path": "awssdk.s3/3.3.17",
+      "files": [
+        "analyzers/dotnet/cs/AWSSDK.S3.CodeAnalysis.dll",
+        "awssdk.s3.3.3.17.nupkg.sha512",
+        "awssdk.s3.nuspec",
+        "lib/MonoAndroid10/AWSSDK.S3.XML",
+        "lib/MonoAndroid10/AWSSDK.S3.dll",
+        "lib/MonoTouch10/AWSSDK.S3.XML",
+        "lib/MonoTouch10/AWSSDK.S3.dll",
+        "lib/MonoTouch10/AWSSDK.S3.pdb",
+        "lib/Xamarin.iOS10/AWSSDK.S3.XML",
+        "lib/Xamarin.iOS10/AWSSDK.S3.dll",
+        "lib/net35/AWSSDK.S3.dll",
+        "lib/net35/AWSSDK.S3.pdb",
+        "lib/net35/AWSSDK.S3.xml",
+        "lib/net45/AWSSDK.S3.dll",
+        "lib/net45/AWSSDK.S3.pdb",
+        "lib/net45/AWSSDK.S3.xml",
+        "lib/netstandard1.3/AWSSDK.S3.dll",
+        "lib/netstandard1.3/AWSSDK.S3.pdb",
+        "lib/netstandard1.3/AWSSDK.S3.xml",
+        "lib/portable-net45+win8+wpa81+wp8/AWSSDK.S3.XML",
+        "lib/portable-net45+win8+wpa81+wp8/AWSSDK.S3.dll",
+        "lib/portable-net45+win8+wpa81+wp8/AWSSDK.S3.pdb",
+        "lib/uap/AWSSDK.S3.XML",
+        "lib/uap/AWSSDK.S3.dll",
+        "lib/uap/AWSSDK.S3.pdb",
+        "tools/install.ps1",
+        "tools/uninstall.ps1"
+      ]
+    },
+    "interactive-storybook-unity.Plugins/1.0.0": {
+      "type": "project",
+      "path": "interactive-storybook-unity.Plugins.csproj",
+      "msbuildProject": "interactive-storybook-unity.Plugins.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETFramework,Version=v4.6": [
+      "AWSSDK.Core >= 3.3.21.14",
+      "AWSSDK.S3 >= 3.3.17",
+      "interactive-storybook-unity.Plugins >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/Users/hannalee/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "/Users/hannalee/mit/meng/interactive-storybook-unity/interactive-storybook-unity.csproj",
+      "projectName": "interactive-storybook-unity",
+      "projectPath": "/Users/hannalee/mit/meng/interactive-storybook-unity/interactive-storybook-unity.csproj",
+      "packagesPath": "/Users/hannalee/.nuget/packages/",
+      "outputPath": "/Users/hannalee/mit/meng/interactive-storybook-unity/obj",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/Users/hannalee/.config/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net46"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net46": {
+          "projectReferences": {
+            "/Users/hannalee/mit/meng/interactive-storybook-unity/interactive-storybook-unity.Plugins.csproj": {
+              "projectPath": "/Users/hannalee/mit/meng/interactive-storybook-unity/interactive-storybook-unity.Plugins.csproj"
+            }
+          }
+        }
+      }
+    },
+    "frameworks": {
+      "net46": {
+        "dependencies": {
+          "AWSSDK.Core": {
+            "target": "Package",
+            "version": "3.3.21.14"
+          },
+          "AWSSDK.S3": {
+            "target": "Package",
+            "version": "3.3.17"
+          }
+        }
+      }
+    },
+    "runtimes": {
+      "win": {
+        "#import": []
+      },
+      "win-x64": {
+        "#import": []
+      },
+      "win-x86": {
+        "#import": []
+      }
+    }
+  }
+}

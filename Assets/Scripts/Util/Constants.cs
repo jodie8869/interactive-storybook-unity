@@ -1,6 +1,7 @@
 // This file contains constants for the interactive storybook.
 
 using UnityEngine;
+using Amazon;
 
 public static class Constants {
 
@@ -39,6 +40,11 @@ public static class Constants {
     public static string IMAGE_BASE_URL = "https://s3.amazonaws.com/storycorpus-images-without-text/images/";
     public static string AUDIO_BASE_URL = "https://s3.amazonaws.com/storycorpus-audio/";
     public static string JSON_BASE_URL = "https://s3.amazonaws.com/storycorpus-interactive-storybook-json/";
+
+    // Amazon S3 Information
+    public static string COGNITO_IDENTITY_REGION = RegionEndpoint.USEast1.SystemName;
+    public static string S3_REGION = RegionEndpoint.USEast1.SystemName;
+    public static string IDENTITY_POOL_ID = "us-east-1:f54fdb54-0d47-4b18-b3e3-59d9d19e3fe3";
 }
 
 // Display Modes.
