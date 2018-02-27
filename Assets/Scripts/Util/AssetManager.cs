@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -30,11 +29,8 @@ public class AssetManager : MonoBehaviour {
     private AmazonS3Client s3Client;
     private AWSCredentials awsCredentials;
 
-    // Use this for initialization
     void Start() {
-        // TODO: Use credentials, but for now everything is public.
         Logger.Log("Starting Amazon S3 testing...");
-        // UnityInitializer.AttachToGameObject(this.gameObject);
         AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
 
         this.awsCredentials = new CognitoAWSCredentials(
@@ -42,26 +38,14 @@ public class AssetManager : MonoBehaviour {
             RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
         );
         this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
-        //try {
-        //    Logger.Log("before");
-        //    Task<Boolean> task = this.s3Client.DoesS3BucketExistAsync("storycorpus-interactive-storybook-json");
-        //    Logger.Log("after");
-        //    task.Wait(2000);
-        //    Logger.Log("after waiting");
-        //    if (task.IsCompleted) {
-        //        Logger.Log(task.Status + " " + task.Result);
-        //    }
-        //} catch (AmazonS3Exception e) {
-        //    Logger.LogError(e);
-        //}
 
         GetObjectRequest request = new GetObjectRequest{
             BucketName = "storycorpus-interactive-storybook-json",
             Key = "the_hungry_toad/the_hungry_toad_01.json"
         };
-        Logger.Log("hi?");
-        this.s3Client.GetObjectAsync("storycorpus-interactive-storybook-json",
-                                     "the_hungry_toad/the_hungry_toad_01.json",
+        Logger.Log("here");
+        this.s3Client.GetObjectAsync("storybook-collected-child-audio",
+                                     "test/test.json",
                                      (response) =>
                                      {
                                          Logger.Log("got a response...");
@@ -69,7 +53,6 @@ public class AssetManager : MonoBehaviour {
                                          using (StreamReader reader = new StreamReader(responseStream))
                                          {
                                              string responseBody = reader.ReadToEnd();
-                                             Logger.Log("what the");
                                              Logger.Log(responseBody);
                                          }
                                      });
@@ -84,7 +67,6 @@ public class AssetManager : MonoBehaviour {
         this.storyJsons = new Dictionary<string, List<StoryJson>>();
     }
 
-    // Update is called once per frame
     void Update() {
 
     }

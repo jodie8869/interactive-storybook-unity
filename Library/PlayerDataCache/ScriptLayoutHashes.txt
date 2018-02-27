@@ -113,6 +113,7 @@ bc68edb0af574bf79f9550ead8ebae5c UnityEngine.HoloLens.dll:UnityEngine.Audio.Audi
 c2275a8bfbb9f9942cad75ecdfded41d UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.SpatialMappingCollider
 45f3431f0103c41611e8d4eec3d439df UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.SpatialMappingRenderer
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.AudioRecorder
+6e2af9c7c9e5cbdd03bcbe5a4db40f2f Assembly-CSharp.dll:AWSSDK.Examples.S3Example
 fc1e0f4d8439d9928083474691511a13 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkAnimator
 05524b8f659e7bfe5756d1335fec24ba UnityEngine.Networking.dll:UnityEngine.Networking.NetworkBehaviour
 60b2bb652410a5867a5ab9a01cd38461 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkDiscovery
@@ -142,4 +143,6 @@ c2275a8bfbb9f9942cad75ecdfded41d UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.Spa
 9de3a22eca9aefadba2d10d5987cefe3 UnityEngine.SpatialTracking.dll:UnityEngine.SpatialTracking.TrackedPoseDriver
 a43f98731cd704bc50c225a3d742b8be Assembly-CSharp.dll:.StoryManager
 3c2d5eab443c33d8b9f447ccbd7335c6 Assembly-CSharp.dll:.StanzaManager
+05524b8f659e7bfe5756d1335fec24ba AWSSDK.Core.dll:Amazon.UnityInitializer
+05524b8f659e7bfe5756d1335fec24ba AWSSDK.Core.dll:Amazon.Runtime.Internal.UnityMainThreadDispatcher
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.AssetManager
