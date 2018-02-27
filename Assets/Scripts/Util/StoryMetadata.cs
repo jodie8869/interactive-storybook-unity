@@ -1,5 +1,5 @@
 // This file contains a simple class that represents the metadata of a story.
-// GameController has a list of Story objects, and uses them to populate the dropdown menu.
+// GameController has a list of StoryMetadata objects, and uses them to populate the dropdown menu.
 
 using UnityEngine;
 using System.Collections;

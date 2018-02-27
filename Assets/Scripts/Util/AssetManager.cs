@@ -31,17 +31,6 @@ public class AssetManager : MonoBehaviour {
     private AWSCredentials awsCredentials;
 
     void Start() {
-        Logger.Log("Starting Amazon S3 testing...");
-        AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
-        this.awsCredentials = new CognitoAWSCredentials(
-            Constants.IDENTITY_POOL_ID,
-            RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
-        );
-        this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
-
-        this.S3GetStoryJson("the_hungry_toad_02");
-        this.S3UploadChildAudio("test_toad.wav");
-
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
         this.jsonMidDownload = new ConcurrentDictionary<string, StoryJson>();
@@ -50,6 +39,24 @@ public class AssetManager : MonoBehaviour {
         this.storySprites = new Dictionary<string, Sprite>();
         this.storyAudioClips = new Dictionary<string, AudioClip>();
         this.storyJsons = new Dictionary<string, List<StoryJson>>();
+    
+        Logger.Log("Starting Amazon S3 testing...");
+        AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
+        this.awsCredentials = new CognitoAWSCredentials(
+            Constants.IDENTITY_POOL_ID,
+            RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
+        );
+        this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
+
+        // Testing.
+        this.S3GetStoryJson("the_hungry_toad_02");
+        // this.S3UploadChildAudio("test_toad.wav");
+        this.S3GetAvailableStoryNames((storyMetadatas) => {
+            foreach (StoryMetadata metaData in storyMetadatas) {
+                Logger.Log("Got story metadata with name: " + metaData.GetName());
+            }
+        });
+
     }
 
     void Update() {
@@ -66,7 +73,7 @@ public class AssetManager : MonoBehaviour {
         this.s3Client.GetObjectAsync(
             Constants.S3_JSON_BUCKET, storyName + "/" + jsonFileName + ".json",
             (responseObj) => {
-                 Logger.Log("got a response");
+                 Logger.Log("Got a response");
                  using (Stream responseStream = responseObj.Response.ResponseStream)
                  using (StreamReader reader = new StreamReader(responseStream))
                  {
@@ -92,16 +99,37 @@ public class AssetManager : MonoBehaviour {
         };
         this.s3Client.PutObjectAsync(request, (responseObj) => {
             if (responseObj.Exception == null) {
-                Logger.Log("successful upload " + s3Path);
+                Logger.Log("Successful upload " + s3Path);
             } else {
-                Logger.Log("upload failed");
+                Logger.Log("Upload failed");
             }
         });
     }
 
     // Check for all storybooks that exist (will need to then store them all in persistent storage).
-    public async void S3GetAvailableStoryNames(Action<string> callback) {
-        
+    // TODO: for now this is just testing that we can read all files/subdirectories in a given directory.
+    public async void S3GetAvailableStoryNames(Action<List<StoryMetadata>> callback = null) {
+        // Set delimiter to "/" to only get top level objects,
+        // which will be the directories corresponding to the story names.
+        ListObjectsRequest request = new ListObjectsRequest {
+            BucketName = Constants.S3_JSON_BUCKET,
+            Delimiter = "/"
+        };
+        this.s3Client.ListObjectsAsync(request, (responseObj) => {
+            if (responseObj.Exception == null) {
+                List<StoryMetadata> results = new List<StoryMetadata>();
+                Logger.Log(responseObj.Response.CommonPrefixes.Count);
+                foreach (string name in responseObj.Response.CommonPrefixes) {
+                    // Assume each object will be a space separated line with the properties
+                    // necessary for StoryMetadata, naemely the name, number of files, display mode.
+                    // TODO: create StoryMetadata objects and add them to the list.
+                    results.Add(new StoryMetadata(name.Substring(0, name.Length - 1), 5, "landscape"));
+                }
+                callback?.Invoke(results);
+            } else {
+                Logger.Log("Failed to list objects of " + Constants.S3_JSON_BUCKET);
+            }
+        });
     }
 
     // Called when another part of the app wants to load a sprite.
