@@ -45,6 +45,10 @@ public static class Constants {
     public static string COGNITO_IDENTITY_REGION = RegionEndpoint.USEast1.SystemName;
     public static string S3_REGION = RegionEndpoint.USEast1.SystemName;
     public static string IDENTITY_POOL_ID = "us-east-1:f54fdb54-0d47-4b18-b3e3-59d9d19e3fe3";
+    public static string S3_JSON_BUCKET = "storycorpus-interactive-storybook-json";
+    public static string S3_IMAGES_BUCKET = "storycorpus-images-without-text";
+    public static string S3_AUDIO_BUCKET = "storycorpus-audio";
+    public static string S3_CHILD_AUDIO_BUCKET = "storybook-collected-child-audio";
 }
 
 // Display Modes.

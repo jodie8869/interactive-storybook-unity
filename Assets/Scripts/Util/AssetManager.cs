@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -32,30 +33,14 @@ public class AssetManager : MonoBehaviour {
     void Start() {
         Logger.Log("Starting Amazon S3 testing...");
         AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
-
         this.awsCredentials = new CognitoAWSCredentials(
             Constants.IDENTITY_POOL_ID,
             RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
         );
         this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
 
-        GetObjectRequest request = new GetObjectRequest{
-            BucketName = "storycorpus-interactive-storybook-json",
-            Key = "the_hungry_toad/the_hungry_toad_01.json"
-        };
-        Logger.Log("here");
-        this.s3Client.GetObjectAsync("storybook-collected-child-audio",
-                                     "test/test.json",
-                                     (response) =>
-                                     {
-                                         Logger.Log("got a response...");
-                                         using (Stream responseStream = response.Response.ResponseStream)
-                                         using (StreamReader reader = new StreamReader(responseStream))
-                                         {
-                                             string responseBody = reader.ReadToEnd();
-                                             Logger.Log(responseBody);
-                                         }
-                                     });
+        this.S3GetStoryJson("the_hungry_toad_02");
+        this.S3UploadChildAudio(null);
 
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
@@ -69,6 +54,49 @@ public class AssetManager : MonoBehaviour {
 
     void Update() {
 
+    }
+
+    // Happens asynchronously, even though Visual Studio complains, Unity seems to have no issues.
+    public async void S3GetStoryJson (string jsonFileName, Action<StoryJson> callback = null) {
+        string storyName = Util.FileNameToStoryName(jsonFileName);
+        this.s3Client.GetObjectAsync(
+            Constants.S3_JSON_BUCKET, storyName + "/" + jsonFileName + ".json",
+            (responseObj) => {
+                 Logger.Log("got a response");
+                 using (Stream responseStream = responseObj.Response.ResponseStream)
+                 using (StreamReader reader = new StreamReader(responseStream))
+                 {
+                     string responseBody = reader.ReadToEnd();
+                     Logger.Log(responseBody);
+                     StoryJson json = new StoryJson(jsonFileName, responseBody);
+                     callback?.Invoke(json);
+                 }
+             });
+    }
+
+    // Upload an audio file to the collected child audio bucket in S3.
+    public async void S3UploadChildAudio(byte[] audioData) {
+        // Use a prefix that includes story, page number, first 2 words of stanza, and date.
+        string path = DateTime.Now.ToString("yyyy-MM-dd") + "/child1/" + "the_hungry_toad/"
+                                               + DateTime.Now.ToString("HH:mm:ss") + "_" + "the_hungry_toad_02_there_once"
+                                               + ".txt";
+        PutObjectRequest request = new PutObjectRequest {
+            BucketName = Constants.S3_CHILD_AUDIO_BUCKET,
+            Key = path,
+            ContentBody = "this is a test"
+        };
+        this.s3Client.PutObjectAsync(request, (responseObj) => {
+            if (responseObj.Exception == null) {
+                Logger.Log("successful upload " + path);
+            } else {
+                Logger.Log("upload failed");
+            }
+        });
+    }
+
+    // Check for all storybooks that exist (will need to then store them all in persistent storage).
+    public async void S3GetAvailableStoryNames(Action<string> callback) {
+        
     }
 
     // Called when another part of the app wants to load a sprite.
