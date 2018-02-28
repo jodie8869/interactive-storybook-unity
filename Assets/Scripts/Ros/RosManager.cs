@@ -24,6 +24,8 @@ public enum StorybookCommand {
 
 public class RosManager {
 
+    public GameObject testObject; // For UI feedback when things happen.
+
     private GameController gameController; // Keep a reference to the game controller.
     private RosbridgeWebSocketClient rosClient;
     // TODO: note that for now only one handler can be registered per command.

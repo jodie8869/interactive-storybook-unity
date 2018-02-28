@@ -19,6 +19,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour {
+    public GameObject testObjectRos;
+    public GameObject testObjectRosSpeechace;
 
     // The singleton instance.
     public static GameController instance = null;
@@ -159,6 +161,7 @@ public class GameController : MonoBehaviour {
         // Tasks are added from other threads, usually in response to ROS msgs.
         while (this.taskQueue.Count > 0) {
             try {
+                Logger.Log("Got a task from queue in GameController");
                 this.taskQueue.Dequeue().Invoke();
             } catch (Exception e) {
                 Logger.LogError("Error invoking action on main thread!\n" + e);
@@ -237,6 +240,7 @@ public class GameController : MonoBehaviour {
             }
             if (!this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
                 this.hideElement(this.nextButton.gameObject);
+                this.hideElement(this.toggleAudioButton.gameObject);
                 StartCoroutine(this.assetManager.DownloadStoryAssets(this.storyName, imageFileNames,
                                                                     audioFileNames, this.onSelectedStoryDownloaded));
             } else {
@@ -257,6 +261,7 @@ public class GameController : MonoBehaviour {
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
         this.showElement(this.nextButton.gameObject);
+        this.showElement(this.toggleAudioButton.gameObject);
     }
 
         // Show human readable story names and pull title images when possible.
@@ -387,27 +392,37 @@ public class GameController : MonoBehaviour {
     private void onHelloWorldAckReceived(Dictionary<string, object> properties) {
         // Test that this is called from rosManager.
         Logger.Log("in hello world ack received in game controller");
+        // TODO: remove later.
+        this.taskQueue.Enqueue(() =>
+        {
+            // this.testObjectRos.SetActive(true);
+            this.testObjectRosSpeechace.SetActive(true);
+        });
     }
 
     // Helpers.
 
     public void TestAudio() {
+        string fileName = "foo.wav";
         // Test recording, saving and loading an audio clip.
         StartCoroutine(audioRecorder.RecordForDuration(6, (clip) => {
-            this.audioRecorder.SaveAudioAtPath("test_toad.wav", clip);
+            this.audioRecorder.SaveAudioAtPath(fileName, clip);
             Logger.Log("in recorder callback");
             StartCoroutine(this.speechAceManager.AnalyzeTextSample(
-                "test_toad.wav", "there once was a toad named toad",
+                fileName, "there once was a toad named toad",
                 (speechAceResult) => {
                     Logger.Log("in SpeechACE callback");
                     if (Constants.USE_ROS) {
                         this.rosManager.SendSpeechAceResult(speechAceResult).Invoke();
                     }
+                    Logger.Log("happens immediately after recorder callback");
+                    //            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal(fileName);
+                    //            this.storyManager.audioManager.LoadAudio(loadedClip);
+                    //            this.storyManager.audioManager.PlayAudio();
+                    Logger.Log("pushing to S3 now");
+                    this.assetManager.S3UploadChildAudio (fileName);
+                    Logger.Log("happens immediately after calling upload");
                 }));
-            Logger.Log("happens immediately after recorder callback");
-            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal("test_toad.wav");
-            this.storyManager.audioManager.LoadAudio(loadedClip);
-            this.storyManager.audioManager.PlayAudio();
         }));
     }
 

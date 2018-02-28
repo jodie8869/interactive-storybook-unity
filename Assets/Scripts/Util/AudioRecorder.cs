@@ -81,6 +81,7 @@ public class AudioRecorder : MonoBehaviour {
             AudioClip newClip = AudioClip.Create(filepath, numSamples, 1, 44100, false);
             newClip.SetData(audioFloats, 0);
             return newClip;
+
         } else {
             Logger.Log("File doesn't exist, sad");
             return null;
