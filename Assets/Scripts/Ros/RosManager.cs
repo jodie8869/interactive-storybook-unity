@@ -65,8 +65,7 @@ public class RosManager {
     }
 
     private void onMessageReceived(object sender, int cmd, object properties) {
-        Logger.Log("ROS Manager received message handler " + sender + " " + 
-                   cmd.ToString());
+        Logger.Log("ROS Manager received message handler " + sender + " " + cmd);
 
         StorybookCommand command = (StorybookCommand)Enum.Parse(typeof(StorybookCommand), cmd.ToString());
 

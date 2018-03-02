@@ -101,7 +101,7 @@ public class Stanza : MonoBehaviour {
             this.leftX = pos.x - size.x / 2.0f;
             this.topY = pos.y + size.y / 2.0f;
             this.bottomY = pos.y - size.y / 2.0f;
-            Logger.Log(this.leftX.ToString() + " " + this.topY.ToString() + " " + this.bottomY.ToString());
+            Logger.Log(this.leftX + " " + this.topY + " " + this.bottomY);
         }
 
         // Both mouse down and mouse up must be within vertical range of stanza.
@@ -122,7 +122,7 @@ public class Stanza : MonoBehaviour {
         if (this.mouseUpPos.x < this.leftX) {
             return false;
         }
-        Logger.Log("swiped! " + this.startTimestamp.ToString() + " " + this.endTimestamp.ToString());
+        Logger.Log("swiped! " + this.startTimestamp + " " + this.endTimestamp);
         return true;
     }
 }

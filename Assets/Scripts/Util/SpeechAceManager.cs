@@ -3,8 +3,6 @@
 
 using System.Net;
 using System.IO;
-using System.Threading.Tasks;
-using System.Security.Authentication;
 using UnityEngine;
 using System.Collections;
 using System;

@@ -12,9 +12,7 @@
 
 using System;
 using System.Threading;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -155,8 +153,7 @@ public class GameController : MonoBehaviour {
     }
 
     // Update() is called once per frame.
-    void Update()
-    {
+    void Update() {
         // Pop all tasks from the task queue and perform them.
         // Tasks are added from other threads, usually in response to ROS msgs.
         while (this.taskQueue.Count > 0) {
@@ -403,10 +400,10 @@ public class GameController : MonoBehaviour {
     // Helpers.
 
     public void TestAudio() {
-        string fileName = "foo.wav";
+        const string fileName = "foo.wav";
         // Test recording, saving and loading an audio clip.
         StartCoroutine(audioRecorder.RecordForDuration(6, (clip) => {
-            this.audioRecorder.SaveAudioAtPath(fileName, clip);
+            AudioRecorder.SaveAudioAtPath(fileName, clip);
             Logger.Log("in recorder callback");
             StartCoroutine(this.speechAceManager.AnalyzeTextSample(
                 fileName, "there once was a toad named toad",
@@ -416,7 +413,7 @@ public class GameController : MonoBehaviour {
                         this.rosManager.SendSpeechAceResult(speechAceResult).Invoke();
                     }
                     Logger.Log("happens immediately after recorder callback");
-                    //            AudioClip loadedClip = this.audioRecorder.LoadAudioLocal(fileName);
+                    //            AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
                     //            this.storyManager.audioManager.LoadAudio(loadedClip);
                     //            this.storyManager.audioManager.PlayAudio();
                     Logger.Log("pushing to S3 now");
@@ -467,7 +464,7 @@ public class GameController : MonoBehaviour {
                 this.setPortraitOrientation();
                 break;
             default:
-                Logger.LogError("No orientation: " + o.ToString());
+                Logger.LogError("No orientation: " + o);
                 break;
         }
     }

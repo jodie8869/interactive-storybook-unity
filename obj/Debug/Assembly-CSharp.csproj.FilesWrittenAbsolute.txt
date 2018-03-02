@@ -1,8 +1,4 @@
 /Users/hannalee/mit/meng/interactive-storybook-unity/obj/Debug/.NETFramework,Version=v4.6.AssemblyAttribute.cs
-/Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Assembly-CSharp.dll.mdb
-/Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Assembly-CSharp.dll
-/Users/hannalee/mit/meng/interactive-storybook-unity/obj/Debug/Assembly-CSharp.dll
-/Users/hannalee/mit/meng/interactive-storybook-unity/obj/Debug/Assembly-CSharp.dll.mdb
 /Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/UnityEngine.dll
 /Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/UnityEditor.dll
 /Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/UnityEngine.UI.dll
@@ -33,3 +29,7 @@
 /Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Unity.CecilTools.dll
 /Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Unity.Cecil.Pdb.dll
 /Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Unity.Cecil.Mdb.dll
+/Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Assembly-CSharp.dll.mdb
+/Users/hannalee/mit/meng/interactive-storybook-unity/Temp/bin/Debug/Assembly-CSharp.dll
+/Users/hannalee/mit/meng/interactive-storybook-unity/obj/Debug/Assembly-CSharp.dll
+/Users/hannalee/mit/meng/interactive-storybook-unity/obj/Debug/Assembly-CSharp.dll.mdb

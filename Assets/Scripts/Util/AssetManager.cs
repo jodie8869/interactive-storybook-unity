@@ -9,7 +9,6 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.Runtime;
 using Amazon.CognitoIdentity;
-using UnityEngine.Experimental.UIElements;
 
 public class AssetManager : MonoBehaviour {
 
@@ -46,7 +45,7 @@ public class AssetManager : MonoBehaviour {
             Constants.IDENTITY_POOL_ID,
             RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
         );
-        this.s3Client = new AmazonS3Client(this.awsCredentials, Amazon.RegionEndpoint.USEast1);
+        this.s3Client = new AmazonS3Client(this.awsCredentials, RegionEndpoint.USEast1);
 
         // TODO: remove this testing stuff.
         // Testing.
@@ -70,7 +69,7 @@ public class AssetManager : MonoBehaviour {
     //
     // Note that this happens asynchronously (caller doesn't block) even though Unity says it
     // happens synchronously, and also that the errors in Visual Studio are actually ok in Unity.
-    public async void S3GetStoryJson (string jsonFileName, Action<StoryJson> callback = null) {
+    public void S3GetStoryJson (string jsonFileName, Action<StoryJson> callback = null) {
         string storyName = Util.FileNameToStoryName(jsonFileName);
         this.s3Client.GetObjectAsync(
             Constants.S3_JSON_BUCKET, storyName + "/" + jsonFileName + ".json",
@@ -89,7 +88,7 @@ public class AssetManager : MonoBehaviour {
 
     // Upload an audio file to the collected child audio bucket in S3.
     // Argument audioPath should be the same as what was passed into SaveAudioAtPath in AudioRecorder.
-    public async void S3UploadChildAudio(string audioPath) {
+    public void S3UploadChildAudio(string audioPath) {
         // Use a prefix that includes story, page number, first 2 words of stanza, and date.
         string s3Path = DateTime.Now.ToString("yyyy-MM-dd") + "/child1/" + "the_hungry_toad/"
                                                + DateTime.Now.ToString("HH:mm:ss") + "_" + audioPath;
@@ -109,7 +108,7 @@ public class AssetManager : MonoBehaviour {
 
     // Check for all storybooks that exist (will need to then store them all in persistent storage).
     // TODO: for now this is just testing that we can read all files/subdirectories in a given directory.
-    public async void S3GetAvailableStoryNames(Action<List<StoryMetadata>> callback = null) {
+    public void S3GetAvailableStoryNames(Action<List<StoryMetadata>> callback = null) {
         // Set delimiter to "/" to only get top level objects,
         // which will be the directories corresponding to the story names.
         ListObjectsRequest request = new ListObjectsRequest {
@@ -120,11 +119,11 @@ public class AssetManager : MonoBehaviour {
             if (responseObj.Exception == null) {
                 List<StoryMetadata> results = new List<StoryMetadata>();
                 Logger.Log(responseObj.Response.CommonPrefixes.Count);
-                foreach (string name in responseObj.Response.CommonPrefixes) {
+                foreach (string storyName in responseObj.Response.CommonPrefixes) {
                     // Assume each object will be a space separated line with the properties
                     // necessary for StoryMetadata, naemely the name, number of files, display mode.
                     // TODO: create StoryMetadata objects and add them to the list.
-                    results.Add(new StoryMetadata(name.Substring(0, name.Length - 1), 5, "landscape"));
+                    results.Add(new StoryMetadata(storyName.Substring(0, storyName.Length - 1), 5, "landscape"));
                 }
                 callback?.Invoke(results);
             } else {

@@ -33,7 +33,6 @@ public class StoryManager : MonoBehaviour {
     private GameObject graphicsPanel;
     private GameObject textPanel;
     private GameObject titlePanel;
-    private GameObject currentStanza;
 
     private float graphicsPanelWidth;
     private float graphicsPanelHeight;
@@ -129,8 +128,7 @@ public class StoryManager : MonoBehaviour {
             }
             if (filteredTextWords.Count != description.timestamps.Length) {
                 Logger.LogError("textWords doesn't match timestamps length " +
-                                filteredTextWords.Count.ToString() + " " + 
-                               description.timestamps.Length.ToString());
+                                filteredTextWords.Count + " " + description.timestamps.Length);
             }
             for (int i = 0; i < filteredTextWords.Count; i++) {
                 this.loadTinkerText(filteredTextWords[i], description.timestamps[i],
@@ -357,8 +355,7 @@ public class StoryManager : MonoBehaviour {
                 manip.AddClickHandler(tinkerText.Highlight());
                 break;
             default:
-                Logger.LogError("Unknown TriggerType: " +
-                                trigger.type.ToString());
+                Logger.LogError("Unknown TriggerType: " + trigger.type);
                 break;
                 
         }
@@ -478,12 +475,12 @@ public class StoryManager : MonoBehaviour {
             this.titlePanel.SetActive(true);
             Vector2 rect =
                 this.graphicsPanel.GetComponent<RectTransform>().sizeDelta;
-            this.graphicsPanelWidth = (float)rect.x;
-            this.graphicsPanelHeight = (float)rect.y;
+            this.graphicsPanelWidth = rect.x;
+            this.graphicsPanelHeight = rect.y;
             this.graphicsPanelAspectRatio =
                 this.graphicsPanelWidth / this.graphicsPanelHeight;
             rect = this.titlePanel.GetComponent<RectTransform>().sizeDelta;
-            this.titlePanelAspectRatio = (float)rect.x / (float)rect.y;
+            this.titlePanelAspectRatio = rect.x / rect.y;
         }
         this.stanzaManager.SetTextPanel(this.textPanel);
     }
@@ -554,7 +551,7 @@ public class StoryManager : MonoBehaviour {
                 textSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.PORTRAIT_TEXT_HEIGHT);
                 break;
             default:
-                Logger.LogError("Unknown display mode: " + displayMode.ToString());
+                Logger.LogError("Unknown display mode: " + displayMode);
                 break;
         }
         Util.SetSize(this.graphicsPanel, graphicsSize);

@@ -53,7 +53,6 @@ public class SceneObjectManipulator : MonoBehaviour
     public Action Highlight(Color color) {
         return () =>
         {
-            Color currentColor = gameObject.GetComponent<Image>().color;
             gameObject.GetComponent<Image>().color = color;
             // After some amount of time, remove highlighting.
             StartCoroutine(undoHighlight(2));

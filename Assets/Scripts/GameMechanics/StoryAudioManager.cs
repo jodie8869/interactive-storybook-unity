@@ -68,7 +68,7 @@ public class StoryAudioManager : MonoBehaviour {
             }
         }
         if (this.currentTimestamp > this.stopTimestamp) {
-            Logger.Log("stopping because current is " + this.currentTimestamp.ToString() + " and stop is " + this.stopTimestamp.ToString());
+            Logger.Log("stopping because current is " + this.currentTimestamp + " and stop is " + this.stopTimestamp);
             this.StopAudio();
         }
         this.lastTimestamp = this.currentTimestamp;

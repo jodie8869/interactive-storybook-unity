@@ -5,9 +5,6 @@
 using UnityEngine;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.IO;
 
 public class AudioRecorder : MonoBehaviour {
 	
@@ -36,7 +33,7 @@ public class AudioRecorder : MonoBehaviour {
 
     public void EndRecording(Action<AudioClip> callback) {
         Microphone.End(BUILTIN_MICROPHONE);
-        Logger.Log("end recording with length " + this.audioClipMidRecord.length.ToString());
+        Logger.Log("end recording with length " + this.audioClipMidRecord.length);
         callback(this.audioClipMidRecord);
     }
 
@@ -55,13 +52,13 @@ public class AudioRecorder : MonoBehaviour {
     }
 
     // The filepath argument is with respect to persistentDataPath, prefix not necessary.
-    public void SaveAudioAtPath(string filepath, AudioClip audio) {
+    public static void SaveAudioAtPath(string filepath, AudioClip audio) {
         string path = Application.persistentDataPath + "/" + filepath;
         SavWav.Save(path, audio);
     }
 
     // Same filepath as passed to SaveAudioAtPath().
-    public AudioClip LoadAudioLocal(string filepath) {
+    public static AudioClip LoadAudioLocal(string filepath) {
         string path = Application.persistentDataPath + "/" + filepath;
         if (System.IO.File.Exists(path)) {
             byte[] audioBytes = System.IO.File.ReadAllBytes(path);
