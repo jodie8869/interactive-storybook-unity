@@ -7,7 +7,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = false;
+    public static bool USE_ROS = true;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -32,7 +32,7 @@ public static class Constants {
 
     // ROS topics.
     public static string STORYBOOK_TO_ROSCORE_TOPIC = "/storybook_to_roscore";
-    public static string STORYBOOK_TO_ROSCORE_MESSAGE_TYPE = "/unity_game_msgs/StorybookGameInfo";
+    public static string STORYBOOK_TO_ROSCORE_MESSAGE_TYPE = "/unity_game_msgs/StorybookInfo";
     public static string ROSCORE_TO_STORYBOOK_TOPIC = "/roscore_to_storybook";
     public static string ROSCORE_TO_STORYBOOK_MESSAGE_TYPE = "/unity_game_msgs/StorybookCommand";
 

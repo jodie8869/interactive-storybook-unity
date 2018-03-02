@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using MiniJSON;
 
 // Messages from the storybook to the controller.
-public enum StoryInfoMessageType {
+public enum StorybookInfoMessageType {
     HELLO_WORLD = 0,
     SPEECH_ACE_RESULT = 1,
     REQUEST_ROBOT_FEEDBACK = 2,
@@ -86,14 +86,14 @@ public class RosManager {
     // Simple message to verify connection when we initialize connection to ROS.
     public Action SendHelloWorld() {
         return () => {
-            this.sendMessageToController(StoryInfoMessageType.HELLO_WORLD, "hello world");
+            this.sendMessageToController(StorybookInfoMessageType.HELLO_WORLD, "hello world");
         };
     }
 
     // Send the SpeechACE results.
     public Action SendSpeechAceResult(string jsonResults) {
         return () => {
-            this.sendMessageToController(StoryInfoMessageType.SPEECH_ACE_RESULT, jsonResults);
+            this.sendMessageToController(StorybookInfoMessageType.SPEECH_ACE_RESULT, jsonResults);
         };
     }
 
@@ -101,12 +101,12 @@ public class RosManager {
     public Action SendTinkerTextTapped(string text) {
         return () => {
             Logger.Log("sending tinkertext tapped");
-            this.sendMessageToController(StoryInfoMessageType.WORD_TAPPED, text);
+            this.sendMessageToController(StorybookInfoMessageType.WORD_TAPPED, text);
         };
     }
 
     // Send until received.
-    private void sendMessageToController(StoryInfoMessageType messageType, string message) {
+    private void sendMessageToController(StorybookInfoMessageType messageType, string message) {
         Dictionary<string, object> publish = new Dictionary<string, object>();
         publish.Add("topic", Constants.STORYBOOK_TO_ROSCORE_TOPIC);
         publish.Add("op", "publish");
