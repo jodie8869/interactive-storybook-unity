@@ -24,7 +24,7 @@ public class TinkerText : MonoBehaviour
 
     public bool isFirstInStanza;
 
-    // Have a reference tot he children objects in this TinkerText.
+    // Have a reference to the child objects of this TinkerText.
     public GameObject textButton;
     public GameObject text;
     public GameObject graphicPanel;
@@ -74,7 +74,10 @@ public class TinkerText : MonoBehaviour
         if (isLastWord) {
             this.audioEndTime = float.MaxValue;
         }
-        gameObject.SetActive(true);
+        this.gameObject.SetActive(true);
+        // When a TinkerText is clicked, it should highlight.
+        // TODO: consider somehow making all other tinkertexts with the same text highlight?
+        this.AddClickHandler(Highlight ());
     }
 
     public void SetFirstInStanza() {
@@ -98,12 +101,13 @@ public class TinkerText : MonoBehaviour
     }
 
     // TODO: also increase font size or something maybe, other visual cues.
+    // If we do increase font size, will need to increase the size of the object too.
     public Action Highlight() {
         return () =>
         {
             this.ChangeTextColor(Color.blue);
             // After some amount of time, remove highlighting.
-            StartCoroutine(undoHighlight(2));
+            StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME));
         };
     }
 

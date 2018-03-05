@@ -2,10 +2,18 @@
 
 using System;
 using UnityEngine;
+using UnityEditor;
 
 public static class Util {
     // TODO: should include comma or not? Sometimes that makes it too vertical.
     public static string[] punctuation = {";", ".", "?", "\"", "!", ","};
+
+    // Globally visible to the app, and can be changed by a simple select mode button.
+    public static GameMode CurrentGameMode = GameMode.Explore;
+
+    public static void SetGameMode(GameMode newMode) {
+        Util.CurrentGameMode = newMode;
+    }
 
     public static string FileNameToStoryName(string fileName) {
         return fileName.Substring(0,

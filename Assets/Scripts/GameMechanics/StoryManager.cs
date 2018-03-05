@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
+using System.Collections;
 
 public class StoryManager : MonoBehaviour {
 
@@ -26,6 +28,8 @@ public class StoryManager : MonoBehaviour {
 
     public GameObject portraitTitlePanel;
     public GameObject landscapeTitlePanel;
+
+    public GameObject popupLabel;
 
     private bool autoplayAudio = false;
 
@@ -303,11 +307,13 @@ public class StoryManager : MonoBehaviour {
                        manip.label);
         });
         // TODO: If sceneObject.inText is false, set up whatever behavior we
-        // want for these words.
+        // want for these words. For now, perhaps we can get Jibo to say it,
+        // and we can pop up a speech bubble?
         if (!sceneObject.inText) {
             manip.AddClickHandler(() =>
             {
                 Logger.Log("Not in text! " + manip.label);
+                this.showPopupText(manip.label, manip.position);
             });
         }
         // Name the GameObject so we can inspect in the editor.
@@ -350,7 +356,7 @@ public class StoryManager : MonoBehaviour {
                     .GetComponent<SceneObjectManipulator>();
                 TinkerText tinkerText = this.tinkerTexts[trigger.args.textId]
                                             .GetComponent<TinkerText>();
-                Action action = manip.Highlight(Constants.SceneObjectHighlightColor);
+                Action action = manip.Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR);
                 tinkerText.AddClickHandler(action);
                 manip.AddClickHandler(tinkerText.Highlight());
                 break;
@@ -371,6 +377,22 @@ public class StoryManager : MonoBehaviour {
             this.audioManager.AddTrigger(
                 tinkerText.audioEndTime, tinkerText.OnEndAudioTrigger); 
         }
+    }
+
+    // Displays a popup with the provided text, knowing that the desired labeled
+    // object is at the given position.
+    //
+    // Only show it for a short amount of time.
+    private void showPopupText(string label, Position objectPosition) {
+        Logger.Log("popup text!");
+        this.popupLabel.GetComponent<PopupLabel>().Configure(label, objectPosition);
+        this.popupLabel.SetActive(true);
+        StartCoroutine(this.hidePopupText(Constants.SCENE_OBJECT_DISPLAY_TIME));
+    }
+
+    private IEnumerator hidePopupText(float secondsDelay) {
+        yield return new WaitForSeconds(secondsDelay);
+        this.popupLabel.SetActive(false);
     }
 
     // Called by GameController to change whether we autoplay o not.
@@ -481,6 +503,11 @@ public class StoryManager : MonoBehaviour {
                 this.graphicsPanelWidth / this.graphicsPanelHeight;
             rect = this.titlePanel.GetComponent<RectTransform>().sizeDelta;
             this.titlePanelAspectRatio = rect.x / rect.y;
+
+            // TODO: verify this is correct.
+            // Update the popup panel to have its parent be the correct graphicsPanel.
+            this.popupLabel.GetComponent<RectTransform>().SetParent(
+                this.graphicsPanel.GetComponent<RectTransform>());
         }
         this.stanzaManager.SetTextPanel(this.textPanel);
     }

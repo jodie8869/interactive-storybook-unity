@@ -42,7 +42,7 @@ public class SceneObjectManipulator : MonoBehaviour
 
         // TODO: It looks like the after setting the listener, it's no longer good
         // to modify or add to the clickUnityAction. Not sure why.
-        this.AddClickHandler(this.Highlight(Constants.SceneObjectHighlightColor));
+        this.AddClickHandler(this.Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR));
         this.button.onClick.AddListener(this.clickUnityAction);
     }
 
@@ -55,7 +55,7 @@ public class SceneObjectManipulator : MonoBehaviour
         {
             gameObject.GetComponent<Image>().color = color;
             // After some amount of time, remove highlighting.
-            StartCoroutine(undoHighlight(2));
+            StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME));
         };
     }
 

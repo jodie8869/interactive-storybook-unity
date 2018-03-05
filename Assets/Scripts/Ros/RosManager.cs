@@ -104,7 +104,7 @@ public class RosManager {
             this.sendMessageToController(StorybookInfoMessageType.WORD_TAPPED, text);
         };
     }
-
+        
     // Send until received.
     private void sendMessageToController(StorybookInfoMessageType messageType, string message) {
         Dictionary<string, object> publish = new Dictionary<string, object>();

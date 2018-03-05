@@ -13,8 +13,8 @@ public static class Constants {
     public static float EPSILON = 1e-5f;
 
     // Desired ratio of graphics panel width to entire landscape panel width
-    // in landscape display mode.
-    public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 0.43f;
+    // in landscape display mode. 850/2048
+    public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 0.415f;
     // Desired ratio of graphics panel height to entire landscape panel height
     // in portrait display mode.
     public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 0.66f;
@@ -24,7 +24,8 @@ public static class Constants {
     public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.5f;
 
     // UI things.
-    public static Color SceneObjectHighlightColor = new Color(0, 1, 1, 60f / 255);
+    public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255);
+    public static float SCENE_OBJECT_DISPLAY_TIME = 2.0f;
 
     // ROS connection information.
     public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.229";
@@ -64,5 +65,5 @@ public enum DisplayMode {
 // the child's speech, if graphics/words are touchable, etc.
 public enum GameMode {
     Explore, // No evaluation, just ask what is this, what is that?
-    Coaching, // Robot prompts child to read, does evaluation, asks questions.
+    Evaluate, // Robot prompts child to read, does evaluation, asks questions.
 }
