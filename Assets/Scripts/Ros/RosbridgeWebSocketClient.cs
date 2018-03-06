@@ -224,7 +224,8 @@ public class RosbridgeWebSocketClient
 	/// <param name="msg">Message.</param>
 	private bool SendToServer(String msg)
 	{
-		Logger.Log("[websocket] sending message: " + msg);
+        // Commented this out because it's too verbose with the state messages.
+		// Logger.Log("[websocket] sending message: " + msg);
 
 		// try sending to server
 		try

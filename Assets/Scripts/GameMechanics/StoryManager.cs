@@ -57,7 +57,7 @@ public class StoryManager : MonoBehaviour {
 
    
     // Dynamically created TinkerTexts specific to this scene.
-    private List<GameObject> tinkerTexts;
+    public List<GameObject> tinkerTexts { get; private set; }
     // Dynamically created SceneObjects, keyed by their id.
     private Dictionary<int, GameObject> sceneObjects;
     private Dictionary<string, List<int>> sceneObjectsLabelToId;
@@ -253,7 +253,7 @@ public class StoryManager : MonoBehaviour {
         // If we're using ROS, attach a click handler to the tinkertext so that there's a message
         // sent over ROS whenever the user taps on a word.
         if (Constants.USE_ROS) {
-            newTinkerText.GetComponent<TinkerText>().AddClickHandler(this.rosManager.SendTinkerTextTapped(word));
+            newTinkerText.GetComponent<TinkerText>().AddClickHandler(this.rosManager.SendTinkerTextTappedAction(word));
         }
         this.tinkerTexts.Add(newTinkerText);
         // Place it correctly within the stanzas.

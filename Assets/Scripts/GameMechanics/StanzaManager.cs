@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using MiniJSON;
 
 public class StanzaManager : MonoBehaviour {
 
@@ -180,6 +181,26 @@ public class StanzaManager : MonoBehaviour {
             this.AddTinkerText(tinkerTextObject);
         }
 
+    }
+
+    // Returns an array of strings, where each string represents the text of a single stanza.
+    public string[] GetStanzaTexts() {
+        Logger.Log("Getting stanza texts, number of stanzas: " + this.stanzas.Count);
+        string[] stanzaTexts = new string[this.stanzas.Count];
+        for (int i = 0; i < this.stanzas.Count; i++) {
+            GameObject stanzaObject = this.stanzas[i];
+            RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
+            string text = "";
+            for (int j = 0; j < rectTransform.childCount; j++) {
+                GameObject tinkerTextObject = rectTransform.GetChild(j).gameObject;
+                text += tinkerTextObject.GetComponent<TinkerText>().word + " ";
+            }
+            // Cut off the last space.
+            text = text.Substring(0, text.Length - 1);
+            stanzaTexts[i] = text;
+        }
+        Logger.Log("stanzaTexts " + Json.Serialize(stanzaTexts));
+        return stanzaTexts;
     }
 
     private GameObject currentStanza() {

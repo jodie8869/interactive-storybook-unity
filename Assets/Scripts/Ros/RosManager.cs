@@ -5,6 +5,7 @@
 
 using UnityEngine;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using MiniJSON;
 
@@ -21,6 +22,8 @@ public class RosManager {
     // Updated by other classes, published on /storybook_state.
     private StorybookState currentStorybookState;
     private System.Object stateLock;
+
+    private DateTime lastStorybookStateSentTime = DateTime.Now;
 
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
@@ -60,6 +63,24 @@ public class RosManager {
             this.rosClient.SendMessage(pageInfoPubMessage) &&
             this.rosClient.SendMessage(statePubMessage) &&
             this.rosClient.SendMessage(subMessage);
+
+        if (this.connected) {
+            // Begin sending state message.
+            Thread stateThread = new Thread(() => {
+                while (true) {
+                    // Send StorybookState message over ROS at the desired frequency, set in Constants.
+                    if (DateTime.Now.Subtract(this.lastStorybookStateSentTime).TotalSeconds
+                        > Constants.STORYBOOK_STATE_PUBLISH_DELAY) {
+                        if (this.connected) {
+                            this.SendStorybookStateAction().Invoke();
+                            this.lastStorybookStateSentTime = DateTime.Now;
+                        }
+                    }
+                }
+            });
+            stateThread.Start();
+        }
+
         return this.connected;
     }
 
@@ -74,7 +95,7 @@ public class RosManager {
 
     public void SetStateAudioPlaying(bool isPlaying) {
         lock (stateLock) {
-            
+            this.currentStorybookState.audioPlaying = isPlaying;
         }
     }
 
@@ -100,21 +121,21 @@ public class RosManager {
     //
 
     // Simple message to verify connection when we initialize connection to ROS.
-    public Action SendHelloWorld() {
+    public Action SendHelloWorldAction() {
         return () => {
             this.sendEventMessageToController(StorybookEventType.HELLO_WORLD, "hello world");
         };
     }
 
     // Send the SpeechACE results.
-    public Action SendSpeechAceResult(string jsonResults) {
+    public Action SendSpeechAceResultAction(string jsonResults) {
         return () => {
             this.sendEventMessageToController(StorybookEventType.SPEECH_ACE_RESULT, jsonResults);
         };
     }
 
     // Send when TinkerText has been tapped.
-    public Action SendTinkerTextTapped(string text) {
+    public Action SendTinkerTextTappedAction(string text) {
         return () => {
             Logger.Log("sending tinkertext tapped");
             this.sendEventMessageToController(StorybookEventType.WORD_TAPPED, text);
@@ -140,7 +161,7 @@ public class RosManager {
     }
 
     // Send a message representing storybook state to the controller.
-    public Action SendStorybookState() {
+    public Action SendStorybookStateAction() {
         return () => {
             Dictionary<string, object> publish = new Dictionary<string, object>();
             publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
@@ -171,8 +192,10 @@ public class RosManager {
     // Send a message representing new page info to the controller.
     // Typically will be called when the user presses previous or next.
     // Sends until success.
-    public Action SendStorybookPageInfo(StorybookPageInfo pageInfo) {
+    public Action SendStorybookPageInfoAction(StorybookPageInfo pageInfo) {
         return () => {
+            Logger.Log(pageInfo.tinkerTexts);
+
             Dictionary<string, object> publish = new Dictionary<string, object>();
             publish.Add("topic", Constants.STORYBOOK_PAGE_INFO_TOPIC);
             publish.Add("op", "publish");
@@ -211,6 +234,7 @@ public class RosManager {
             while (!sent) {
                 sent = this.rosClient.SendMessage(Json.Serialize(publish));
             }
+            Logger.Log("Successfully sent page info ROS message.");
         };
     }
 }

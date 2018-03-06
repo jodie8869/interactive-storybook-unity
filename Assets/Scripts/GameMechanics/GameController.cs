@@ -63,6 +63,7 @@ public class GameController : MonoBehaviour {
 
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
+    private DateTime lastStorybookStateSentTime = DateTime.Now;
 
     // Reference to SceneManager so we can load and manipulate story scenes.
     private StoryManager storyManager;
@@ -79,11 +80,12 @@ public class GameController : MonoBehaviour {
     // List of stories to populate dropdown.
     private List<StoryMetadata> stories;
 
-    // Stores the scene descriptions for the current story.
-    private string storyName;
+    // Some information about the current state of the storybook.
+    private StoryMetadata currentStory;
     private ScreenOrientation orientation;
+    // Stores the scene descriptions for the current story.
     private List<SceneDescription> storyPages;
-    private int currentPageNumber = 0; // 0-indexed, index into this.storyPages.
+    private int currentPageNumber = 0; // 0-indexed, index into this.storyPages, 0 is title page.
 
     void Awake()
     {
@@ -154,9 +156,9 @@ public class GameController : MonoBehaviour {
 
     // Update() is called once per frame.
     void Update() {
-        // Pop all tasks from the task queue and perform them.
+        // Pop tasks from the task queue and perform them.
         // Tasks are added from other threads, usually in response to ROS msgs.
-        while (this.taskQueue.Count > 0) {
+        if (this.taskQueue.Count > 0) {
             try {
                 Logger.Log("Got a task from queue in GameController");
                 this.taskQueue.Dequeue().Invoke();
@@ -164,6 +166,7 @@ public class GameController : MonoBehaviour {
                 Logger.LogError("Error invoking action on main thread!\n" + e);
             }
         }
+
         // Kinda sketch, make sure this happens once after everyone's Start
         // has been called.
         // TODO: Move some things in other classes to Awake and then call this in Start?
@@ -194,7 +197,7 @@ public class GameController : MonoBehaviour {
     }
 
     private void startStory(StoryMetadata story) {
-        this.storyName = story.GetName();
+        this.currentStory = story;
 
         // Check if we need to download the json files.
         if (!Constants.LOAD_ASSETS_LOCALLY && !this.assetManager.JsonHasBeenDownloaded(story.GetName())) {
@@ -214,16 +217,16 @@ public class GameController : MonoBehaviour {
         storyJsons.Sort((s1, s2) => string.Compare(s1.GetName(), s2.GetName()));
         this.storyPages.Clear();
         // Figure out the orientation of this story and tell SceneDescription.
+        this.orientation = story.GetOrientation();
         this.setOrientation(story.GetOrientation());
         foreach (StoryJson json in storyJsons) {
             this.storyPages.Add(new SceneDescription(json.GetText(), this.orientation));
         }
-        this.setOrientation(this.orientation);
         this.changeButtonText(this.nextButton, "Begin Story!");
         this.hideElement(this.backButton.gameObject);
 
         if (Constants.LOAD_ASSETS_LOCALLY ||
-            this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
+            this.assetManager.StoryHasBeenDownloaded(this.currentStory.GetName())) {
             // Either we load from memory or we've already cached a previous download.
             this.loadFirstPage();
         } else {
@@ -235,14 +238,14 @@ public class GameController : MonoBehaviour {
                 imageFileNames.Add(d.storyImageFile);
                 audioFileNames.Add(d.audioFile);
             }
-            if (!this.assetManager.StoryHasBeenDownloaded(this.storyName)) {
+            if (!this.assetManager.StoryHasBeenDownloaded(this.currentStory.GetName())) {
                 this.hideElement(this.nextButton.gameObject);
                 this.hideElement(this.toggleAudioButton.gameObject);
-                StartCoroutine(this.assetManager.DownloadStoryAssets(this.storyName, imageFileNames,
+                StartCoroutine(this.assetManager.DownloadStoryAssets(this.currentStory.GetName(), imageFileNames,
                                                                     audioFileNames, this.onSelectedStoryDownloaded));
             } else {
                 // The assets have already been downloaded, so just begin the story.
-                this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]); 
+                this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]); 
             }
         }
     }
@@ -254,7 +257,7 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
-        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
         this.showElement(this.nextButton.gameObject);
@@ -317,9 +320,9 @@ public class GameController : MonoBehaviour {
                 // Set up the command handlers, happens the first time connection is established.
                 this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
                 Thread.Sleep(1000); // Wait for a bit to make sure connection is established.
-                this.rosManager.SendHelloWorld().Invoke();
-                this.rosManager.SendStorybookState().Invoke();
-                this.rosManager.SendStorybookPageInfo(new StorybookPageInfo {
+                this.rosManager.SendHelloWorldAction().Invoke();
+                this.rosManager.SendStorybookStateAction().Invoke();
+                this.rosManager.SendStorybookPageInfoAction(new StorybookPageInfo {
                     storyName = "TEST STORY NAME",
                     pageNumber = 4,
                     stanzas = new string[] {"hi", "hello there", "this is a test"},
@@ -334,7 +337,7 @@ public class GameController : MonoBehaviour {
                             word = "once"
                         }}
                 }).Invoke();
-                Logger.Log("Sent hello messages");
+                Logger.Log("Sent hello ping message");
             } else {
                 this.rosStatusText.text = "Failed to connect, try again.";
                 this.rosStatusText.color = Color.red;
@@ -353,7 +356,7 @@ public class GameController : MonoBehaviour {
         Logger.Log("Next Button clicked.");
         this.currentPageNumber += 1;
         this.storyManager.ClearPage();
-        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         if (this.currentPageNumber == 1) {
             // Special case, need to change the text and show the back button.
             this.changeButtonText(this.nextButton, "Next Page");
@@ -380,7 +383,7 @@ public class GameController : MonoBehaviour {
         Logger.Log("Back Button clicked.");
         this.currentPageNumber -= 1;
         this.storyManager.ClearPage();
-        this.storyManager.LoadPage(this.storyPages[this.currentPageNumber]);
+        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         if (this.currentPageNumber == 0) {
             // Hide the back button because we're at the beginning.
             this.hideElement(this.backButton.gameObject);
@@ -426,7 +429,7 @@ public class GameController : MonoBehaviour {
                 (speechAceResult) => {
                     Logger.Log("in SpeechACE callback");
                     if (Constants.USE_ROS) {
-                        this.rosManager.SendSpeechAceResult(speechAceResult).Invoke();
+                        this.rosManager.SendSpeechAceResultAction(speechAceResult).Invoke();
                     }
                     Logger.Log("happens immediately after recorder callback");
                     //            AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
@@ -437,6 +440,54 @@ public class GameController : MonoBehaviour {
                     Logger.Log("happens immediately after calling upload");
                 }));
         }));
+    }
+
+    // Helper function to wrap together two actions:
+    // (1) loading a page and (2) sending the StorybookPageInfo message over ROS.
+    private void loadPageAndSendRosMessage(SceneDescription sceneDescription) {
+        // Load the page.
+        this.storyManager.LoadPage(sceneDescription);
+
+        // Send the ROS message to update the controller about what page we're on now.
+        StorybookPageInfo updatedInfo = new StorybookPageInfo();
+        updatedInfo.storyName = this.currentStory.GetName();
+        updatedInfo.pageNumber = this.currentPageNumber;
+        updatedInfo.stanzas = this.storyManager.stanzaManager.GetStanzaTexts();
+
+        // Gather information about scene objects.
+        StorybookSceneObject[] sceneObjects =
+            new StorybookSceneObject[sceneDescription.sceneObjects.Length];
+        for (int i = 0; i < sceneDescription.sceneObjects.Length; i++) {
+            SceneObject so = sceneDescription.sceneObjects[i];
+            StorybookSceneObject sso = new StorybookSceneObject();
+            sso.id = so.id;
+            sso.label = so.label;
+            sso.inText = so.inText;
+            sceneObjects[i] = sso;
+        }
+        updatedInfo.sceneObjects = sceneObjects;
+
+        // Gather information about tinker texts.
+        StorybookTinkerText[] tinkerTexts =
+            new StorybookTinkerText[this.storyManager.tinkerTexts.Count];
+        for (int i = 0; i < this.storyManager.tinkerTexts.Count; i++) {
+            TinkerText tt = this.storyManager.tinkerTexts[i].GetComponent<TinkerText>();
+            StorybookTinkerText stt = new StorybookTinkerText();
+            stt.word = tt.word;
+            stt.hasSceneObject = false;
+            stt.sceneObjectId = -1;
+            tinkerTexts[i] = stt;
+        }
+        foreach (Trigger trigger in sceneDescription.triggers) {
+            if (trigger.type == TriggerType.CLICK_TINKERTEXT_SCENE_OBJECT) {
+                tinkerTexts[trigger.args.textId].hasSceneObject = true;
+                tinkerTexts[trigger.args.textId].sceneObjectId = trigger.args.sceneObjectId;
+            }
+        }
+        updatedInfo.tinkerTexts = tinkerTexts;
+       
+        // Send the message.
+        this.rosManager.SendStorybookPageInfoAction(updatedInfo).Invoke();
     }
 
     private void toggleAudio() {
