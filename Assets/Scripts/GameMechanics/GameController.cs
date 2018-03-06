@@ -316,9 +316,25 @@ public class GameController : MonoBehaviour {
                 this.showElement(this.enterLibraryButton.gameObject);
                 // Set up the command handlers, happens the first time connection is established.
                 this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
-                Thread.Sleep(500); // Wait for a bit to make sure connection is established.
+                Thread.Sleep(1000); // Wait for a bit to make sure connection is established.
                 this.rosManager.SendHelloWorld().Invoke();
-                Logger.Log("Sent hello message");
+                this.rosManager.SendStorybookState().Invoke();
+                this.rosManager.SendStorybookPageInfo(new StorybookPageInfo {
+                    storyName = "TEST STORY NAME",
+                    pageNumber = 4,
+                    stanzas = new string[] {"hi", "hello there", "this is a test"},
+                    sceneObjects = new StorybookSceneObject[] {new StorybookSceneObject {
+                            id = 3,
+                            label = "toad",
+                            inText = true
+                        }},
+                    tinkerTexts = new StorybookTinkerText[] {new StorybookTinkerText {
+                            hasSceneObject = true,
+                            sceneObjectId = 6,
+                            word = "once"
+                        }}
+                }).Invoke();
+                Logger.Log("Sent hello messages");
             } else {
                 this.rosStatusText.text = "Failed to connect, try again.";
                 this.rosStatusText.color = Color.red;

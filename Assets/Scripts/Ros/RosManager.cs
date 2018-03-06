@@ -8,20 +8,6 @@ using System;
 using System.Collections.Generic;
 using MiniJSON;
 
-// Messages from the storybook to the controller.
-public enum StorybookInfoMessageType {
-    HELLO_WORLD = 0,
-    SPEECH_ACE_RESULT = 1,
-    REQUEST_ROBOT_FEEDBACK = 2,
-    WORD_TAPPED = 3,
-}
-
-// Messages coming from the controller to the storybook.
-// We will need to deal with each one by registering a handler.
-public enum StorybookCommand {
-    PING_TEST = 0,
-}
-
 public class RosManager {
 
     public GameObject testObject; // For UI feedback when things happen.
@@ -32,10 +18,24 @@ public class RosManager {
     private Dictionary<StorybookCommand, Action<Dictionary<string, object>>> commandHandlers;
     private bool connected;
 
+    // Updated by other classes, published on /storybook_state.
+    private StorybookState currentStorybookState;
+    private System.Object stateLock;
+
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
         Logger.Log("RosManager constructor");
         this.gameController = gameController;
+        this.stateLock = new System.Object();
+        this.currentStorybookState = new StorybookState {
+            audioPlaying = false,
+            isReading = true,
+            storybookMode = StorybookMode.Evaluate,
+            currentStory = "the_hungry_toad",
+            numPages = 12,
+            currentStanzaIndex = -1,
+            currentTinkerTextIndex = -1
+        };
 
         this.rosClient = new RosbridgeWebSocketClient(rosIP, portNum);
         this.rosClient.receivedMsgEvent += this.onMessageReceived;
@@ -47,11 +47,19 @@ public class RosManager {
             Logger.Log("Failed to set up socket");
             return false;
         }
-        string pubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
-            Constants.STORYBOOK_TO_ROSCORE_TOPIC, Constants.STORYBOOK_TO_ROSCORE_MESSAGE_TYPE);
+        string eventPubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
+            Constants.STORYBOOK_EVENT_TOPIC, Constants.STORYBOOK_EVENT_MESSAGE_TYPE);
+        string pageInfoPubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
+            Constants.STORYBOOK_PAGE_INFO_TOPIC, Constants.STORYBOOK_PAGE_INFO_MESSAGE_TYPE);
+        string statePubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
+            Constants.STORYBOOK_STATE_TOPIC, Constants.STORYBOOK_STATE_MESSAGE_TYPE);   
         string subMessage = RosbridgeUtilities.GetROSJsonSubscribeMsg(
-            Constants.ROSCORE_TO_STORYBOOK_TOPIC, Constants.ROSCORE_TO_STORYBOOK_MESSAGE_TYPE);
-        this.connected = this.rosClient.SendMessage(pubMessage) && this.rosClient.SendMessage(subMessage);
+            Constants.STORYBOOK_COMMAND_TOPIC, Constants.STORYBOOK_COMMAND_MESSAGE_TYPE);
+
+        this.connected = this.rosClient.SendMessage(eventPubMessage) &&
+            this.rosClient.SendMessage(pageInfoPubMessage) &&
+            this.rosClient.SendMessage(statePubMessage) &&
+            this.rosClient.SendMessage(subMessage);
         return this.connected;
     }
 
@@ -62,6 +70,12 @@ public class RosManager {
     // Registers a message handler for a particular command the app might receive from the controller. 
     public void RegisterHandler(StorybookCommand command, Action<Dictionary<string, object>> handler) {
         this.commandHandlers.Add(command, handler);
+    }
+
+    public void SetStateAudioPlaying(bool isPlaying) {
+        lock (stateLock) {
+            
+        }
     }
 
     private void onMessageReceived(object sender, int cmd, object properties) {
@@ -81,19 +95,21 @@ public class RosManager {
         }
     }
 
+    //
     // Note that these all return Action so that they can be set as click handlers.
+    //
 
     // Simple message to verify connection when we initialize connection to ROS.
     public Action SendHelloWorld() {
         return () => {
-            this.sendMessageToController(StorybookInfoMessageType.HELLO_WORLD, "hello world");
+            this.sendEventMessageToController(StorybookEventType.HELLO_WORLD, "hello world");
         };
     }
 
     // Send the SpeechACE results.
     public Action SendSpeechAceResult(string jsonResults) {
         return () => {
-            this.sendMessageToController(StorybookInfoMessageType.SPEECH_ACE_RESULT, jsonResults);
+            this.sendEventMessageToController(StorybookEventType.SPEECH_ACE_RESULT, jsonResults);
         };
     }
 
@@ -101,28 +117,100 @@ public class RosManager {
     public Action SendTinkerTextTapped(string text) {
         return () => {
             Logger.Log("sending tinkertext tapped");
-            this.sendMessageToController(StorybookInfoMessageType.WORD_TAPPED, text);
+            this.sendEventMessageToController(StorybookEventType.WORD_TAPPED, text);
         };
     }
         
     // Send until received.
-    private void sendMessageToController(StorybookInfoMessageType messageType, string message) {
+    private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Dictionary<string, object> publish = new Dictionary<string, object>();
-        publish.Add("topic", Constants.STORYBOOK_TO_ROSCORE_TOPIC);
+        publish.Add("topic", Constants.STORYBOOK_EVENT_TOPIC);
         publish.Add("op", "publish");
         // Build data to send.
         Dictionary<string, object> data = new Dictionary<string, object>();
-        data.Add("message_type", (int)messageType);
+        data.Add("event_type", (int)messageType);
         data.Add("header", RosbridgeUtilities.GetROSHeader());
         data.Add("message", message);
         publish.Add("msg", data);
-        Logger.Log("Sending ROS message: " + Json.Serialize(publish));
+        Logger.Log("Sending event ROS message: " + Json.Serialize(publish));
         bool sent = false;
         while (!sent) {
             sent = this.rosClient.SendMessage(Json.Serialize(publish));
         }
     }
 
+    // Send a message representing storybook state to the controller.
+    public Action SendStorybookState() {
+        return () => {
+            Dictionary<string, object> publish = new Dictionary<string, object>();
+            publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
+            publish.Add("op", "publish");
 
+            Dictionary<string, object> data = new Dictionary<string, object>();
 
+            lock (stateLock) {
+                data.Add("header", RosbridgeUtilities.GetROSHeader());
+                data.Add("audio_playing", this.currentStorybookState.audioPlaying);
+                data.Add("is_reading", this.currentStorybookState.isReading);
+                data.Add("storybook_mode", (int)this.currentStorybookState.storybookMode);
+                data.Add("current_story", this.currentStorybookState.currentStory);
+                data.Add("num_pages", this.currentStorybookState.numPages);
+                data.Add("current_stanza_index", this.currentStorybookState.currentStanzaIndex);
+                data.Add("current_tinkertext_index", this.currentStorybookState.currentTinkerTextIndex);
+            }
+
+            publish.Add("msg", data);
+
+            bool success = this.rosClient.SendMessage(Json.Serialize(publish));
+            if (!success) {
+                Logger.Log("Failed to send StorybookState message: " + Json.Serialize((publish)));
+            }
+        };
+    }
+
+    // Send a message representing new page info to the controller.
+    // Typically will be called when the user presses previous or next.
+    // Sends until success.
+    public Action SendStorybookPageInfo(StorybookPageInfo pageInfo) {
+        return () => {
+            Dictionary<string, object> publish = new Dictionary<string, object>();
+            publish.Add("topic", Constants.STORYBOOK_PAGE_INFO_TOPIC);
+            publish.Add("op", "publish");
+
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            data.Add("header", RosbridgeUtilities.GetROSHeader());
+            data.Add("story_name", pageInfo.storyName);
+            data.Add("page_number", pageInfo.pageNumber);
+            data.Add("stanzas", pageInfo.stanzas);
+
+            List<Dictionary<string, object>> tinkerTexts =
+                new List<Dictionary<string, object>> ();
+            foreach (StorybookTinkerText t in pageInfo.tinkerTexts) {
+                Dictionary<string, object> tinkerText = new Dictionary<string, object>();
+                tinkerText.Add("has_scene_object", t.hasSceneObject);
+                tinkerText.Add("scene_object_id", t.sceneObjectId);
+                tinkerText.Add("word", t.word);
+                tinkerTexts.Add(tinkerText);
+            }
+            data.Add("tinkertexts", tinkerTexts);
+
+            List<Dictionary<string, object>> sceneObjects =
+                new List<Dictionary<string, object>>();
+            foreach (StorybookSceneObject o in pageInfo.sceneObjects) {
+                Dictionary<string, object> sceneObject = new Dictionary<string, object>();
+                sceneObject.Add("id", o.id);
+                sceneObject.Add("label", o.label);
+                sceneObject.Add("in_text", o.inText);
+                sceneObjects.Add(sceneObject);
+            }
+            data.Add("scene_objects", sceneObjects);
+
+            publish.Add("msg", data);
+            Logger.Log("Sending page info ROS message: " + Json.Serialize(publish));
+            bool sent = false;
+            while (!sent) {
+                sent = this.rosClient.SendMessage(Json.Serialize(publish));
+            }
+        };
+    }
 }

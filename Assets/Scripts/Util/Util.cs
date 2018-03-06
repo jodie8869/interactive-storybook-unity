@@ -9,9 +9,9 @@ public static class Util {
     public static string[] punctuation = {";", ".", "?", "\"", "!", ","};
 
     // Globally visible to the app, and can be changed by a simple select mode button.
-    public static GameMode CurrentGameMode = GameMode.Explore;
+    public static StorybookMode CurrentGameMode = StorybookMode.Explore;
 
-    public static void SetGameMode(GameMode newMode) {
+    public static void SetGameMode(StorybookMode newMode) {
         Util.CurrentGameMode = newMode;
     }
 

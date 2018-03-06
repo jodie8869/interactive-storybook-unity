@@ -32,12 +32,18 @@ public static class Constants {
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.
-    public static string STORYBOOK_TO_ROSCORE_TOPIC = "/storybook_to_roscore";
-    public static string STORYBOOK_TO_ROSCORE_MESSAGE_TYPE = "/unity_game_msgs/StorybookInfo";
-    public static string ROSCORE_TO_STORYBOOK_TOPIC = "/roscore_to_storybook";
-    public static string ROSCORE_TO_STORYBOOK_MESSAGE_TYPE = "/unity_game_msgs/StorybookCommand";
+    // Storybook to Roscore
+    public static string STORYBOOK_EVENT_TOPIC = "/storybook_event";
+    public static string STORYBOOK_EVENT_MESSAGE_TYPE = "/unity_game_msgs/StorybookEvent";
+    public static string STORYBOOK_PAGE_INFO_TOPIC = "/storybook_page_info";
+    public static string STORYBOOK_PAGE_INFO_MESSAGE_TYPE = "/unity_game_msgs/StorybookPageInfo";
+    public static string STORYBOOK_STATE_TOPIC = "/storybook_state";
+    public static string STORYBOOK_STATE_MESSAGE_TYPE = "/unity_game_msgs/StorybookState";
+    // Roscore to Storybook
+    public static string STORYBOOK_COMMAND_TOPIC = "/storybook_command";
+    public static string STORYBOOK_COMMAND_MESSAGE_TYPE = "/unity_game_msgs/StorybookCommand";
 
-    // Download URLs.
+    // Download URLs for story assets.
     public static string IMAGE_BASE_URL = "https://s3.amazonaws.com/storycorpus-images-without-text/images/";
     public static string AUDIO_BASE_URL = "https://s3.amazonaws.com/storycorpus-audio/";
     public static string JSON_BASE_URL = "https://s3.amazonaws.com/storycorpus-interactive-storybook-json/";
@@ -63,7 +69,7 @@ public enum DisplayMode {
 // Game Modes.
 // Determines whether or not the tablet should autoplay the audio, if we should be evaluating
 // the child's speech, if graphics/words are touchable, etc.
-public enum GameMode {
+public enum StorybookMode {
     Explore, // No evaluation, just ask what is this, what is that?
     Evaluate, // Robot prompts child to read, does evaluation, asks questions.
 }
