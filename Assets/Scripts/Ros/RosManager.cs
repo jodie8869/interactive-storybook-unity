@@ -80,6 +80,15 @@ public class RosManager {
         return this.connected;
     }
 
+    public void CloseConnection() {
+        this.rosClient.CloseSocket();
+        this.connected = false;
+    }
+
+    public void StopSendingStorybookState() {
+        this.storybookStateThread.Abort();
+    }
+
     // Registers a message handler for a particular command the app might receive from the controller. 
     public void RegisterHandler(StorybookCommand command, Action<Dictionary<string, object>> handler) {
         this.commandHandlers.Add(command, handler);

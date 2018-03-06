@@ -47,6 +47,7 @@ public class RosbridgeWebSocketClient
     private string PORT_NUM = null;
     public static int CONNECTION_TIMEOUT_SECONDS = 3;
     public static int MILLISECONDS_UNTIL_RECONNECT_ATTEMPT = 1000;
+    private const int CLEAN_SOCKET_CLOSE_STATUS_CODE = 1000;
 	// create a timer to use when trying to reconnect the websocket
 	private System.Timers.Timer timer = new System.Timers.Timer(MILLISECONDS_UNTIL_RECONNECT_ATTEMPT);
 
@@ -146,7 +147,6 @@ public class RosbridgeWebSocketClient
             // Connect to the server
             DateTime start = DateTime.Now;
 			this.clientSocket.ConnectAsync();
-            Logger.Log(this.clientSocket.IsAlive);
             while (!this.clientSocket.IsAlive) {
                 if (DateTime.Now.Subtract(start).TotalSeconds > CONNECTION_TIMEOUT_SECONDS) {
                     return false;
@@ -315,9 +315,8 @@ public class RosbridgeWebSocketClient
 		Logger.Log("[websocket] Websocket closed with status: " + e.Reason +
 			 "\nCode: " + e.Code + "\nClean close? " + e.WasClean);
 
-		// Begin the timer and attempt reconnect if unless it was an initial connection error,
-        // in which case we allow the user to retry instead of automatically reconnecting.
-        if (e.Code != 1006) {
+		// Begin the timer and attempt reconnect unless it was a clean close.
+        if (e.Code != CLEAN_SOCKET_CLOSE_STATUS_CODE) {
             this.timer.Enabled = true;
             this.Reconnect();   
         }

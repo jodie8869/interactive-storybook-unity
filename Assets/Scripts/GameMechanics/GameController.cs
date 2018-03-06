@@ -182,6 +182,15 @@ public class GameController : MonoBehaviour {
             }
         }
     }
+    // Clean up.
+    void OnApplicationQuit() {
+        if (this.rosManager != null && this.rosManager.isConnected()) {
+            // Stop the thread that's sending StorybookState messages.
+            this.rosManager.StopSendingStorybookState();
+            // Close the ROS connection cleanly.
+            this.rosManager.CloseConnection();   
+        }
+    }
 
     private void downloadStoryTitles() {
         List<string> storyNames = new List<string>();
