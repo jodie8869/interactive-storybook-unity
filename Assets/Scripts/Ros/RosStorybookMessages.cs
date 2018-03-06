@@ -1,4 +1,13 @@
-﻿/* This file defines helper structs and enums for building and interpreting ROS messages. */
+﻿/* 
+ * This file defines helper structs and enums for building and interpreting ROS messages.
+ *
+ * IMPORTANT:
+ *
+ * They need to be manually kept consistent with the unity_game_controllers/msgs/*.msg files,
+ * otherwise messages will be malformatted and ROS will not send them (and since we are using
+ * rosbridge, these failures will be silent, which, to quote our President, is BAD).
+ *
+ */
 
 // Messages from the storybook to the controller.
 public enum StorybookEventType {
@@ -19,13 +28,15 @@ public enum StorybookCommand {
 
 // Message type representing the high level state of the storybook, to be published at 10Hz.
 public struct StorybookState {
-    public bool audioPlaying;
-    public bool isReading;
-    public StorybookMode storybookMode; // StorybookMode.Explore or StorybookMode.Evaluate
+    public bool audioPlaying; // Is an audio file playing?
+    public string audioFile; // Name of the audio file that's playing, if there is one.
+
+    public StorybookMode storybookMode; // Three modes are NotReading, Explore, Evaluate.
+
     public string currentStory;
     public int numPages;
-    public int currentStanzaIndex; // TODO: should add a flag because this value is not always meaningful, and it defaults to 0 which is misleading.
-    public int currentTinkerTextIndex;
+     
+    public int evaluatingStanzaIndex; // If in Evaluate mode, this will be which stanza we're on.
 }
 
 // Message type representing which page of the storybook is currently active.

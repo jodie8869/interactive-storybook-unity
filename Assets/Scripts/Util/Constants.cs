@@ -28,7 +28,7 @@ public static class Constants {
     public static float SCENE_OBJECT_DISPLAY_TIME = 2.0f;
 
     // ROS connection information.
-    public static string DEFAULT_ROSBRIDGE_IP = "10.0.0.48"; //192.168.1.229";
+    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.229";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.
@@ -44,7 +44,7 @@ public static class Constants {
     public static string STORYBOOK_COMMAND_MESSAGE_TYPE = "/unity_game_msgs/StorybookCommand";
 
     // Publishing rate for StorybookState messages.
-    public static float STORYBOOK_STATE_PUBLISH_HZ = 1.0f;
+    public static float STORYBOOK_STATE_PUBLISH_HZ = 10.0f;
     public static float STORYBOOK_STATE_PUBLISH_DELAY = 1.0f / STORYBOOK_STATE_PUBLISH_HZ;
 
     // Download URLs for story assets.
@@ -74,6 +74,7 @@ public enum DisplayMode {
 // Determines whether or not the tablet should autoplay the audio, if we should be evaluating
 // the child's speech, if graphics/words are touchable, etc.
 public enum StorybookMode {
+    NotReading, // A storybook has not been selected yet.
     Explore, // No evaluation, just ask what is this, what is that?
     Evaluate, // Robot prompts child to read, does evaluation, asks questions.
 }

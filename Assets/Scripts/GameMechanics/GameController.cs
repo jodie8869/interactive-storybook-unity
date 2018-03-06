@@ -321,22 +321,6 @@ public class GameController : MonoBehaviour {
                 this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
                 Thread.Sleep(1000); // Wait for a bit to make sure connection is established.
                 this.rosManager.SendHelloWorldAction().Invoke();
-                this.rosManager.SendStorybookStateAction().Invoke();
-                this.rosManager.SendStorybookPageInfoAction(new StorybookPageInfo {
-                    storyName = "TEST STORY NAME",
-                    pageNumber = 4,
-                    stanzas = new string[] {"hi", "hello there", "this is a test"},
-                    sceneObjects = new StorybookSceneObject[] {new StorybookSceneObject {
-                            id = 3,
-                            label = "toad",
-                            inText = true
-                        }},
-                    tinkerTexts = new StorybookTinkerText[] {new StorybookTinkerText {
-                            hasSceneObject = true,
-                            sceneObjectId = 6,
-                            word = "once"
-                        }}
-                }).Invoke();
                 Logger.Log("Sent hello ping message");
             } else {
                 this.rosStatusText.text = "Failed to connect, try again.";
