@@ -135,7 +135,7 @@ public class StoryManager : MonoBehaviour {
                                 filteredTextWords.Count + " " + description.timestamps.Length);
             }
             for (int i = 0; i < filteredTextWords.Count; i++) {
-                this.loadTinkerText(filteredTextWords[i], description.timestamps[i],
+                this.loadTinkerText(i, filteredTextWords[i], description.timestamps[i],
                                       i == filteredTextWords.Count - 1);
             }
 
@@ -242,7 +242,7 @@ public class StoryManager : MonoBehaviour {
     }
 
     // Add a new TinkerText for the given word.
-    private void loadTinkerText(string word, AudioTimestamp timestamp, bool isLastWord) {
+    private void loadTinkerText(int index, string word, AudioTimestamp timestamp, bool isLastWord) {
         if (word.Length == 0) {
             return;
         }
@@ -253,7 +253,7 @@ public class StoryManager : MonoBehaviour {
         // If we're using ROS, attach a click handler to the tinkertext so that there's a message
         // sent over ROS whenever the user taps on a word.
         if (Constants.USE_ROS) {
-            newTinkerText.GetComponent<TinkerText>().AddClickHandler(this.rosManager.SendTinkerTextTappedAction(word));
+            newTinkerText.GetComponent<TinkerText>().AddClickHandler(this.rosManager.SendTinkerTextTappedAction(index, word));
         }
         this.tinkerTexts.Add(newTinkerText);
         // Place it correctly within the stanzas.
@@ -306,9 +306,10 @@ public class StoryManager : MonoBehaviour {
             Logger.Log("SceneObject clicked " +
                        manip.label);
         });
-        // TODO: If sceneObject.inText is false, set up whatever behavior we
-        // want for these words. For now, perhaps we can get Jibo to say it,
-        // and we can pop up a speech bubble?
+        // Add a click handler to send a ROS message.
+        manip.AddClickHandler(
+            this.rosManager.SendSceneObjectTappedAction(sceneObject.id, sceneObject.label));
+        // Add additional click handlers if the scene object's label is not in the story text.
         if (!sceneObject.inText) {
             manip.AddClickHandler(() =>
             {

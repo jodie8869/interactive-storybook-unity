@@ -107,7 +107,8 @@ public class RosManager {
                 this.commandHandlers[command].Invoke((Dictionary<string, object>)properties);
             }
         } else {
-            Logger.LogError("Don't know how to handle this command: " + command);
+            // Fail fast! Failure here means StorybookCommand struct is not up to date.
+            throw new Exception("Don't know how to handle this command: " + command);
         }
     }
 
@@ -130,14 +131,30 @@ public class RosManager {
     }
 
     // Send when TinkerText has been tapped.
-    public Action SendTinkerTextTappedAction(string text) {
+    public Action SendTinkerTextTappedAction(int tinkerTextIndex, string word) {
         return () => {
-            Logger.Log("sending tinkertext tapped");
-            this.sendEventMessageToController(StorybookEventType.WORD_TAPPED, text);
+            Logger.Log("Sending tinkertext tapped event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("index", tinkerTextIndex);
+            message.Add("word", word);
+            this.sendEventMessageToController(StorybookEventType.WORD_TAPPED,
+                Json.Serialize(message));
         };
     }
         
-    // Send until received.
+    // Send when SceneObject has been tapped.
+    public Action SendSceneObjectTappedAction(int sceneObjectId, string label) {
+        return () => {
+            Logger.Log("Sending scene object tapped event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("sceneObjectId", sceneObjectId);
+            message.Add("label", label);
+            this.sendEventMessageToController(StorybookEventType.SCENE_OBJECT_TAPPED,
+                Json.Serialize(message));  
+        };
+    }
+
+    // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {
             Dictionary<string, object> publish = new Dictionary<string, object>();
@@ -158,7 +175,7 @@ public class RosManager {
         t.Start();
     }
 
-    // Send a message representing storybook state to the controller.
+    // Send a message representing storybook state to the controller, in a new thread.
     public Action SendStorybookStateAction() {
         return () => {
             Thread t =  new Thread(() => {
@@ -197,7 +214,7 @@ public class RosManager {
 
     // Send a message representing new page info to the controller.
     // Typically will be called when the user presses previous or next.
-    // Sends until success.
+    // Sends until success, in a new thread.
     public Action SendStorybookPageInfoAction(StorybookPageInfo pageInfo) {
         return () => {
             Thread thread = new Thread(() => {

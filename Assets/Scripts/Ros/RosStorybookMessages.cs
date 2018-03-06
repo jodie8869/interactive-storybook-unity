@@ -14,7 +14,8 @@ public enum StorybookEventType {
     HELLO_WORLD = 0,
     SPEECH_ACE_RESULT = 1,
     REQUEST_ROBOT_FEEDBACK = 2,
-    WORD_TAPPED = 3,
+    WORD_TAPPED = 3, // Message is index of the word.
+    SCENE_OBJECT_TAPPED = 4, // Message is id of the object.
 }
 
 // Messages coming from the controller to the storybook.
