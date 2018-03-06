@@ -29,7 +29,7 @@ public class RosManager {
     public RosManager(string rosIP, string portNum, GameController gameController) {
         Logger.Log("RosManager constructor");
         this.gameController = gameController;
-        this.storybookStateManager = new StorybookStateManager();
+        this.storybookStateManager = gameController.GetStorybookStateManager();
 
         this.rosClient = new RosbridgeWebSocketClient(rosIP, portNum);
         this.rosClient.receivedMsgEvent += this.onMessageReceived;

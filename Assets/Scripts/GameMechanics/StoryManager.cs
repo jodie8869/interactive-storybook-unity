@@ -79,6 +79,7 @@ public class StoryManager : MonoBehaviour {
     void Start() {
         Logger.Log("StoryManager start");
 
+        this.audioManager.SetStorybookStateManager(this.gameController.GetStorybookStateManager());
         this.assetManager = GetComponent<AssetManager>();
 
         this.tinkerTexts = new List<GameObject>();
@@ -108,7 +109,7 @@ public class StoryManager : MonoBehaviour {
         this.resetPanelSizes();
 
         // Load audio.
-        this.audioManager.LoadAudio(this.assetManager.GetAudioClip(description.audioFile));
+        this.audioManager.LoadAudio(description.audioFile, this.assetManager.GetAudioClip(description.audioFile));
 
         if (description.isTitle) {
             // Special case for title page.
@@ -408,7 +409,7 @@ public class StoryManager : MonoBehaviour {
     }
 
     // Called by GameController when we should remove all elements we've added
-    // to this page (usually in preparration for the creation of another page).
+    // to this page (usually in preparation for the creation of another page).
     public void ClearPage() {
         // Destroy stanzas.
         this.stanzaManager.ClearPage();

@@ -63,7 +63,7 @@ public class GameController : MonoBehaviour {
 
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
-    private DateTime lastStorybookStateSentTime = DateTime.Now;
+    private StorybookStateManager storybookStateManager;
 
     // Reference to SceneManager so we can load and manipulate story scenes.
     private StoryManager storyManager;
@@ -134,6 +134,8 @@ public class GameController : MonoBehaviour {
         this.resizePanelsOnStartup();
 
         this.storyPages = new List<SceneDescription>();
+
+        this.storybookStateManager = new StorybookStateManager();
 
         this.storyManager = GetComponent<StoryManager>();
         this.assetManager = GetComponent<AssetManager>();
@@ -370,6 +372,7 @@ public class GameController : MonoBehaviour {
         this.showElement(this.nextButton.gameObject);
         this.setLandscapeOrientation();
         this.showLibraryPanel(true);
+        this.storybookStateManager.SetStoryExited();
     }
 
     private void onBackButtonClick() {
@@ -411,6 +414,10 @@ public class GameController : MonoBehaviour {
 
     // Helpers.
 
+    public StorybookStateManager GetStorybookStateManager() {
+        return this.storybookStateManager;
+    }
+
     public void TestAudio() {
         const string fileName = "foo.wav";
         // Test recording, saving and loading an audio clip.
@@ -446,6 +453,10 @@ public class GameController : MonoBehaviour {
         updatedInfo.storyName = this.currentStory.GetName();
         updatedInfo.pageNumber = this.currentPageNumber;
         updatedInfo.stanzas = this.storyManager.stanzaManager.GetStanzaTexts();
+
+        // Update state (will get automatically sent to the controller.
+        this.storybookStateManager.SetStorySelected(this.currentStory.GetName(),
+            this.currentStory.GetNumPages(), StorybookMode.Explore);
 
         // Gather information about scene objects.
         StorybookSceneObject[] sceneObjects =

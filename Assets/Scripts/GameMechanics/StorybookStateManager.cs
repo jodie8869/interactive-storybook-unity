@@ -1,14 +1,22 @@
 ﻿using System;
 
-// This class manages the StorybookState that is published to the controller.
+// This singleton class manages the StorybookState that is published to the controller.
 public class StorybookStateManager {
-    
+
+    public static StorybookStateManager instance;
+
     private StorybookState currentState;
     // Lock should be readonly to prevent corruption,
     // for example this prevents it from pointing to another object.
     private readonly Object stateLock;
 
     public StorybookStateManager () {
+        if (instance == null) {
+            instance = this;
+        } else {
+            throw new Exception("Cannot attempt to create multiple StorybookStateManagers");
+        }
+
         this.stateLock = new Object(); 
 
         // Set default values for start of interaction.
@@ -20,6 +28,7 @@ public class StorybookStateManager {
             numPages = 0,
             evaluatingStanzaIndex = -1,
         };
+           
     }
 
     // Used by RosManager to retrieve the current state and publish it.

@@ -16,7 +16,10 @@ public class StoryAudioManager : MonoBehaviour {
         public Action action;
     }
 
+    private StorybookStateManager storybookStateManager;
+
     // Need an AudioSource and an AudioClip to play audio.
+    private string audioFileName;
     public AudioSource audioSource;
     private AudioClip audioClip;
 
@@ -72,10 +75,19 @@ public class StoryAudioManager : MonoBehaviour {
             this.StopAudio();
         }
         this.lastTimestamp = this.currentTimestamp;
+
+        // Update audio state so that StorybookState ROS messages are accurate.
+        bool playing = this.IsPlaying();
+        this.storybookStateManager.SetAudioState(playing, this.audioFileName);
 	}
 
+    public void SetStorybookStateManager(StorybookStateManager manager) {
+        this.storybookStateManager = manager;
+    }
+
     // Load an audio clip as the current clip.
-    public void LoadAudio(AudioClip audioClip) {
+    public void LoadAudio(string audioFileName, AudioClip audioClip) {
+        this.audioFileName = audioFileName;
         this.audioClip = audioClip;
         this.audioSource.clip = this.audioClip;
     }
@@ -138,6 +150,7 @@ public class StoryAudioManager : MonoBehaviour {
         this.UnpauseAudio();
     }
 
+    // Called when StoryManager wants to transition to a new page.
     public void ClearTriggersAndReset() {
         this.triggers.Clear();
         this.resetInternalTimestamps();
