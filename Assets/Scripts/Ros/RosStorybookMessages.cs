@@ -12,10 +12,10 @@
 // Messages from the storybook to the controller.
 public enum StorybookEventType {
     HELLO_WORLD = 0,
-    SPEECH_ACE_RESULT = 1,
-    REQUEST_ROBOT_FEEDBACK = 2,
-    WORD_TAPPED = 3, // Message is index of the word.
-    SCENE_OBJECT_TAPPED = 4, // Message is id of the object.
+    SPEECH_ACE_RESULT = 1, // Message is json string representing entire SpeechACE result.
+    WORD_TAPPED = 2, // Message is {index: int, word: string} of the tinkertext.
+    SCENE_OBJECT_TAPPED = 3, // Message is {id: int, label: string} of the scene object.
+    STANZA_SWIPED = 4 // Message is {index: int, text: string} of the stanza.
 }
 
 // Messages coming from the controller to the storybook.

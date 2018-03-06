@@ -452,7 +452,7 @@ public class GameController : MonoBehaviour {
         StorybookPageInfo updatedInfo = new StorybookPageInfo();
         updatedInfo.storyName = this.currentStory.GetName();
         updatedInfo.pageNumber = this.currentPageNumber;
-        updatedInfo.stanzas = this.storyManager.stanzaManager.GetStanzaTexts();
+        updatedInfo.stanzas = this.storyManager.stanzaManager.GetAllStanzaTexts();
 
         // Update state (will get automatically sent to the controller.
         this.storybookStateManager.SetStorySelected(this.currentStory.GetName(),

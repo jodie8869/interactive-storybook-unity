@@ -97,6 +97,7 @@ public class StoryManager : MonoBehaviour {
 
     public void SetRosManager(RosManager ros) {
         this.rosManager = ros;
+        this.stanzaManager.SetRosManager(this.rosManager);
     }
 
     // Main function to be called by GameController.
@@ -139,6 +140,10 @@ public class StoryManager : MonoBehaviour {
                 this.loadTinkerText(i, filteredTextWords[i], description.timestamps[i],
                                       i == filteredTextWords.Count - 1);
             }
+
+            // After all TinkerTexts and Stanzas have been formatted, set the stanza swipe handlers.
+            // This will send StorybookEvent ROS messages to the controller when stanzas are swiped.
+            this.stanzaManager.SetStanzaSwipeHandlers();
 
             // Load audio triggers for TinkerText.
             this.loadAudioTriggers();

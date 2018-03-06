@@ -2,11 +2,13 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using MiniJSON;
+using System.Xml.Xsl.Runtime;
 
 public class StanzaManager : MonoBehaviour {
 
     private GameObject textPanel;
     public StoryAudioManager audioManager;
+    private RosManager rosManager;
 
     // Constants for loading TinkerTexts.
     private float STANZA_SPACING = 20; // Matches Prefab.
@@ -26,7 +28,7 @@ public class StanzaManager : MonoBehaviour {
     private List<GameObject> stanzas;
 
     // Use this for initialization.
-    void Start() {
+    void Awake() {
         this.stanzas = new List<GameObject>();
         this.tinkerTextPhraseBuffer = new List<GameObject>();
     }
@@ -54,6 +56,10 @@ public class StanzaManager : MonoBehaviour {
 
     public void SetTextPanel(GameObject textPanel) {
         this.textPanel = textPanel;
+    }
+
+    public void SetRosManager(RosManager ros) {
+        this.rosManager = ros;
     }
 
     // Bulk of the work is here, add a new TinkerText to the stanzas, following the rules:
@@ -183,21 +189,22 @@ public class StanzaManager : MonoBehaviour {
 
     }
 
+    // Should be called by StoryManager after all stanzas are loaded.
+    // Attaches swipe handlers so that StorybookEvent ROS messages get sent when stanzas are swiped.
+    public void SetStanzaSwipeHandlers() {
+        for (int i = 0; i < this.stanzas.Count; i++) {
+            Stanza stanza = this.stanzas[i].GetComponent<Stanza>();
+            string text = stanza.GetStanzaText();
+            stanza.AddSwipeHandler(this.rosManager.SendStanzaSwipedAction(i, text));
+        }
+    }
+
     // Returns an array of strings, where each string represents the text of a single stanza.
-    public string[] GetStanzaTexts() {
+    public string[] GetAllStanzaTexts() {
         Logger.Log("Getting stanza texts, number of stanzas: " + this.stanzas.Count);
         string[] stanzaTexts = new string[this.stanzas.Count];
         for (int i = 0; i < this.stanzas.Count; i++) {
-            GameObject stanzaObject = this.stanzas[i];
-            RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
-            string text = "";
-            for (int j = 0; j < rectTransform.childCount; j++) {
-                GameObject tinkerTextObject = rectTransform.GetChild(j).gameObject;
-                text += tinkerTextObject.GetComponent<TinkerText>().word + " ";
-            }
-            // Cut off the last space.
-            text = text.Substring(0, text.Length - 1);
-            stanzaTexts[i] = text;
+            stanzaTexts[i] = this.stanzas[i].GetComponent<Stanza>().GetStanzaText();
         }
         Logger.Log("stanzaTexts " + Json.Serialize(stanzaTexts));
         return stanzaTexts;

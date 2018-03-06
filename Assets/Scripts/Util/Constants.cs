@@ -45,7 +45,7 @@ public static class Constants {
 
     // Publishing rate for StorybookState messages.
     public static float STORYBOOK_STATE_PUBLISH_HZ = 10.0f;
-    public static float STORYBOOK_STATE_PUBLISH_DELAY = 1.0f / STORYBOOK_STATE_PUBLISH_HZ;
+    public static float STORYBOOK_STATE_PUBLISH_DELAY_MS = 1000.0f / STORYBOOK_STATE_PUBLISH_HZ;
 
     // Download URLs for story assets.
     public static string IMAGE_BASE_URL = "https://s3.amazonaws.com/storycorpus-images-without-text/images/";

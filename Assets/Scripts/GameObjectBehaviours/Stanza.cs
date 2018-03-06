@@ -8,6 +8,9 @@ using System.Threading;
 // It has a reference to the audio, so that it is able to support operations
 // such as playAudio when it is swiped.
 // This Stanza script is automatically attached to each stanza object.
+using UnityEngine.Events;
+
+
 public class Stanza : MonoBehaviour {
 
     public static bool allowSwipe;
@@ -42,11 +45,15 @@ public class Stanza : MonoBehaviour {
     // References to all of the TinkerText objects that belong to this stanza.
     private List<GameObject> tinkerTexts;
 
+    private UnityAction swipeUnityAction;
+
     private void Awake() {
         this.stanzaPanel = gameObject;
         this.rect = this.stanzaPanel.GetComponent<RectTransform>();
         Stanza.allowSwipe = true;
         this.specificStanzaAllowSwipe = true;
+
+        this.swipeUnityAction += () => {};
     }
 
     void Update() {
@@ -61,13 +68,13 @@ public class Stanza : MonoBehaviour {
             }
             if (this.stanzaWasSwiped()) {
                 // Delay for a short while.
-                // TODO: not sure if this is necessary.
                 Thread.Sleep(200);
                 this.audioManager.PlayInterval(this.startTimestamp,
                                                this.endTimestamp);
                 // Reset positions so we don't keep trying to play audio.
                 this.mouseDownPos = new Vector2(0, 0);
                 this.mouseUpPos = new Vector2(0, 0);
+                this.swipeUnityAction.Invoke();
             }
         }
     }
@@ -93,6 +100,23 @@ public class Stanza : MonoBehaviour {
         this.audioManager.PlayInterval(this.startTimestamp, this.endTimestamp);
     }
 
+    public void AddSwipeHandler(Action action) {
+        this.swipeUnityAction += new UnityAction(action);
+    }
+
+    public string GetStanzaText() {
+        GameObject stanzaObject = this.gameObject;
+        RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
+        string text = "";
+        for (int j = 0; j < rectTransform.childCount; j++) {
+            GameObject tinkerTextObject = rectTransform.GetChild(j).gameObject;
+            text += tinkerTextObject.GetComponent<TinkerText>().word + " ";
+        }
+        // Cut off the last space.
+        text = text.Substring(0, text.Length - 1);
+        return text;
+    }
+
     private bool stanzaWasSwiped() {
         // Special case for first time.
         if (this.topY.Equals(0)) {
@@ -101,7 +125,7 @@ public class Stanza : MonoBehaviour {
             this.leftX = pos.x - size.x / 2.0f;
             this.topY = pos.y + size.y / 2.0f;
             this.bottomY = pos.y - size.y / 2.0f;
-            Logger.Log(this.leftX + " " + this.topY + " " + this.bottomY);
+            // Logger.Log(this.leftX + " " + this.topY + " " + this.bottomY);
         }
 
         // Both mouse down and mouse up must be within vertical range of stanza.
@@ -122,7 +146,7 @@ public class Stanza : MonoBehaviour {
         if (this.mouseUpPos.x < this.leftX) {
             return false;
         }
-        Logger.Log("swiped! " + this.startTimestamp + " " + this.endTimestamp);
+        Logger.Log("Stanza swiped! " + this.startTimestamp + " " + this.endTimestamp);
         return true;
     }
 }

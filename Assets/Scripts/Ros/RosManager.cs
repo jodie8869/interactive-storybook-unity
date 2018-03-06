@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using MiniJSON;
+using ThirdParty.Json.LitJson;
 
 public class RosManager {
 
@@ -19,11 +20,11 @@ public class RosManager {
     private Dictionary<StorybookCommand, Action<Dictionary<string, object>>> commandHandlers;
     private bool connected;
 
-    private Thread storybookStateThread;
+    private System.Timers.Timer publishStateTimer =
+        new System.Timers.Timer(Constants.STORYBOOK_STATE_PUBLISH_DELAY_MS);
+   
 
     private StorybookStateManager storybookStateManager;
-
-    private DateTime lastStorybookStateSentTime = DateTime.Now;
 
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
@@ -58,19 +59,9 @@ public class RosManager {
 
         // If connection successful, begin sending state messages.
         if (this.connected) {
-            this.storybookStateThread = new Thread(() => {
-                while (true) {
-                    // Send StorybookState message over ROS at the desired frequency, set in Constants.
-                    if (DateTime.Now.Subtract(this.lastStorybookStateSentTime).TotalSeconds
-                        > Constants.STORYBOOK_STATE_PUBLISH_DELAY) {
-                        if (this.connected) {
-                            this.SendStorybookStateAction().Invoke();
-                            this.lastStorybookStateSentTime = DateTime.Now;
-                        }
-                    }
-                }
-            });
-            this.storybookStateThread.Start();
+            Logger.Log("Starting to send state messages");
+            this.publishStateTimer.Elapsed += this.sendStorybookState;
+            this.publishStateTimer.Start();
         }
 
         return this.connected;
@@ -86,7 +77,7 @@ public class RosManager {
     }
 
     public void StopSendingStorybookState() {
-        this.storybookStateThread.Abort();
+        this.publishStateTimer.Stop();
     }
 
     // Registers a message handler for a particular command the app might receive from the controller. 
@@ -154,6 +145,18 @@ public class RosManager {
         };
     }
 
+    // Send when Stanza has been swiped.
+    public Action SendStanzaSwipedAction(int stanzaIndex, string text) {
+        return () => {
+            Logger.Log("Sending stanza swiped event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("index", stanzaIndex);
+            message.Add("text", text);
+            this.sendEventMessageToController(StorybookEventType.STANZA_SWIPED,
+                Json.Serialize(message));
+        };
+    }
+
     // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {
@@ -176,40 +179,45 @@ public class RosManager {
     }
 
     // Send a message representing storybook state to the controller, in a new thread.
-    public Action SendStorybookStateAction() {
-        return () => {
-            Thread t =  new Thread(() => {
-                Dictionary<string, object> publish = new Dictionary<string, object>();
-                publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
-                publish.Add("op", "publish");
+    // Doesn't need to return Action because it's only used as a timer elapsed handler.
+    private void sendStorybookState(object sender, System.Timers.ElapsedEventArgs e) {
+        Thread t =  new Thread(() => {
+            Dictionary<string, object> publish = new Dictionary<string, object>();
+            publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
+            publish.Add("op", "publish");
 
-                Dictionary<string, object> data = new Dictionary<string, object>();
+            Dictionary<string, object> data = new Dictionary<string, object>();
 
-                // Note that this is protected by a lock, so although ROS messages could
-                // send out of order, the information within them will be consistent.
-                // And if the sending rate isn't too high, the likelihood of out of order messages
-                // is low, and inconsequential for the controller anyway.
-                // TODO: should devise a better scheme to make sure states are sent in order.
-                // Can also use the sequence numbers provided in the header.
-                // Or use a lock in this class so that only one state message can be sent at a time.
-                StorybookState currentStorybookState = this.storybookStateManager.getCurrentState();
-                data.Add("header", RosbridgeUtilities.GetROSHeader());
-                data.Add("audio_playing", currentStorybookState.audioPlaying);
-                data.Add("audio_file", currentStorybookState.audioFile);
-                data.Add("storybook_mode", (int)currentStorybookState.storybookMode);
-                data.Add("current_story", currentStorybookState.currentStory);
-                data.Add("num_pages", currentStorybookState.numPages);
-                data.Add("evaluating_stanza_index", currentStorybookState.evaluatingStanzaIndex);
+            // Note that this is protected by a lock, so although ROS messages could
+            // send out of order, the information within them will be consistent.
+            // And if the sending rate isn't too high, the likelihood of out of order messages
+            // is low, and inconsequential for the controller anyway.
+            // TODO: should devise a better scheme to make sure states are sent in order.
+            // Can also use the sequence numbers provided in the header.
+            // Or use a lock in this class so that only one state message can be sent at a time.
+            StorybookState currentStorybookState = this.storybookStateManager.getCurrentState();
+            data.Add("header", RosbridgeUtilities.GetROSHeader());
+            data.Add("audio_playing", currentStorybookState.audioPlaying);
+            // ROS freaks out if it gets a null value, so just fill it in with an empty string
+            // if there is no provided audio file.
+            string audioFile = currentStorybookState.audioFile;
+            if (audioFile == null) {
+                audioFile = "";
+            }
+            data.Add("audio_file", audioFile);
+            data.Add("storybook_mode", (int)currentStorybookState.storybookMode);
+            data.Add("current_story", currentStorybookState.currentStory);
+            data.Add("num_pages", currentStorybookState.numPages);
+            data.Add("evaluating_stanza_index", currentStorybookState.evaluatingStanzaIndex);
 
-                publish.Add("msg", data);
+            publish.Add("msg", data);
 
-                bool success = this.rosClient.SendMessage(Json.Serialize(publish));
-                if (!success) {
-                    Logger.Log("Failed to send StorybookState message: " + Json.Serialize((publish)));
-                } 
-            });
-            t.Start();
-        };
+            bool success = this.rosClient.SendMessage(Json.Serialize(publish));
+            if (!success) {
+                Logger.Log("Failed to send StorybookState message: " + Json.Serialize((publish)));
+            }        
+        });
+        t.Start();
     }
 
     // Send a message representing new page info to the controller.
