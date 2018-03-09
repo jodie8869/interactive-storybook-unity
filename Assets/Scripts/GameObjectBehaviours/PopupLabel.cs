@@ -28,7 +28,7 @@ public class PopupLabel : MonoBehaviour {
             new Vector2(preferredWidth + DESIRED_BORDER,
                 POPUP_LABEL_HEIGHT + DESIRED_BORDER);
         
-        // Configure the position.
+        // TODO: Configure the position.
         // Either put it above, to the right, or to the left of the object,
         // depending on where the object is. Preference is above, below, right, left.
 

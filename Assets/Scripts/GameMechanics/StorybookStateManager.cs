@@ -1,12 +1,16 @@
 ﻿using System;
 
 // This singleton class manages the StorybookState that is published to the controller.
+using System.Collections.Generic;
+
+
 public class StorybookStateManager {
 
     public static StorybookStateManager instance;
 
     private StorybookState currentState;
-    // Lock should be readonly to prevent corruption,
+    private Dictionary<string, object> rosMessageData;
+
     // for example this prevents it from pointing to another object.
     private readonly Object stateLock;
 
@@ -28,13 +32,31 @@ public class StorybookStateManager {
             numPages = 0,
             evaluatingStanzaIndex = -1,
         };
+
+        this.rosMessageData = new Dictionary<string, object>();
+        this.currentSate = currentStorybookState;
+        this.rosMessageData.Add("audio_playing", this.currentSate.audioPlaying);
+        // ROS freaks out if it gets a null value, so just fill it in with an empty string
+        // if there is no provided audio file.
+        string audioFile = this.currentSate.audioFile;
+        if (audioFile == null) {
+            audioFile = "";
+        }
+        this.rosMessageData.Add("audio_file", audioFile);
+        this.rosMessageData.Add("storybook_mode", (int)this.currentSate.storybookMode);
+        this.rosMessageData.Add("current_story", this.currentSate.currentStory);
+        this.rosMessageData.Add("num_pages", this.currentSate.numPages);
+        this.rosMessageData.Add("evaluating_stanza_index", this.currentSate.evaluatingStanzaIndex);
            
     }
 
-    // Used by RosManager to retrieve the current state and publish it.
-    public StorybookState getCurrentState() {
+    public StorybookState GetCurrentState() {
         // It's a struct, so it should return by value.
         return currentState;
+    }
+
+    public Dictionary<string, object> GetCurrentRosMessageData() {
+        return this.rosMessageData;
     }
 
     // Used by StoryAudioManager to set whether an audio file is currently playing.
@@ -46,6 +68,7 @@ public class StorybookStateManager {
         lock (stateLock) {
             this.currentState.audioPlaying = isPlaying;
             this.currentState.audioFile = audioFile;
+            this.rosMessageData
         }
     }
 

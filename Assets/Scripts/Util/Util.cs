@@ -2,7 +2,6 @@
 
 using System;
 using UnityEngine;
-using UnityEditor;
 
 public static class Util {
     // TODO: should include comma or not? Sometimes that makes it too vertical.
