@@ -188,8 +188,6 @@ public class RosManager {
         publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
         publish.Add("op", "publish");
 
-        Dictionary<string, object> data = this.storybookStateManager.GetCurrentRosMessageData();
-
         // Note that this is protected by a lock, so although ROS messages could
         // send out of order, the information within them will be consistent.
         // And if the sending rate isn't too high, the likelihood of out of order messages
@@ -197,13 +195,12 @@ public class RosManager {
         // TODO: should devise a better scheme to make sure states are sent in order.
         // Can also use the sequence numbers provided in the header.
         // Or use a lock in this class so that only one state message can be sent at a time.
-        StorybookState currentStorybookState = this.storybookStateManager.GetCurrentState();
+        Dictionary<string, object> data = this.storybookStateManager.GetCurrentRosMessageData();
         data.Add("header", RosbridgeUtilities.GetROSHeader());
-        // Don't allow 
+        // Don't allow audio_file to be null, ROS will get upset.
         if (data["audio_file"] == null) {
             data["audio_file"] = "";
         }
-
         publish.Add("msg", data);
 
         bool success = this.rosClient.SendMessage(Json.Serialize(publish));

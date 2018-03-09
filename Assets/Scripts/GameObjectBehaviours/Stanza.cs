@@ -29,10 +29,6 @@ public class Stanza : MonoBehaviour {
     private Vector2 mouseDownPos;
     private Vector2 mouseUpPos;
 
-    // Know which TinkerTexts belong to this stanza.
-    private int firstTinkerTextIndex; // Global index.
-    private int lastTinkerTextIndex; // Global index.
-
     private float startTimestamp;
     private float endTimestamp;
 
@@ -41,9 +37,6 @@ public class Stanza : MonoBehaviour {
 
     public bool specificStanzaAllowSwipe;
     public int index;
-
-    // References to all of the TinkerText objects that belong to this stanza.
-    private List<GameObject> tinkerTexts;
 
     private UnityAction swipeUnityAction;
 
@@ -102,6 +95,26 @@ public class Stanza : MonoBehaviour {
 
     public void AddSwipeHandler(Action action) {
         this.swipeUnityAction += new UnityAction(action);
+    }
+
+    // Highlight the entire stanza with a given color.
+    public void Highlight(Color color) {
+        GameObject stanzaObject = this.gameObject;
+        RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
+        for (int j = 0; j < rectTransform.childCount; j++) {
+            GameObject tinkerTextObject = rectTransform.GetChild(j).gameObject;
+            tinkerTextObject.GetComponent<TinkerText>().ChangeTextColor(color);
+        }
+    }
+
+    // Return stanza to black.
+    public void UnHighlight() {
+        GameObject stanzaObject = this.gameObject;
+        RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
+        for (int j = 0; j < rectTransform.childCount; j++) {
+            GameObject tinkerTextObject = rectTransform.GetChild(j).gameObject;
+            tinkerTextObject.GetComponent<TinkerText>().ChangeTextColor(Color.black);
+        }
     }
 
     public string GetStanzaText() {

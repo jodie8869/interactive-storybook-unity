@@ -12,6 +12,9 @@ public static class Constants {
     // For float comparison.
     public static float EPSILON = 1e-5f;
 
+    // Participant information.
+    public static string CHILD_NAME = "child_test";
+
     // Desired ratio of graphics panel width to entire landscape panel width
     // in landscape display mode. 850/2048
     public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 0.415f;

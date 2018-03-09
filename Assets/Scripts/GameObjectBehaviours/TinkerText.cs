@@ -117,7 +117,7 @@ public class TinkerText : MonoBehaviour
         this.ChangeTextColor(this.unhighlightedColor);
     }
 
-    private void ChangeTextColor(Color color) {
+    public void ChangeTextColor(Color color) {
         this.text.GetComponent<Text>().color = color;
     }
 

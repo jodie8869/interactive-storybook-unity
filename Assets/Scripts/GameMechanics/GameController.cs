@@ -414,26 +414,22 @@ public class GameController : MonoBehaviour {
         return this.storybookStateManager;
     }
 
-    public void TestAudio() {
-        const string fileName = "foo.wav";
+    // Argument sentenceIndex is which sentence of 
+    public void RecordAudioAndGetSpeechAceResult(int duration, string text, int sentenceIndex) {
+        string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
         // Test recording, saving and loading an audio clip.
-        StartCoroutine(audioRecorder.RecordForDuration(6, (clip) => {
-            AudioRecorder.SaveAudioAtPath(fileName, clip);
-            Logger.Log("in recorder callback");
+        StartCoroutine(audioRecorder.RecordForDuration(duration, (clip) => {
+            AudioRecorder.SaveAudioAtPath(tempFileName, clip);
             StartCoroutine(this.speechAceManager.AnalyzeTextSample(
-                fileName, "there once was a toad named toad",
-                (speechAceResult) => {
-                    Logger.Log("in SpeechACE callback");
+                tempFileName, text, (speechAceResult) => {
                     if (Constants.USE_ROS) {
                         this.rosManager.SendSpeechAceResultAction(speechAceResult).Invoke();
                     }
-                    Logger.Log("happens immediately after recorder callback");
-                    //            AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
-                    //            this.storyManager.audioManager.LoadAudio(loadedClip);
-                    //            this.storyManager.audioManager.PlayAudio();
-                    Logger.Log("pushing to S3 now");
-                    this.assetManager.S3UploadChildAudio (fileName);
-                    Logger.Log("happens immediately after calling upload");
+                    // If we want to replay for debugging, uncomment this.
+                    // AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
+                    // this.storyManager.audioManager.LoadAudio(loadedClip);
+                    // this.storyManager.audioManager.PlayAudio();
+                    this.assetManager.S3UploadChildAudio(tempFileName);
                 }));
         }));
     }
@@ -493,9 +489,8 @@ public class GameController : MonoBehaviour {
     }
 
     private void toggleAudio() {
-        // TODO: uncomment this and change it back.
-        //this.storyManager.ToggleAudio();
-        this.TestAudio();
+        this.RecordAudioAndGetSpeechAceResult(6, "There once was a toad named toad", 0);
+//        this.storyManager.ToggleAudio();
     }
 
     private void changeButtonText(Button button, string text) {

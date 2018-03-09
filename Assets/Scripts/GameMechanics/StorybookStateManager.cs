@@ -34,13 +34,7 @@ public class StorybookStateManager {
         };
         this.rosMessageData = new Dictionary<string, object>();
         this.rosMessageData.Add("audio_playing", this.currentState.audioPlaying);
-        // ROS freaks out if it gets a null value, so just fill it in with an empty string
-        // if there is no provided audio file.
-        string audioFile = this.currentState.audioFile;
-        if (audioFile == null) {
-            audioFile = "";
-        }
-        this.rosMessageData.Add("audio_file", audioFile);
+        this.rosMessageData.Add("audio_file", this.currentState.audioFile);
         this.rosMessageData.Add("storybook_mode", (int)this.currentState.storybookMode);
         this.rosMessageData.Add("current_story", this.currentState.currentStory);
         this.rosMessageData.Add("num_pages", this.currentState.numPages);
@@ -53,7 +47,7 @@ public class StorybookStateManager {
     }
 
     public Dictionary<string, object> GetCurrentRosMessageData() {
-        return this.rosMessageData;
+        return new Dictionary<string, object>(this.rosMessageData);
     }
 
     // Used by StoryAudioManager to set whether an audio file is currently playing.
@@ -65,6 +59,7 @@ public class StorybookStateManager {
         lock (stateLock) {
             this.currentState.audioPlaying = isPlaying;
             this.currentState.audioFile = audioFile;
+
             this.rosMessageData["audio_playing"] = isPlaying;
             // Avoid null values.
             if (audioFile == null) {
