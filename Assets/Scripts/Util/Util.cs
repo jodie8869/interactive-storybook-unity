@@ -76,11 +76,6 @@ public static class Util {
         return humanReadable.TrimEnd(' ');
     }
 
-    // Get the title page sprite for a story name.
-    public static Sprite GetTitleSprite(StoryMetadata story) {
-        return Util.GetStorySprite(story.GetName() + "_01");
-    }
-
     // Return true if the two positions (rectangles) overlap enough that we
     // think they refer to the same object. Based on a heuristic, not exact.
     public static bool RefersToSameObject(Position first, Position second) {

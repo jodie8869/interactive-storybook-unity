@@ -32,22 +32,19 @@ public class StorybookStateManager {
             numPages = 0,
             evaluatingStanzaIndex = -1,
         };
-
         this.rosMessageData = new Dictionary<string, object>();
-        this.currentSate = currentStorybookState;
-        this.rosMessageData.Add("audio_playing", this.currentSate.audioPlaying);
+        this.rosMessageData.Add("audio_playing", this.currentState.audioPlaying);
         // ROS freaks out if it gets a null value, so just fill it in with an empty string
         // if there is no provided audio file.
-        string audioFile = this.currentSate.audioFile;
+        string audioFile = this.currentState.audioFile;
         if (audioFile == null) {
             audioFile = "";
         }
         this.rosMessageData.Add("audio_file", audioFile);
-        this.rosMessageData.Add("storybook_mode", (int)this.currentSate.storybookMode);
-        this.rosMessageData.Add("current_story", this.currentSate.currentStory);
-        this.rosMessageData.Add("num_pages", this.currentSate.numPages);
-        this.rosMessageData.Add("evaluating_stanza_index", this.currentSate.evaluatingStanzaIndex);
-           
+        this.rosMessageData.Add("storybook_mode", (int)this.currentState.storybookMode);
+        this.rosMessageData.Add("current_story", this.currentState.currentStory);
+        this.rosMessageData.Add("num_pages", this.currentState.numPages);
+        this.rosMessageData.Add("evaluating_stanza_index", this.currentState.evaluatingStanzaIndex);
     }
 
     public StorybookState GetCurrentState() {
@@ -60,7 +57,7 @@ public class StorybookStateManager {
     }
 
     // Used by StoryAudioManager to set whether an audio file is currently playing.
-    public void SetAudioState(bool isPlaying, string audioFile="") {
+    public void SetAudioState(bool isPlaying, string audioFile) {
         // Just make sure I'm not bamboozling myself.
         if (isPlaying && audioFile == "") {
             throw new Exception("Invalid audio state, if isPlaying, then must provide an audio file");
@@ -68,7 +65,13 @@ public class StorybookStateManager {
         lock (stateLock) {
             this.currentState.audioPlaying = isPlaying;
             this.currentState.audioFile = audioFile;
-            this.rosMessageData
+            this.rosMessageData["audio_playing"] = isPlaying;
+            // Avoid null values.
+            if (audioFile == null) {
+                this.rosMessageData["audio_file"] = "";
+            } else {
+                this.rosMessageData["audio_file"] = audioFile;
+            }
         }
     }
 
@@ -79,6 +82,9 @@ public class StorybookStateManager {
             this.currentState.currentStory = storyName;
             this.currentState.numPages = numPages;
             this.currentState.storybookMode = mode;
+            this.rosMessageData["current_story"] = storyName;
+            this.rosMessageData["num_pages"] = numPages;
+            this.rosMessageData["storybook_mode"] = (int)mode;
         }
     }
 
@@ -89,12 +95,16 @@ public class StorybookStateManager {
             this.currentState.currentStory = "";
             this.currentState.numPages = 0;
             this.currentState.storybookMode = StorybookMode.NotReading;
+            this.rosMessageData["current_story"] = "";
+            this.rosMessageData["num_pages"] = 0;
+            this.rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
         }
     }
 
     // TODO: when in evaluate mode, update the current stanza as the reading task progresses.
     public void SetEvaluatingStanza(int stanzaIndex) {
         this.currentState.evaluatingStanzaIndex = stanzaIndex;
+        this.rosMessageData["evaluating_stanza_index"] = stanzaIndex;
     }
         
 }

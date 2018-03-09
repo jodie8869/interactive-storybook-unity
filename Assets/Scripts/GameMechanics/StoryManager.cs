@@ -76,10 +76,13 @@ public class StoryManager : MonoBehaviour {
     private DisplayMode displayMode;
 
 
+    void Awake() {
+        this.audioManager.SetStorybookStateManager(this.gameController.GetStorybookStateManager());
+    }
+
     void Start() {
         Logger.Log("StoryManager start");
 
-        this.audioManager.SetStorybookStateManager(this.gameController.GetStorybookStateManager());
         this.assetManager = GetComponent<AssetManager>();
 
         this.tinkerTexts = new List<GameObject>();
@@ -143,7 +146,9 @@ public class StoryManager : MonoBehaviour {
 
             // After all TinkerTexts and Stanzas have been formatted, set the stanza swipe handlers.
             // This will send StorybookEvent ROS messages to the controller when stanzas are swiped.
-            this.stanzaManager.SetStanzaSwipeHandlers();
+            if (Constants.USE_ROS) {
+                this.stanzaManager.SetStanzaSwipeHandlers();
+            }
 
             // Load audio triggers for TinkerText.
             this.loadAudioTriggers();
@@ -313,8 +318,10 @@ public class StoryManager : MonoBehaviour {
                        manip.label);
         });
         // Add a click handler to send a ROS message.
-        manip.AddClickHandler(
-            this.rosManager.SendSceneObjectTappedAction(sceneObject.id, sceneObject.label));
+        if (Constants.USE_ROS) {
+            manip.AddClickHandler(
+                this.rosManager.SendSceneObjectTappedAction(sceneObject.id, sceneObject.label));   
+        }
         // Add additional click handlers if the scene object's label is not in the story text.
         if (!sceneObject.inText) {
             manip.AddClickHandler(() =>

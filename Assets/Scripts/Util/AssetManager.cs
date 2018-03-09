@@ -39,25 +39,13 @@ public class AssetManager : MonoBehaviour {
         this.storyAudioClips = new Dictionary<string, AudioClip>();
         this.storyJsons = new Dictionary<string, List<StoryJson>>();
     
-        Logger.Log("Starting Amazon S3 testing...");
+        // Set up S3 credentials and client.
         AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
         this.awsCredentials = new CognitoAWSCredentials(
             Constants.IDENTITY_POOL_ID,
             RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
         );
         this.s3Client = new AmazonS3Client(this.awsCredentials, RegionEndpoint.USEast1);
-
-        // TODO: remove this testing stuff.
-        // Testing.
-        this.S3GetStoryJson("the_hungry_toad_02");
-        // this.S3UploadChildAudio("test_toad.wav");
-        this.S3GetAvailableStoryNames((storyMetadatas) => {
-            foreach (StoryMetadata metaData in storyMetadatas) {
-                Logger.Log("Got story metadata with name: " + metaData.GetName());
-            }
-        });
-        Logger.Log("happens before callbacks?");
-
     }
 
     void Update() {
@@ -132,6 +120,11 @@ public class AssetManager : MonoBehaviour {
         });
     }
 
+    // Get the title sprite for the dropdown menu.
+    public Sprite GetTitleSprite(StoryMetadata story) {
+        return this.GetSprite(story.GetName() + "_01");
+    }
+
     // Called when another part of the app wants to load a sprite.
     public Sprite GetSprite(string imageFile) {
         if (Constants.LOAD_ASSETS_LOCALLY) {
@@ -143,7 +136,6 @@ public class AssetManager : MonoBehaviour {
                 Logger.Log(this.storySprites.Count);
                 return null;
             } else {
-                Logger.Log("found this sprite!!!");
                 return this.storySprites[imageFile];   
             }
         }
@@ -248,11 +240,11 @@ public class AssetManager : MonoBehaviour {
                                            Dictionary<string, AudioClip>> onDownloadComplete) {
         // Don't redo downloads, this is an extra check, caller should have already verified this.
         if (this.downloadedStories.ContainsKey(storyName)) {
-            Logger.Log("Not downloading story assets, already have them: " + storyName);
+            Logger.Log("Not downloading story assets, already have them for story: " + storyName);
             yield return null;
         } else {
             // Duplication of clearing, but just to be safe.
-            Logger.Log("Downloading story assets: " + storyName);
+            Logger.Log("Downloading story assets for story: " + storyName);
             this.spritesMidDownload.Clear();
             this.audioClipsMidDownload.Clear();
 
@@ -260,11 +252,9 @@ public class AssetManager : MonoBehaviour {
             this.expectedNumAudioClips = audioFileNames.Count;
 
             foreach (string iFile in imageFileNames) {
-                Logger.Log(iFile);
                 StartCoroutine(downloadImage(storyName, iFile, onDownloadComplete));
             }
             foreach (string aFile in audioFileNames) {
-                Logger.Log(aFile);
                 StartCoroutine(downloadAudio(storyName, aFile, onDownloadComplete));
             }
             yield return null;
@@ -286,7 +276,7 @@ public class AssetManager : MonoBehaviour {
                                       new Vector2(0, 0));
         this.spritesMidDownload[imageFile] = sprite;
         this.storySprites[imageFile] = sprite;
-        //Logger.Log("completed download of image " + imageFile);
+        // Logger.Log("completed download of image " + imageFile);
         this.checkStoryAssetDownloadComplete(onDownloadComplete, storyName, wholeStory);
     }
 
@@ -312,10 +302,8 @@ public class AssetManager : MonoBehaviour {
         WWW www = new WWW(url);
         yield return www;
         StoryJson json = new StoryJson(jsonFile, www.text);
-        Logger.Log(jsonFile);
-        Logger.Log(www.text);
         this.jsonMidDownload[jsonFile] = json;
-        Logger.Log("completed download of json " + url);
+        // Logger.Log("completed download of json " + url);
         this.checkJsonDownloadComplete(storyName, onDownloadComplete);
     }
 

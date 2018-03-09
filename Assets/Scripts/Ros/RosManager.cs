@@ -188,7 +188,7 @@ public class RosManager {
         publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
         publish.Add("op", "publish");
 
-        Dictionary<string, object> data = new Dictionary<string, object>();
+        Dictionary<string, object> data = this.storybookStateManager.GetCurrentRosMessageData();
 
         // Note that this is protected by a lock, so although ROS messages could
         // send out of order, the information within them will be consistent.
@@ -197,20 +197,12 @@ public class RosManager {
         // TODO: should devise a better scheme to make sure states are sent in order.
         // Can also use the sequence numbers provided in the header.
         // Or use a lock in this class so that only one state message can be sent at a time.
-        StorybookState currentStorybookState = this.storybookStateManager.getCurrentState();
+        StorybookState currentStorybookState = this.storybookStateManager.GetCurrentState();
         data.Add("header", RosbridgeUtilities.GetROSHeader());
-        data.Add("audio_playing", currentStorybookState.audioPlaying);
-        // ROS freaks out if it gets a null value, so just fill it in with an empty string
-        // if there is no provided audio file.
-        string audioFile = currentStorybookState.audioFile;
-        if (audioFile == null) {
-            audioFile = "";
+        // Don't allow 
+        if (data["audio_file"] == null) {
+            data["audio_file"] = "";
         }
-        data.Add("audio_file", audioFile);
-        data.Add("storybook_mode", (int)currentStorybookState.storybookMode);
-        data.Add("current_story", currentStorybookState.currentStory);
-        data.Add("num_pages", currentStorybookState.numPages);
-        data.Add("evaluating_stanza_index", currentStorybookState.evaluatingStanzaIndex);
 
         publish.Add("msg", data);
 
@@ -223,50 +215,48 @@ public class RosManager {
     // Send a message representing new page info to the controller.
     // Typically will be called when the user presses previous or next.
     // Sends until success, in a new thread.
-    public Action SendStorybookPageInfoAction(StorybookPageInfo pageInfo) {
-        return () => {
-            Thread thread = new Thread(() => {
-                Dictionary<string, object> publish = new Dictionary<string, object>();
-                publish.Add("topic", Constants.STORYBOOK_PAGE_INFO_TOPIC);
-                publish.Add("op", "publish");
+    public void SendStorybookPageInfoAction(StorybookPageInfo pageInfo) {
+        Thread thread = new Thread(() => {
+            Dictionary<string, object> publish = new Dictionary<string, object>();
+            publish.Add("topic", Constants.STORYBOOK_PAGE_INFO_TOPIC);
+            publish.Add("op", "publish");
 
-                Dictionary<string, object> data = new Dictionary<string, object>();
-                data.Add("header", RosbridgeUtilities.GetROSHeader());
-                data.Add("story_name", pageInfo.storyName);
-                data.Add("page_number", pageInfo.pageNumber);
-                data.Add("stanzas", pageInfo.stanzas);
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            data.Add("header", RosbridgeUtilities.GetROSHeader());
+            data.Add("story_name", pageInfo.storyName);
+            data.Add("page_number", pageInfo.pageNumber);
+            data.Add("stanzas", pageInfo.stanzas);
 
-                List<Dictionary<string, object>> tinkerTexts =
-                    new List<Dictionary<string, object>> ();
-                foreach (StorybookTinkerText t in pageInfo.tinkerTexts) {
-                    Dictionary<string, object> tinkerText = new Dictionary<string, object>();
-                    tinkerText.Add("has_scene_object", t.hasSceneObject);
-                    tinkerText.Add("scene_object_id", t.sceneObjectId);
-                    tinkerText.Add("word", t.word);
-                    tinkerTexts.Add(tinkerText);
-                }
-                data.Add("tinkertexts", tinkerTexts);
+            List<Dictionary<string, object>> tinkerTexts =
+                new List<Dictionary<string, object>> ();
+            foreach (StorybookTinkerText t in pageInfo.tinkerTexts) {
+                Dictionary<string, object> tinkerText = new Dictionary<string, object>();
+                tinkerText.Add("has_scene_object", t.hasSceneObject);
+                tinkerText.Add("scene_object_id", t.sceneObjectId);
+                tinkerText.Add("word", t.word);
+                tinkerTexts.Add(tinkerText);
+            }
+            data.Add("tinkertexts", tinkerTexts);
 
-                List<Dictionary<string, object>> sceneObjects =
-                    new List<Dictionary<string, object>>();
-                foreach (StorybookSceneObject o in pageInfo.sceneObjects) {
-                    Dictionary<string, object> sceneObject = new Dictionary<string, object>();
-                    sceneObject.Add("id", o.id);
-                    sceneObject.Add("label", o.label);
-                    sceneObject.Add("in_text", o.inText);
-                    sceneObjects.Add(sceneObject);
-                }
-                data.Add("scene_objects", sceneObjects);
+            List<Dictionary<string, object>> sceneObjects =
+                new List<Dictionary<string, object>>();
+            foreach (StorybookSceneObject o in pageInfo.sceneObjects) {
+                Dictionary<string, object> sceneObject = new Dictionary<string, object>();
+                sceneObject.Add("id", o.id);
+                sceneObject.Add("label", o.label);
+                sceneObject.Add("in_text", o.inText);
+                sceneObjects.Add(sceneObject);
+            }
+            data.Add("scene_objects", sceneObjects);
 
-                publish.Add("msg", data);
-                Logger.Log("Sending page info ROS message: " + Json.Serialize(publish));
-                bool sent = false;
-                while (!sent) {
-                    sent = this.rosClient.SendMessage(Json.Serialize(publish));
-                }
-                Logger.Log("Successfully sent page info ROS message.");
-            });
-            thread.Start();
-        };
+            publish.Add("msg", data);
+            Logger.Log("Sending page info ROS message: " + Json.Serialize(publish));
+            bool sent = false;
+            while (!sent) {
+                sent = this.rosClient.SendMessage(Json.Serialize(publish));
+            }
+            Logger.Log("Successfully sent page info ROS message.");
+        });
+        thread.Start();
     }
 }

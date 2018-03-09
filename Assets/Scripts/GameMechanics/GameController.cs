@@ -100,6 +100,10 @@ public class GameController : MonoBehaviour {
             Destroy(gameObject);
         }
         DontDestroyOnLoad(gameObject);
+
+        // Do this in Awake() to avoid null references, since this storybookStateManager
+        // is passed around a lot during initialization because it's a singleton.
+        this.storybookStateManager = new StorybookStateManager();
     }
 
     void Start()
@@ -134,8 +138,6 @@ public class GameController : MonoBehaviour {
         this.resizePanelsOnStartup();
 
         this.storyPages = new List<SceneDescription>();
-
-        this.storybookStateManager = new StorybookStateManager();
 
         this.storyManager = GetComponent<StoryManager>();
         this.assetManager = GetComponent<AssetManager>();
@@ -283,7 +285,7 @@ public class GameController : MonoBehaviour {
             // Get human readable text and load the image.
             Dropdown.OptionData newOption = new Dropdown.OptionData();
             newOption.text = story.GetHumanReadableName();
-            newOption.image = Util.GetTitleSprite(story);
+            newOption.image = this.assetManager.GetTitleSprite(story);
             options.Add(newOption);
         }
 
@@ -404,12 +406,6 @@ public class GameController : MonoBehaviour {
     private void onHelloWorldAckReceived(Dictionary<string, object> properties) {
         // Test that this is called from rosManager.
         Logger.Log("in hello world ack received in game controller");
-        // TODO: remove later.
-        this.taskQueue.Enqueue(() =>
-        {
-            // this.testObjectRos.SetActive(true);
-            this.testObjectRosSpeechace.SetActive(true);
-        });
     }
 
     // Helpers.
@@ -491,7 +487,9 @@ public class GameController : MonoBehaviour {
         updatedInfo.tinkerTexts = tinkerTexts;
        
         // Send the message.
-        this.rosManager.SendStorybookPageInfoAction(updatedInfo).Invoke();
+        if (Constants.USE_ROS) {
+            this.rosManager.SendStorybookPageInfoAction(updatedInfo);
+        }
     }
 
     private void toggleAudio() {
@@ -578,6 +576,8 @@ public class GameController : MonoBehaviour {
         this.stories.Add(new StoryMetadata("jazz_class", 12, "portrait"));
         this.stories.Add(new StoryMetadata("a_rain_forest_day", 15,"portrait"));
         this.stories.Add(new StoryMetadata("a_cub_can", 11,"portrait"));
+        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
+        this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
     }
 
 }

@@ -43,41 +43,45 @@ public class StoryAudioManager : MonoBehaviour {
 
     // Use Update for handling when to trigger actions in other objects.
 	private void Update() {
-        // Check our current timestamp, and compare against timestamps of
-        // the triggers we have, in order to cause specific actions to happen.
-        this.currentTimestamp = this.audioSource.time;
-        float maxCutoffTime = this.currentTimestamp;
-        float minCutoffTime = Math.Max(this.lastTimestamp, this.startTimestamp);
-        // Watch for special case where the audio has finished and we need to
-        // make sure we call any outstanding triggers.
-        if (this.currentTimestamp < this.lastTimestamp) {
-            maxCutoffTime = float.MaxValue;
-        }
-        foreach (KeyValuePair<float, List<AudioTrigger>> trigger in this.triggers) {
-            if (trigger.Key > minCutoffTime &&
-                trigger.Key <= maxCutoffTime) {
-                Logger.Log(trigger.Key + " " + minCutoffTime);
-                // Invoke this trigger's action.
-                foreach (AudioTrigger t in trigger.Value) {
-                    if (!t.disallowInvokePastStop) {
-                        t.action();
-                    } else {
-                        // Only invoke if current time has not past stop time.
-                        if (this.currentTimestamp <= this.stopTimestamp) {
+        if (this.audioSource.isPlaying) {
+            // Check our current timestamp, and compare against timestamps of
+            // the triggers we have, in order to cause specific actions to happen.
+            this.currentTimestamp = this.audioSource.time;
+            float maxCutoffTime = this.currentTimestamp;
+            float minCutoffTime = Math.Max(this.lastTimestamp, this.startTimestamp);
+            // Watch for special case where the audio has finished and we need to
+            // make sure we call any outstanding triggers.
+            if (this.currentTimestamp < this.lastTimestamp) {
+                maxCutoffTime = float.MaxValue;
+            }
+            foreach (KeyValuePair<float, List<AudioTrigger>> trigger in this.triggers) {
+                // TODO: need a special case for first one? but not for hungry toad
+                if (trigger.Key >= minCutoffTime &&
+                    trigger.Key <= maxCutoffTime) {
+                    // Invoke this trigger's action.
+                    foreach (AudioTrigger t in trigger.Value) {
+                        if (!t.disallowInvokePastStop) {
                             t.action();
+                        } else {
+                            // Only invoke if current time has not past stop time.
+                            if (this.currentTimestamp <= this.stopTimestamp) {
+                                t.action();
+                            } else {
+                                Logger.Log("don't do trigger action because first in stanza");
+                            }
                         }
                     }
                 }
             }
-        }
-        if (this.currentTimestamp > this.stopTimestamp) {
-            Logger.Log("stopping because current is " + this.currentTimestamp + " and stop is " + this.stopTimestamp);
-            this.StopAudio();
+            if (this.currentTimestamp > this.stopTimestamp) {
+                Logger.Log("stopping because current is " + this.currentTimestamp + " and stop is " + this.stopTimestamp);
+                this.StopAudio();
+            }
         }
         this.lastTimestamp = this.currentTimestamp;
 
         // Update audio state so that StorybookState ROS messages are accurate.
-        bool playing = this.IsPlaying();
+        bool playing = this.audioSource.isPlaying;
         this.storybookStateManager.SetAudioState(playing, this.audioFileName);
 	}
 
