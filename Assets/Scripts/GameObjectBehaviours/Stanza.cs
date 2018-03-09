@@ -97,6 +97,15 @@ public class Stanza : MonoBehaviour {
         this.swipeUnityAction += new UnityAction(action);
     }
 
+    // Show and Hide are used when we only want to have the stanzas appear one at a time.
+    public void Show() {
+        this.gameObject.SetActive(true);
+    }
+
+    public void Hide() {
+        this.gameObject.SetActive(false);   
+    }
+
     // Highlight the entire stanza with a given color.
     public void Highlight(Color color) {
         GameObject stanzaObject = this.gameObject;

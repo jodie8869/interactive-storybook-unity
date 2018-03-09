@@ -80,4 +80,5 @@ public enum StorybookMode {
     NotReading, // A storybook has not been selected yet.
     Explore, // No evaluation, just ask what is this, what is that?
     Evaluate, // Robot prompts child to read, does evaluation, asks questions.
+    PostTest, // Robot asks child to read or tap on specific prompts.
 }

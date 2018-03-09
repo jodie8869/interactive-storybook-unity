@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using MiniJSON;
-using System.Xml.Xsl.Runtime;
 
 public class StanzaManager : MonoBehaviour {
 
@@ -25,7 +24,7 @@ public class StanzaManager : MonoBehaviour {
     private List<Sentence> sentences;
 
     // Dynamically created Stanzas.
-    private List<GameObject> stanzas;
+    public List<GameObject> stanzas { get; private set; }
 
     // Use this for initialization.
     void Awake() {
@@ -187,6 +186,15 @@ public class StanzaManager : MonoBehaviour {
             this.AddTinkerText(tinkerTextObject);
         }
 
+    }
+
+    // Gets the stanza component at the given index.
+    public Stanza GetStanza(int index) {
+        if (index < this.stanzas.Count && index >= 0) {
+            return this.stanzas[index].GetComponent<Stanza>();
+        } else {
+            return null;
+        }
     }
 
     // Should be called by StoryManager after all stanzas are loaded.

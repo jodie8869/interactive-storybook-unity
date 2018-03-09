@@ -75,6 +75,8 @@ public class StoryManager : MonoBehaviour {
     private float imageScaleFactor;
     private DisplayMode displayMode;
 
+    private int stanzaIndex;
+
 
     void Awake() {
         this.audioManager.SetStorybookStateManager(this.gameController.GetStorybookStateManager());
@@ -91,6 +93,8 @@ public class StoryManager : MonoBehaviour {
 
         this.stanzaManager.SetTextPanel(this.textPanel);
         this.initPanelSizesOnStartup();
+
+        this.stanzaIndex = 0;
     }
 
     void Update() {
@@ -170,6 +174,7 @@ public class StoryManager : MonoBehaviour {
         if (this.autoplayAudio) {
             this.audioManager.PlayAudio();
         }
+
     }
 
     private void loadTitlePage(SceneDescription description) {

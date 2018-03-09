@@ -231,7 +231,7 @@ public class GameController : MonoBehaviour {
         this.storyPages.Clear();
         // Figure out the orientation of this story and tell SceneDescription.
         this.orientation = story.GetOrientation();
-        this.setOrientation(story.GetOrientation());
+        this.setOrientationButtons(this.orientation);
         foreach (StoryJson json in storyJsons) {
             this.storyPages.Add(new SceneDescription(json.GetText(), this.orientation));
         }
@@ -258,7 +258,7 @@ public class GameController : MonoBehaviour {
                                                                     audioFileNames, this.onSelectedStoryDownloaded));
             } else {
                 // The assets have already been downloaded, so just begin the story.
-                this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]); 
+                this.loadFirstPage();
             }
         }
     }
@@ -270,6 +270,7 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
+        this.setOrientationView(this.orientation);
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
@@ -366,15 +367,29 @@ public class GameController : MonoBehaviour {
 	}
 
     private void onFinishButtonClick() {
-        // For now, just reset and return to the library panel.
         this.storyManager.ClearPage();
         this.storyManager.audioManager.StopAudio();
         this.currentPageNumber = 0;
         this.hideElement(this.finishButton.gameObject);
         this.showElement(this.nextButton.gameObject);
-        this.setLandscapeOrientation();
-        this.showLibraryPanel(true);
-        this.storybookStateManager.SetStoryExited();
+
+        // If in explore mode, then go to evaluate mode.
+        if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.Explore) {
+            StorybookStateManager.instance.SetStorybookMode(StorybookMode.Evaluate);
+            this.hideElement(this.backButton.gameObject);
+            this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
+        }
+        // If in evaluate mode then go to post-test.
+        else if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.Evaluate) {
+            StorybookStateManager.instance.SetStorybookMode(StorybookMode.PostTest);
+        }
+        // If in post test then return to story selection.
+        else if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.PostTest) {
+            this.setLandscapeOrientation();
+            this.showLibraryPanel(true);
+            this.storybookStateManager.SetStoryExited();
+            // TODO: should send an event saying that we are done with the interaction.
+        }
     }
 
     private void onBackButtonClick() {
@@ -448,7 +463,8 @@ public class GameController : MonoBehaviour {
 
         // Update state (will get automatically sent to the controller.
         this.storybookStateManager.SetStorySelected(this.currentStory.GetName(),
-            this.currentStory.GetNumPages(), StorybookMode.Explore);
+            this.currentStory.GetNumPages());
+        this.storybookStateManager.SetStorybookMode(StorybookMode.Explore);
 
         // Gather information about scene objects.
         StorybookSceneObject[] sceneObjects =
@@ -518,7 +534,7 @@ public class GameController : MonoBehaviour {
         this.libraryPanel.GetComponent<RectTransform>().sizeDelta = landscape;
     }
 
-    private void setOrientation(ScreenOrientation o) {
+    private void setOrientationButtons(ScreenOrientation o) {
         this.orientation = o;
         switch (o) {
             case ScreenOrientation.Landscape:
@@ -533,10 +549,25 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    private void setOrientationView(ScreenOrientation o) {
+        this.orientation = o;
+        switch (o) {
+        case ScreenOrientation.Landscape:
+            this.portraitPanel.SetActive(false);
+            this.landscapePanel.SetActive(true);
+            break;
+        case ScreenOrientation.Portrait:
+            this.landscapePanel.SetActive(false);
+            this.portraitPanel.SetActive(true);
+            break;
+        default:
+            Logger.LogError("No orientation: " + o);
+            break;
+        }
+    }
+
     private void setLandscapeOrientation() {
         Logger.Log("Changing to Landscape orientation");
-        this.portraitPanel.SetActive(false);
-        this.landscapePanel.SetActive(true);
 
         this.nextButton = this.landscapeNextButton;
         this.backButton = this.landscapeBackButton;
@@ -549,8 +580,6 @@ public class GameController : MonoBehaviour {
 
     private void setPortraitOrientation() {
         Logger.Log("Changing to Portrait orientation");
-        this.landscapePanel.SetActive(false);
-        this.portraitPanel.SetActive(true);
 
         this.nextButton = this.portraitNextButton;
         this.backButton = this.portraitBackButton;

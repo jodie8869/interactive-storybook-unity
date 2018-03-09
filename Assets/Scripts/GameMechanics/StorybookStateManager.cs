@@ -72,13 +72,18 @@ public class StorybookStateManager {
 
     // Used by GameController to update the state when a storybook has been selected,
     // when the user has returned to story selection page, and what game mode is there.
-    public void SetStorySelected(string storyName, int numPages, StorybookMode mode) {
+    public void SetStorySelected(string storyName, int numPages) {
         lock (stateLock) {
             this.currentState.currentStory = storyName;
             this.currentState.numPages = numPages;
-            this.currentState.storybookMode = mode;
             this.rosMessageData["current_story"] = storyName;
             this.rosMessageData["num_pages"] = numPages;
+        }
+    }
+
+    public void SetStorybookMode(StorybookMode mode) {
+        lock (stateLock) {
+            this.currentState.storybookMode = mode;
             this.rosMessageData["storybook_mode"] = (int)mode;
         }
     }

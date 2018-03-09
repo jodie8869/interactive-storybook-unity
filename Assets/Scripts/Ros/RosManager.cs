@@ -195,7 +195,7 @@ public class RosManager {
         // TODO: should devise a better scheme to make sure states are sent in order.
         // Can also use the sequence numbers provided in the header.
         // Or use a lock in this class so that only one state message can be sent at a time.
-        Dictionary<string, object> data = this.storybookStateManager.GetCurrentRosMessageData();
+        Dictionary<string, object> data = StorybookStateManager.instance.GetCurrentRosMessageData();
         data.Add("header", RosbridgeUtilities.GetROSHeader());
         // Don't allow audio_file to be null, ROS will get upset.
         if (data["audio_file"] == null) {
