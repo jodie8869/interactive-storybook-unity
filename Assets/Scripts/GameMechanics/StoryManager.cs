@@ -394,7 +394,7 @@ public class StoryManager : MonoBehaviour {
                                          tinkerText.OnStartAudioTrigger,
                                          tinkerText.isFirstInStanza);
             this.audioManager.AddTrigger(
-                tinkerText.audioEndTime, tinkerText.OnEndAudioTrigger); 
+                tinkerText.triggerAudioEndTime, tinkerText.OnEndAudioTrigger); 
         }
     }
 

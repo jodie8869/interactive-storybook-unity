@@ -20,7 +20,7 @@ public class TinkerText : MonoBehaviour
     private int id;
     public string word;
     private float textWidth;
-    public float audioStartTime, audioEndTime;
+    public float audioStartTime, audioEndTime, triggerAudioEndTime;
 
     public bool isFirstInStanza;
 
@@ -70,6 +70,7 @@ public class TinkerText : MonoBehaviour
         this.text.GetComponent<Text>().text = word;
         this.audioStartTime = timestamp.start;
         this.audioEndTime = timestamp.end;
+        this.triggerAudioEndTime = timestamp.end;
         // Kind of hacky, but this stops the audio clipping.
         if (isLastWord) {
             this.audioEndTime = float.MaxValue;

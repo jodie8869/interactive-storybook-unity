@@ -270,12 +270,12 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
-        this.setOrientationView(this.orientation);
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
         this.showElement(this.nextButton.gameObject);
         this.showElement(this.toggleAudioButton.gameObject);
+        this.setOrientationView(this.orientation);
     }
 
         // Show human readable story names and pull title images when possible.
@@ -376,6 +376,7 @@ public class GameController : MonoBehaviour {
         // If in explore mode, then go to evaluate mode.
         if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.Explore) {
             StorybookStateManager.instance.SetStorybookMode(StorybookMode.Evaluate);
+            Logger.Log(StorybookStateManager.instance.GetCurrentState().storybookMode);
             this.hideElement(this.backButton.gameObject);
             this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         }
@@ -434,6 +435,7 @@ public class GameController : MonoBehaviour {
         string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
         // Test recording, saving and loading an audio clip.
         StartCoroutine(audioRecorder.RecordForDuration(duration, (clip) => {
+            Logger.Log("done recording, getting speechACE results and uploading file to S3...");
             AudioRecorder.SaveAudioAtPath(tempFileName, clip);
             StartCoroutine(this.speechAceManager.AnalyzeTextSample(
                 tempFileName, text, (speechAceResult) => {
