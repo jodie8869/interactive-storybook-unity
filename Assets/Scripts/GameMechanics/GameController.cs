@@ -270,6 +270,7 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
+        this.storybookStateManager.SetStorybookMode(StorybookMode.Explore);
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
@@ -383,6 +384,8 @@ public class GameController : MonoBehaviour {
         // If in evaluate mode then go to post-test.
         else if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.Evaluate) {
             StorybookStateManager.instance.SetStorybookMode(StorybookMode.PostTest);
+            // TODO: send a message so controller can start telling us what pages to load,
+            // via StorybookCommands.
         }
         // If in post test then return to story selection.
         else if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.PostTest) {
@@ -466,7 +469,6 @@ public class GameController : MonoBehaviour {
         // Update state (will get automatically sent to the controller.
         this.storybookStateManager.SetStorySelected(this.currentStory.GetName(),
             this.currentStory.GetNumPages());
-        this.storybookStateManager.SetStorybookMode(StorybookMode.Explore);
 
         // Gather information about scene objects.
         StorybookSceneObject[] sceneObjects =
