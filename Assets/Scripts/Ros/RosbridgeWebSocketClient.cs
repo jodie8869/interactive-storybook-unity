@@ -55,6 +55,9 @@ public class RosbridgeWebSocketClient
 
 	private WebSocket clientSocket; // client websocket
 
+    private Action onReconnectSuccess;
+    private bool errorBeingHandled = false;
+    private object lockObject = new object();
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RosbridgeWebSocketClient"/> 
@@ -81,6 +84,8 @@ public class RosbridgeWebSocketClient
 		this.timer.Elapsed += OnTimeElapsed;
 		this.timer.Enabled = false;
 		this.timer.AutoReset = true;
+
+        this.onReconnectSuccess += () => { }; 
 	}
 
 	/// <summary>
@@ -168,10 +173,22 @@ public class RosbridgeWebSocketClient
 	public void Reconnect()
 	{
 		try
-		{
+        {
 			Logger.Log("[websocket] trying to connect to websocket...");
 			// connect to the server
-			this.clientSocket.Connect();
+            DateTime start = DateTime.Now;
+            this.clientSocket.ConnectAsync();
+            while (!this.clientSocket.IsAlive) {
+                if (DateTime.Now.Subtract(start).TotalSeconds > CONNECTION_TIMEOUT_SECONDS) {
+                    Logger.Log("[websocket] Timed out trying to reconnect");
+                    this.errorBeingHandled = false;
+                    return;
+                }
+            }
+            this.timer.Enabled = false;
+            this.errorBeingHandled = false;
+            Logger.Log("[websoceket] invoking onReconnectSuccess");
+            this.onReconnectSuccess?.Invoke();
 		}
 		catch (Exception e)
 		{
@@ -179,6 +196,10 @@ public class RosbridgeWebSocketClient
 			this.timer.Enabled = true;
 		}
 	}
+     
+    public void OnReconnectSuccess(Action action) {
+        this.onReconnectSuccess += action;
+    }
 
 	/// <summary>
 	/// public request to close the socket
@@ -204,17 +225,19 @@ public class RosbridgeWebSocketClient
 	/// <param name="msg">Message.</param>
 	public bool SendMessage(String msg)
 	{
-		if (this.clientSocket.IsAlive)
-		{
-			return this.SendToServer(msg);
-		}
-		else
-		{
-			Logger.LogWarning("[websocket] Can't send message - client socket dead!"
-				+ "\nWill try to reconnect to socket...");
-			this.timer.Enabled = true;
-			return false;
-		}
+        if (this.clientSocket.IsAlive) {
+            return this.SendToServer(msg);
+        } else {
+            lock (this.lockObject) {
+                if (!this.errorBeingHandled) {
+                    Logger.LogWarning("[websocket] Can't send message - client socket dead!"
+                    + "\nWill try to reconnect to socket...");
+                    this.timer.Enabled = true;
+                    this.errorBeingHandled = true;
+                }
+            }
+            return false;
+        }
 	}
 
 	/// <summary>
@@ -298,9 +321,11 @@ public class RosbridgeWebSocketClient
 	void HandleOnError(object sender, ErrorEventArgs e)
 	{
 		Logger.LogError("[websocket] Error in websocket! " + e.Message + "\n" +
-			e.Exception);
+            e.Exception);
 
-        this.clientSocket.Close();
+        if (e.Message != "An error has occurred in closing the connection.") {
+            this.clientSocket.Close();   
+        }      
 	}
 
 	/// <summary>
@@ -317,8 +342,13 @@ public class RosbridgeWebSocketClient
 
 		// Begin the timer and attempt reconnect unless it was a clean close.
         if (e.Code != CLEAN_SOCKET_CLOSE_STATUS_CODE) {
-            this.timer.Enabled = true;
-            this.Reconnect();   
+            lock (this.lockObject) {
+                if (!this.errorBeingHandled) {
+                    this.timer.Enabled = true;
+                    this.errorBeingHandled = true;
+                    // this.Reconnect();  
+                }
+            }
         }
 	}
 
@@ -329,8 +359,10 @@ public class RosbridgeWebSocketClient
 	/// <param name="e">E.</param>
 	void OnTimeElapsed(object sender, System.Timers.ElapsedEventArgs e)
 	{
-		Logger.Log("[websocket] Time elapsed, trying to reconnect...");
-		this.timer.Enabled = false;
-		this.Reconnect();
+
+        Logger.Log("[websocket] Time elapsed, trying to reconnect...");
+        this.timer.Enabled = false;
+        this.Reconnect();
+
 	}
 }

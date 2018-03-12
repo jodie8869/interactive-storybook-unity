@@ -19,7 +19,6 @@ public class RosManager {
     private Dictionary<StorybookCommand, Action<Dictionary<string, object>>> commandHandlers;
     private bool connected;
 
-    Thread publishStateThread;
     System.Timers.Timer publishStateTimer =
         new System.Timers.Timer(Constants.STORYBOOK_STATE_PUBLISH_DELAY_MS);
 
@@ -37,33 +36,21 @@ public class RosManager {
     }
 
     public bool Connect() {
+        this.rosClient.OnReconnectSuccess(this.setupPubSub);
+
         if (!this.rosClient.SetupSocket()) {
             Logger.Log("Failed to set up socket");
             return false;
         }
-        string eventPubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
-            Constants.STORYBOOK_EVENT_TOPIC, Constants.STORYBOOK_EVENT_MESSAGE_TYPE);
-        string pageInfoPubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
-            Constants.STORYBOOK_PAGE_INFO_TOPIC, Constants.STORYBOOK_PAGE_INFO_MESSAGE_TYPE);
-        string statePubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
-            Constants.STORYBOOK_STATE_TOPIC, Constants.STORYBOOK_STATE_MESSAGE_TYPE);   
-        string subMessage = RosbridgeUtilities.GetROSJsonSubscribeMsg(
-            Constants.STORYBOOK_COMMAND_TOPIC, Constants.STORYBOOK_COMMAND_MESSAGE_TYPE);
 
-        // Send all advertisements to publish and subscribe to appropriate channels.
-        this.connected = this.rosClient.SendMessage(eventPubMessage) &&
-            this.rosClient.SendMessage(pageInfoPubMessage) &&
-            this.rosClient.SendMessage(statePubMessage) &&
-            this.rosClient.SendMessage(subMessage);
+        // Advertise ROS topic subscription/publication and set connected=true on success.
+        this.setupPubSub();
 
         // If connection successful, begin sending state messages.
         if (this.connected) {
-            this.publishStateThread = new Thread(() => {
-                Logger.Log("Starting to send state messages");
-                this.publishStateTimer.Elapsed += this.sendStorybookState;
-                this.publishStateTimer.Start();
-            });
-            this.publishStateThread.Start();
+            Logger.Log("Starting to send state messages");
+            this.publishStateTimer.Elapsed += this.sendStorybookState;
+            this.publishStateTimer.Start();
         }
 
         return this.connected;
@@ -80,12 +67,29 @@ public class RosManager {
 
     public void StopSendingStorybookState() {
         this.publishStateTimer.Stop();
-        this.publishStateThread.Abort();
     }
 
     // Registers a message handler for a particular command the app might receive from the controller. 
     public void RegisterHandler(StorybookCommand command, Action<Dictionary<string, object>> handler) {
         this.commandHandlers.Add(command, handler);
+    }
+
+    private void setupPubSub() {
+        Logger.Log("-- Setup Pub/Sub for Ros Manager --");
+        string eventPubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
+            Constants.STORYBOOK_EVENT_TOPIC, Constants.STORYBOOK_EVENT_MESSAGE_TYPE);
+        string pageInfoPubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
+            Constants.STORYBOOK_PAGE_INFO_TOPIC, Constants.STORYBOOK_PAGE_INFO_MESSAGE_TYPE);
+        string statePubMessage = RosbridgeUtilities.GetROSJsonAdvertiseMsg(
+            Constants.STORYBOOK_STATE_TOPIC, Constants.STORYBOOK_STATE_MESSAGE_TYPE);   
+        string subMessage = RosbridgeUtilities.GetROSJsonSubscribeMsg(
+            Constants.STORYBOOK_COMMAND_TOPIC, Constants.STORYBOOK_COMMAND_MESSAGE_TYPE);
+
+        // Send all advertisements to publish and subscribe to appropriate channels.
+        this.connected = this.rosClient.SendMessage(eventPubMessage) &&
+            this.rosClient.SendMessage(pageInfoPubMessage) &&
+            this.rosClient.SendMessage(statePubMessage) &&
+            this.rosClient.SendMessage(subMessage);
     }
 
     private void onMessageReceived(object sender, int cmd, object properties) {
