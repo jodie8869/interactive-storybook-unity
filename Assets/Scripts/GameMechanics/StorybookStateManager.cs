@@ -11,18 +11,13 @@ public class StorybookStateManager {
     private StorybookState currentState;
     private Dictionary<string, object> rosMessageData;
 
-    // for example this prevents it from pointing to another object.
-    private readonly Object stateLock;
-
     public StorybookStateManager () {
         if (instance == null) {
             instance = this;
         } else {
             throw new Exception("Cannot attempt to create multiple StorybookStateManagers");
         }
-
-        this.stateLock = new Object(); 
-
+            
         // Set default values for start of interaction.
         this.currentState = new StorybookState {
             audioPlaying = false,
@@ -56,49 +51,41 @@ public class StorybookStateManager {
         if (isPlaying && audioFile == "") {
             throw new Exception("Invalid audio state, if isPlaying, then must provide an audio file");
         }
-        lock (stateLock) {
-            this.currentState.audioPlaying = isPlaying;
-            this.currentState.audioFile = audioFile;
+        this.currentState.audioPlaying = isPlaying;
+        this.currentState.audioFile = audioFile;
 
-            this.rosMessageData["audio_playing"] = isPlaying;
-            // Avoid null values.
-            if (audioFile == null) {
-                this.rosMessageData["audio_file"] = "";
-            } else {
-                this.rosMessageData["audio_file"] = audioFile;
-            }
+        this.rosMessageData["audio_playing"] = isPlaying;
+        // Avoid null values.
+        if (audioFile == null) {
+            this.rosMessageData["audio_file"] = "";
+        } else {
+            this.rosMessageData["audio_file"] = audioFile;
         }
     }
 
     // Used by GameController to update the state when a storybook has been selected,
     // when the user has returned to story selection page, and what game mode is there.
     public void SetStorySelected(string storyName, int numPages) {
-        lock (stateLock) {
-            this.currentState.currentStory = storyName;
-            this.currentState.numPages = numPages;
-            this.rosMessageData["current_story"] = storyName;
-            this.rosMessageData["num_pages"] = numPages;
-        }
+        this.currentState.currentStory = storyName;
+        this.currentState.numPages = numPages;
+        this.rosMessageData["current_story"] = storyName;
+        this.rosMessageData["num_pages"] = numPages;
     }
 
     public void SetStorybookMode(StorybookMode mode) {
-        lock (stateLock) {
-            this.currentState.storybookMode = mode;
-            this.rosMessageData["storybook_mode"] = (int)mode;
-        }
+        this.currentState.storybookMode = mode;
+        this.rosMessageData["storybook_mode"] = (int)mode;
     }
 
     // Used by GameController when user returns back to story selection, i.e. finishes
     // or prematurely exists.
     public void SetStoryExited() {
-        lock (stateLock) {
-            this.currentState.currentStory = "";
-            this.currentState.numPages = 0;
-            this.currentState.storybookMode = StorybookMode.NotReading;
-            this.rosMessageData["current_story"] = "";
-            this.rosMessageData["num_pages"] = 0;
-            this.rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
-        }
+        this.currentState.currentStory = "";
+        this.currentState.numPages = 0;
+        this.currentState.storybookMode = StorybookMode.NotReading;
+        this.rosMessageData["current_story"] = "";
+        this.rosMessageData["num_pages"] = 0;
+        this.rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
     }
 
     // TODO: when in evaluate mode, update the current stanza as the reading task progresses.
