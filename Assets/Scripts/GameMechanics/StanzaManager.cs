@@ -108,7 +108,8 @@ public class StanzaManager : MonoBehaviour {
             if (firstInStanza) {
                 if (this.isMidPhrase) {
                     // Beginning a new stanza but continuing a previous phrase.
-                    this.currentStanza().GetComponent<Stanza>().SetSwipeable(false);
+                    // TODO: commented out because stanza swipeability is now controlled by Sentence.
+                    // this.currentStanza().GetComponent<Stanza>().SetSwipeable(false);
                 } else {
                     // Beginning a new stanza and a new phrase.
                     this.lastPhraseStartStanza = this.currentStanza();
@@ -128,6 +129,7 @@ public class StanzaManager : MonoBehaviour {
 
             // Add tinkertext to the current stanza.
             this.moveTinkerTextToStanza(tinkerTextObject, this.currentStanza());
+            this.currentStanza().GetComponent<Stanza>().SetEndTimestamp(tinkerText.audioEndTime);
             this.setQuoteState(tinkerText.word);
 
             // Check for phrase endings.
@@ -187,8 +189,8 @@ public class StanzaManager : MonoBehaviour {
                 // Set the end time of the previous stanza.
                 if (this.lastPhraseStartStanza != null) {
                     if (this.tinkerTextPhraseBuffer.Count > 0) {
-                        this.lastPhraseStartStanza.GetComponent<Stanza>().SetEndTimestamp(
-                            this.tinkerTextPhraseBuffer[0].GetComponent<TinkerText>().audioStartTime);
+                        float endTime = this.tinkerTextPhraseBuffer[0].GetComponent<TinkerText>().audioStartTime;
+                        this.lastPhraseStartStanza.GetComponent<Stanza>().SetEndTimestamp(endTime);
                     }
                 }
                 // Add everything from the phrase buffer, recursively.
@@ -236,8 +238,9 @@ public class StanzaManager : MonoBehaviour {
     }
 
     public void SetupSentences() {
-        foreach (Sentence s in this.sentences) {
-            s.SetupAfterAddingStanzas();
+        for (int i = 0; i < this.sentences.Count; i++) {
+            Sentence s = this.sentences[i];
+            s.SetupAfterAddingStanzas(i);
             Logger.Log("sentence text: " + s.GetSentenceText());
         }
     }

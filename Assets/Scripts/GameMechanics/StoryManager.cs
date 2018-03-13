@@ -144,20 +144,8 @@ public class StoryManager : MonoBehaviour {
                                 filteredTextWords.Count + " " + description.timestamps.Length);
             }
             // Depending on how many words there are, update the sizing and spacing heuristically.
-            if (filteredTextWords.Count > 32) {
-                TinkerText.TINKER_TEXT_FONT_SIZE = 46;
-                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -20;
-            }
-            else if (filteredTextWords.Count > 25) {
-                TinkerText.TINKER_TEXT_FONT_SIZE = 48;
-                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -12;
-            } else if (filteredTextWords.Count < 10) {
-                TinkerText.TINKER_TEXT_FONT_SIZE = 54;
-                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
-            } else {
-                TinkerText.TINKER_TEXT_FONT_SIZE = 50;
-                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
-            }
+            this.resizeSpacingAndFonts(filteredTextWords.Count);
+
             for (int i = 0; i < filteredTextWords.Count; i++) {
                 this.loadTinkerText(i, filteredTextWords[i], description.timestamps[i],
                                       i == filteredTextWords.Count - 1);
@@ -432,6 +420,25 @@ public class StoryManager : MonoBehaviour {
     private IEnumerator hidePopupText(float secondsDelay) {
         yield return new WaitForSeconds(secondsDelay);
         this.popupLabel.SetActive(false);
+    }
+
+    // Change the vertical spacing between stanzas, and the font size of tinkertexts,
+    // to react to how many words are on the page. For now, just heuristic, later
+    // we can figure out the best way to fit the words on the page.
+    private void resizeSpacingAndFonts(int numWordsOnPage) {
+        if (numWordsOnPage > 32) {
+            TinkerText.TINKER_TEXT_FONT_SIZE = 46;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -20;
+        } else if (numWordsOnPage > 25) {
+            TinkerText.TINKER_TEXT_FONT_SIZE = 48;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -12;
+        } else if (numWordsOnPage< 10) {
+            TinkerText.TINKER_TEXT_FONT_SIZE = 54;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
+        } else {
+            TinkerText.TINKER_TEXT_FONT_SIZE = 50;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
+        }
     }
 
     // Called by GameController to change whether we autoplay o not.

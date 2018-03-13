@@ -31,8 +31,11 @@ public class Stanza : MonoBehaviour {
 
     private float startTimestamp;
     private float endTimestamp;
+    private float sentenceStartTimestamp;
+    private float sentenceEndTimestamp;
 
     // Know which sentence this stanza is a part of.
+    // Index should be into the stanza manager's list of sentences.
     private int sentenceIndex;
 
     public bool specificStanzaAllowSwipe;
@@ -62,8 +65,8 @@ public class Stanza : MonoBehaviour {
             if (this.stanzaWasSwiped()) {
                 // Delay for a short while.
                 Thread.Sleep(200);
-                this.audioManager.PlayInterval(this.startTimestamp,
-                                               this.endTimestamp);
+                // this.PlayStanza();
+                this.PlaySentence();
                 // Reset positions so we don't keep trying to play audio.
                 this.mouseDownPos = new Vector2(0, 0);
                 this.mouseUpPos = new Vector2(0, 0);
@@ -89,7 +92,7 @@ public class Stanza : MonoBehaviour {
     public void SetSentenceIndex(int index) {
         this.sentenceIndex = index;
     }
-
+        
     public void SetStartTimestamp(float start) {
         this.startTimestamp = start;
     }
@@ -98,12 +101,22 @@ public class Stanza : MonoBehaviour {
         this.endTimestamp = end;
     }
 
+    public void SetSentenceTimestamps(float start, float end) {
+        this.sentenceStartTimestamp = start;
+        this.sentenceEndTimestamp = end;
+    }
+
     public void SetSwipeable(bool swipeable) {
         this.specificStanzaAllowSwipe = swipeable;
     }
 
     public void PlayStanza() {
         this.audioManager.PlayInterval(this.startTimestamp, this.endTimestamp);
+    }
+
+    public void PlaySentence() {
+        Logger.Log("Playing sentence " + this.sentenceIndex + " " + this.sentenceStartTimestamp + " " + this.sentenceEndTimestamp);
+        this.audioManager.PlayInterval(this.sentenceStartTimestamp, this.sentenceEndTimestamp);
     }
 
     public void AddSwipeHandler(Action action) {

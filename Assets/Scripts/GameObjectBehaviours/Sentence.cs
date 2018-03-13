@@ -25,13 +25,19 @@ public class Sentence {
 
     // Some initialization stuff after stanzas have been added. Sets the timestamps for this
     // sentence, and lets each stanza know what index it is in the sentence.
-    public void SetupAfterAddingStanzas() {
+    public void SetupAfterAddingStanzas(int indexInSentences) {
         if (this.stanzas.Count > 0) {
             this.earliestTimestamp = this.stanzas[0].GetComponent<Stanza>().GetStartTimestamp();
             this.latestTimestamp = this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().GetEndTimestamp();
         }
         for (int i = 0; i < this.stanzas.Count; i++) {
-            this.stanzas[i].GetComponent<Stanza>().SetSentenceIndex(i);
+            Stanza stanza = this.stanzas[i].GetComponent<Stanza>();
+            stanza.SetSentenceIndex(indexInSentences);
+            if (i == 0) {
+                stanza.SetSentenceTimestamps(this.earliestTimestamp, this.latestTimestamp);
+            } else {
+                stanza.SetSwipeable(false);
+            }
         }
     }
 	
