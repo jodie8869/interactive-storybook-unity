@@ -112,6 +112,9 @@ public class StoryManager : MonoBehaviour {
         this.setDisplayModeFromSceneDescription(description);
         this.resetPanelSizes();
 
+        // Only allow swiping in explore mode. TODO: maybe should change this if there's a need.
+        Stanza.ALLOW_SWIPE = StorybookStateManager.GetState().storybookMode == StorybookMode.Explore;
+
         // Load audio.
         this.audioManager.LoadAudio(description.audioFile, this.assetManager.GetAudioClip(description.audioFile));
 
@@ -150,6 +153,11 @@ public class StoryManager : MonoBehaviour {
             // After all TinkerTexts and Stanzas have been formatted, set up all the sentences and
             // set the stanza swipe handlers.
             this.stanzaManager.SetupSentences();
+            // If we are in evaluate mode, all stanzas should be hidden by default.
+            if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
+                this.stanzaManager.HideAllSentences();
+                StorybookStateManager.ResetEvaluatingSentenceIndex();
+            }
             // This will send StorybookEvent ROS messages to the controller when stanzas are swiped.
             if (Constants.USE_ROS) {
                 this.stanzaManager.SetSentenceSwipeHandlers();

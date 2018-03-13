@@ -15,6 +15,7 @@ using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
 
 public class GameController : MonoBehaviour {
     public GameObject testObjectRos;
@@ -503,9 +504,29 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    private void showNextSentence(bool childTurn) {
+        Color color = new Color();
+        if (childTurn) {
+            color = Constants.CHILD_READ_TEXT_COLOR;
+        } else {
+            color = Constants.JIBO_READ_TEXT_COLOR;
+        }
+        if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
+            this.storyManager.stanzaManager.GetNumSentences()) {
+            StorybookStateManager.IncrementEvaluatingSentenceIndex();
+            int newIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
+            this.storyManager.stanzaManager.GetSentence(newIndex).FadeIn(color);
+            if (newIndex - 1 >= 0) {
+                this.storyManager.stanzaManager.GetSentence(newIndex - 1).Highlight(Constants.GREY_TEXT_COLOR);
+            }
+        }
+    }
+
     private void toggleAudio() {
-        this.RecordAudioAndGetSpeechAceResult(6, "There once was a toad named toad", 0);
-//        this.storyManager.ToggleAudio();
+        this.showNextSentence(true);
+        // TODO: change this back to what it's supposed to be, which is just toggling audio.
+        // this.RecordAudioAndGetSpeechAceResult(6, "There once was a toad named toad", 0);
+        // this.storyManager.ToggleAudio();
     }
 
     private void changeButtonText(Button button, string text) {

@@ -82,11 +82,16 @@ public static class StorybookStateManager {
         rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
     }
 
+    public static void ResetEvaluatingSentenceIndex() {
+        currentState.evaluatingSentenceIndex = -1;
+        rosMessageData["evaluating_sentence_index"] = -1;
+    }
+
     // TODO: when in evaluate mode, update the current stanza as the reading task progresses.
     // Actually, might not need this, since the controller should be telling us, not vice versa.
-    public static void SetEvaluatingSentence(int sentenceIndex) {
-        currentState.evaluatingSentenceIndex = sentenceIndex;
-        rosMessageData["evaluating_sentence_index"] = sentenceIndex;
+    public static void IncrementEvaluatingSentenceIndex() {
+        currentState.evaluatingSentenceIndex += 1;
+        rosMessageData["evaluating_sentence_index"] = currentState.evaluatingSentenceIndex;
     }
         
 }

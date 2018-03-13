@@ -1,23 +1,24 @@
-using UnityEngine;
-using System.Collections.Generic;
-using System;
 using System.Threading;
+using UnityEngine.Events;
+using UnityEngine;
+using System;
+using System.Collections;
 
 // A Stanza is a sequence of TinkerTexts.
 // Stanza is mostly a structural concept used to organize TinkerTexts.
 // It has a reference to the audio, so that it is able to support operations
 // such as playAudio when it is swiped.
 // This Stanza script is automatically attached to each stanza object.
-using UnityEngine.Events;
-
-
 public class Stanza : MonoBehaviour {
 
     public static bool ALLOW_SWIPE;
     public static float STANZA_HEIGHT = 165; // Matches prefab.
+    public static float ANIMATE_IN_SPEED = 2.0f;
 
     public GameObject stanzaPanel;
     private RectTransform rect;
+    private CanvasGroup canvasGroup;
+
     private StoryAudioManager audioManager;
 
     // Know boundaries of the stanza.
@@ -48,6 +49,7 @@ public class Stanza : MonoBehaviour {
     private void Awake() {
         this.stanzaPanel = gameObject;
         this.rect = this.stanzaPanel.GetComponent<RectTransform>();
+        this.canvasGroup = this.stanzaPanel.GetComponent<CanvasGroup>();
         Stanza.ALLOW_SWIPE = true;
         this.specificStanzaAllowSwipe = true;
 
@@ -139,13 +141,28 @@ public class Stanza : MonoBehaviour {
         this.swipeUnityAction += new UnityAction(action);
     }
 
+    public void FadeIn(Color color) {
+        this.Show();
+        this.Highlight(color);
+        StartCoroutine(this.fadeInStanza());
+    }
+
     // Show and Hide are used when we only want to have the stanzas appear one at a time.
     public void Show() {
         this.gameObject.SetActive(true);
     }
 
+    private IEnumerator fadeInStanza() {
+        while (this.canvasGroup.alpha < 1) {
+            canvasGroup.alpha += Time.deltaTime * ANIMATE_IN_SPEED;
+            yield return null;
+        }
+        yield return null;
+    }
+
     public void Hide() {
-        this.gameObject.SetActive(false);   
+        this.gameObject.SetActive(false);
+        this.canvasGroup.alpha = 0;
     }
 
     // Highlight the entire stanza with a given color.

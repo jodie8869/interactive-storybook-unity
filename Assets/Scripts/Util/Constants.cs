@@ -30,6 +30,10 @@ public static class Constants {
     public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255);
     public static float SCENE_OBJECT_DISPLAY_TIME = 2.0f;
 
+    public static Color CHILD_READ_TEXT_COLOR = new Color(0, .5f, 0, 1);
+    public static Color JIBO_READ_TEXT_COLOR = new Color(.5f, 0, .5f, 1);
+    public static Color GREY_TEXT_COLOR = new Color(1, 1, 1, 128f / 255);
+
     // ROS connection information.
     public static string DEFAULT_ROSBRIDGE_IP = "10.0.0.48"; // "192.168.1.229";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";

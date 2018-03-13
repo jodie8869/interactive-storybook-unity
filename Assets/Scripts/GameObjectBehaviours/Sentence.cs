@@ -55,6 +55,24 @@ public class Sentence {
         }
     }
 
+    public void FadeIn(Color color) {
+        foreach (GameObject stanzaObject in this.stanzas) {
+            stanzaObject.GetComponent<Stanza>().FadeIn(color);
+        }
+    }
+
+    public void Show() {
+        foreach (GameObject stanzaObject in this.stanzas) {
+            stanzaObject.GetComponent<Stanza>().Show();
+        }
+    }
+
+    public void Hide() {
+        foreach (GameObject stanzaObject in this.stanzas) {
+            stanzaObject.GetComponent<Stanza>().Hide();
+        }
+    }
+
     // Highlights the entire sentence. Used for turn taking reading interaction.
     public void Highlight(Color color) {
         foreach (GameObject stanzaObject in this.stanzas) {

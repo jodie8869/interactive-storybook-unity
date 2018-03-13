@@ -237,6 +237,16 @@ public class StanzaManager : MonoBehaviour {
         }
     }
 
+    public int GetNumSentences() {
+        return this.sentences.Count;
+    }
+
+    public void HideAllSentences() {
+        foreach (Sentence s in this.sentences) {
+            s.Hide();
+        }
+    }
+
     public void SetupSentences() {
         for (int i = 0; i < this.sentences.Count; i++) {
             Sentence s = this.sentences[i];
