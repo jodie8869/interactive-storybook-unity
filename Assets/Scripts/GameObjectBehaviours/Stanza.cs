@@ -13,7 +13,8 @@ using UnityEngine.Events;
 
 public class Stanza : MonoBehaviour {
 
-    public static bool allowSwipe;
+    public static bool ALLOW_SWIPE;
+    public static float STANZA_HEIGHT = 165; // Matches prefab.
 
     public GameObject stanzaPanel;
     private RectTransform rect;
@@ -47,7 +48,7 @@ public class Stanza : MonoBehaviour {
     private void Awake() {
         this.stanzaPanel = gameObject;
         this.rect = this.stanzaPanel.GetComponent<RectTransform>();
-        Stanza.allowSwipe = true;
+        Stanza.ALLOW_SWIPE = true;
         this.specificStanzaAllowSwipe = true;
 
         this.swipeUnityAction += () => {};
@@ -55,7 +56,7 @@ public class Stanza : MonoBehaviour {
 
     void Update() {
         // Check for swipes, start the audio for this stanza if swiped.
-        if (Stanza.allowSwipe && this.specificStanzaAllowSwipe) {
+        if (Stanza.ALLOW_SWIPE && this.specificStanzaAllowSwipe) {
             if (Input.GetMouseButtonDown(0)) {
                 this.mouseDownPos = Input.mousePosition;
             }
@@ -198,6 +199,12 @@ public class Stanza : MonoBehaviour {
             this.leftX = pos.x - size.x / 2.0f;
             this.topY = pos.y + size.y / 2.0f;
             this.bottomY = pos.y - size.y / 2.0f;
+
+            // Give some leeway because children's swiping will be imprecise.
+            // Just make sure there's no chance of overlapping multiple stanzas.
+            this.topY += 7f;
+            this.bottomY -= 7f;
+
             // Logger.Log(this.leftX + " " + this.topY + " " + this.bottomY);
         }
 
@@ -206,13 +213,13 @@ public class Stanza : MonoBehaviour {
             this.mouseUpPos.y < this.bottomY || this.mouseUpPos.y > this.topY) {
             return false;
         }
-        // Swipe must be approximately level, y difference must be small.
-        if (Math.Abs(this.mouseUpPos.y - this.mouseDownPos.y) > 50) {
+        // Swipe must be approximately level, y difference must be less than one stanza.
+        if (Math.Abs(this.mouseUpPos.y - this.mouseDownPos.y) > STANZA_HEIGHT) {
             return false;
         }
-        // Swipe must be from left to right and be 150 to 400 pixels long.
-        if (this.mouseUpPos.x - this.mouseDownPos.x > 800 ||
-           this.mouseUpPos.x - this.mouseDownPos.x < 150) {
+        // Swipe must be from left to right and be 150 to 1200 pixels long.
+        if (this.mouseUpPos.x - this.mouseDownPos.x > 1200 ||
+           this.mouseUpPos.x - this.mouseDownPos.x < 200) {
             return false;
         }
         // Swipe must end within the stanza.

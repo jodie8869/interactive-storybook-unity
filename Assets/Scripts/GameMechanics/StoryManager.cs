@@ -99,7 +99,7 @@ public class StoryManager : MonoBehaviour {
 
     void Update() {
         // Update whether or not we are accepting user interaction.
-        Stanza.allowSwipe = !this.audioManager.IsPlaying();
+        Stanza.ALLOW_SWIPE = !this.audioManager.IsPlaying();
     }
 
     public void SetRosManager(RosManager ros) {
