@@ -30,15 +30,14 @@ public class Sentence {
             this.earliestTimestamp = this.stanzas[0].GetComponent<Stanza>().GetStartTimestamp();
             this.latestTimestamp = this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().GetEndTimestamp();
         }
+        // Swiping on any stanza in the sentence will play that sentence starting from
+        // the swiped stanza.
         for (int i = 0; i < this.stanzas.Count; i++) {
             Stanza stanza = this.stanzas[i].GetComponent<Stanza>();
             stanza.SetIndexInSentence(i);
             stanza.SetSentenceIndex(indexInSentences);
-            if (i == 0) {
-                stanza.SetSentenceTimestamps(this.earliestTimestamp, this.latestTimestamp);
-            } else {
-                stanza.SetSwipeable(false);
-            }
+            stanza.SetSentenceTimestamps(this.stanzas[i].GetComponent<Stanza>().GetStartTimestamp(),
+                this.latestTimestamp);
         }
     }
 	

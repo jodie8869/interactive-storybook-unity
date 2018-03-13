@@ -152,7 +152,7 @@ public class RosManager {
     // Send when Stanza has been swiped.
     public Action SendSentenceSwipedAction(int sentenceIndex, string text) {
         return () => {
-            Logger.Log("Sending stanza swiped event message");
+            Logger.Log("Sending sentence swiped event message");
             Dictionary<string, object> message = new Dictionary<string, object>();
             message.Add("index", sentenceIndex);
             message.Add("text", text);

@@ -250,14 +250,11 @@ public class StanzaManager : MonoBehaviour {
     public void SetSentenceSwipeHandlers() {
         for (int i = 0; i < this.stanzas.Count; i++) {
             Stanza stanza = this.stanzas[i].GetComponent<Stanza>();
-            // Only first stanza in the sentence needs a swipe handler, the rest are
-            // set as unswipeable anyway.
-            if (stanza.GetIndexInSentence() == 0) {
-                int sentenceIndex = stanza.GetSentenceIndex();
-                Logger.Log(sentenceIndex);
-                string text = this.sentences[sentenceIndex].GetSentenceText();
-                stanza.AddSwipeHandler(this.rosManager.SendSentenceSwipedAction(sentenceIndex, text));
-            }
+            // TODO: consider only first stanza in the sentence needs a swipe handler.
+            // Decided not to since it might confuse kids.
+            int sentenceIndex = stanza.GetSentenceIndex();
+            string text = this.sentences[sentenceIndex].GetSentenceText();
+            stanza.AddSwipeHandler(this.rosManager.SendSentenceSwipedAction(sentenceIndex, text));
         }
     }
         
