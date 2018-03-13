@@ -98,7 +98,7 @@ public class StoryAudioManager : MonoBehaviour {
 
     // For StoryManager to call when it's setting up the scene.
     public void AddTrigger(float timestamp, Action action, bool disallowAfterStop = false) {
-        Logger.Log("trigger timestamp " + timestamp);
+        // Logger.Log("trigger timestamp " + timestamp);
         if (!this.triggers.ContainsKey(timestamp)) {
             this.triggers[timestamp] = new List<AudioTrigger>();
         }

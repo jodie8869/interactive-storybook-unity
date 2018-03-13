@@ -143,6 +143,21 @@ public class StoryManager : MonoBehaviour {
                 Logger.LogError("textWords doesn't match timestamps length " +
                                 filteredTextWords.Count + " " + description.timestamps.Length);
             }
+            // Depending on how many words there are, update the sizing and spacing heuristically.
+            if (filteredTextWords.Count > 32) {
+                TinkerText.TINKER_TEXT_FONT_SIZE = 46;
+                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -20;
+            }
+            else if (filteredTextWords.Count > 25) {
+                TinkerText.TINKER_TEXT_FONT_SIZE = 48;
+                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -12;
+            } else if (filteredTextWords.Count < 10) {
+                TinkerText.TINKER_TEXT_FONT_SIZE = 54;
+                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
+            } else {
+                TinkerText.TINKER_TEXT_FONT_SIZE = 50;
+                this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
+            }
             for (int i = 0; i < filteredTextWords.Count; i++) {
                 this.loadTinkerText(i, filteredTextWords[i], description.timestamps[i],
                                       i == filteredTextWords.Count - 1);
@@ -153,6 +168,8 @@ public class StoryManager : MonoBehaviour {
             if (Constants.USE_ROS) {
                 this.stanzaManager.SetStanzaSwipeHandlers();
             }
+            // this.stanzaManager.GetStanza(this.stanzaManager.stanzas.Count - 1).SetAsLastStanza();
+            this.stanzaManager.SetupSentences();
 
             // Load audio triggers for TinkerText.
             this.loadAudioTriggers();
@@ -394,7 +411,10 @@ public class StoryManager : MonoBehaviour {
                                          tinkerText.OnStartAudioTrigger,
                                          tinkerText.isFirstInStanza);
             this.audioManager.AddTrigger(
-                tinkerText.triggerAudioEndTime, tinkerText.OnEndAudioTrigger); 
+                tinkerText.triggerAudioEndTime, tinkerText.OnEndAudioTrigger);
+            if (tinkerText.word == "out.") {
+                Logger.Log("out!!! " + tinkerText.audioEndTime + " " + tinkerText.triggerAudioEndTime);
+            }
         }
     }
 

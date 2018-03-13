@@ -6,7 +6,7 @@ using UnityEngine;
 public static class Util {
     // TODO: should include comma or not? Sometimes that makes it too vertical.
     public static string[] punctuation = {";", ".", "?", "\"", "!", ","};
-
+    public static string[] sentenceEndingPunctuation = { ".", "?", "!" };
     // Globally visible to the app, and can be changed by a simple select mode button.
     public static StorybookMode CurrentGameMode = StorybookMode.Explore;
 
@@ -25,6 +25,30 @@ public static class Util {
     public static bool WordShouldEndStanza(string word) {
         foreach (string p in punctuation) {
             if (word.EndsWith(p, StringComparison.CurrentCulture)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static bool WordEndsSentence(string word, bool quoteOpen) {
+
+        // Can't end sentence if quote is open.
+        if (quoteOpen && !word.EndsWith("\"", StringComparison.CurrentCulture)) {
+            return false;
+        }
+
+        foreach (string p in sentenceEndingPunctuation) {
+            if (word.EndsWith(p, StringComparison.CurrentCulture)) {
+                return true;
+            }
+        }
+        // If the word is in quotes, check for second to last character being a period.
+        // Don't include question marks and exclamation points for this, just as a heuristic
+        // because those tend to be followed by a "said Freda" or something.
+        if (word.Length > 1 && word[word.Length -1] == '"') {
+            if (word.Substring(0, word.Length - 1)
+                .EndsWith(".", StringComparison.CurrentCulture)) {
                 return true;
             }
         }

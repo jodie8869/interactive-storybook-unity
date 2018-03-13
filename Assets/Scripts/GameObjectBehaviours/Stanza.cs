@@ -77,6 +77,19 @@ public class Stanza : MonoBehaviour {
         this.textPanelPos = textPanelPos;
     }
 
+
+    public float GetStartTimestamp() {
+        return this.startTimestamp;
+    }
+
+    public float GetEndTimestamp() {
+        return this.endTimestamp;
+    }
+
+    public void SetSentenceIndex(int index) {
+        this.sentenceIndex = index;
+    }
+
     public void SetStartTimestamp(float start) {
         this.startTimestamp = start;
     }
@@ -137,6 +150,16 @@ public class Stanza : MonoBehaviour {
         // Cut off the last space.
         text = text.Substring(0, text.Length - 1);
         return text;
+    }
+
+    public string GetLastWord() {
+        GameObject stanzaObject = this.gameObject;
+        RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
+        if (rectTransform.childCount > 0) {
+            return rectTransform.GetChild(rectTransform.childCount - 1).GetComponent<TinkerText>().word;
+        } else {
+            return "";
+        }
     }
 
     private bool stanzaWasSwiped() {

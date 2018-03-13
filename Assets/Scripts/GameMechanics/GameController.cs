@@ -322,6 +322,7 @@ public class GameController : MonoBehaviour {
         // If user entered a different IP, use it, otherwise stick to default.
         if (this.rosInputText.text != "") {
             rosbridgeIp = this.rosInputText.text;
+            Logger.Log("Trying to connect to roscore at " + rosbridgeIp);
         }
         if (this.rosManager == null || !this.rosManager.isConnected()) {
             this.rosManager = new RosManager(rosbridgeIp, Constants.DEFAULT_ROSBRIDGE_PORT, this);

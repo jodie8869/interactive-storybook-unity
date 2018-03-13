@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using MiniJSON;
+using System;
 
 public class StanzaManager : MonoBehaviour {
 
@@ -16,6 +16,8 @@ public class StanzaManager : MonoBehaviour {
     private bool isMidPhrase = false; // True the current stanza is part of a phrase that began in an earlier stanza
     private bool stanzaIsOnePhrase = false; // True when there is only text from one phrase in the current stanza
     private bool prevWordEndsPhrase = false; // True if the previous word ended in punctuation that should end a phrase
+    private bool prevWordEndsSentence = true; // True if we should start a new sentence.
+    private bool quoteOpen = false; // True if there's an unclosed quote in the current phrase.
 
     private List<GameObject> tinkerTextPhraseBuffer; // Store the phrase we would need to push to the next stanza if overflow
     private GameObject lastPhraseStartStanza; // The last stanza that started a phrase
@@ -30,6 +32,7 @@ public class StanzaManager : MonoBehaviour {
     void Awake() {
         this.stanzas = new List<GameObject>();
         this.tinkerTextPhraseBuffer = new List<GameObject>();
+        this.sentences = new List<Sentence>();
     }
 
     // Called when we transition from one page to another.
@@ -39,6 +42,7 @@ public class StanzaManager : MonoBehaviour {
             Destroy(stanza);
         }
         this.stanzas.Clear();
+        this.sentences.Clear();
 
         // Start with a blank slate, reset all variables.
         this.remainingStanzaWidth = 0;
@@ -51,6 +55,7 @@ public class StanzaManager : MonoBehaviour {
         this.isMidPhrase = false;
         this.stanzaIsOnePhrase = false;
         this.prevWordEndsPhrase = false;
+        this.prevWordEndsSentence = true;
     }
 
     public void SetTextPanel(GameObject textPanel) {
@@ -97,9 +102,9 @@ public class StanzaManager : MonoBehaviour {
         tinkerText.SetWidth(preferredWidth);
 
         // Case where we don't need to make a new stanza.
-        if (preferredWidth <= this.remainingStanzaWidth) {
+        if (preferredWidth <= this.remainingStanzaWidth && !this.prevWordEndsSentence) {
             bool firstInStanza = System.Math.Abs(
-                this.remainingStanzaWidth - this.maxStanzaWidth()) < Constants.EPSILON;
+                                     this.remainingStanzaWidth - this.maxStanzaWidth()) < Constants.EPSILON;
             if (firstInStanza) {
                 if (this.isMidPhrase) {
                     // Beginning a new stanza but continuing a previous phrase.
@@ -123,6 +128,7 @@ public class StanzaManager : MonoBehaviour {
 
             // Add tinkertext to the current stanza.
             this.moveTinkerTextToStanza(tinkerTextObject, this.currentStanza());
+            this.setQuoteState(tinkerText.word);
 
             // Check for phrase endings.
             if (Util.WordShouldEndStanza(tinkerText.word)) {
@@ -139,6 +145,8 @@ public class StanzaManager : MonoBehaviour {
                 // Add tinkertext to current phrase.
                 this.tinkerTextPhraseBuffer.Add(tinkerTextObject);    
             }
+            // Update whether or not we should try to force a new stanza/sentence next round.
+            this.prevWordEndsSentence = Util.WordEndsSentence(tinkerText.word, this.quoteOpen);
         } else {
             // Create a new stanza.
             GameObject newStanza =
@@ -152,6 +160,22 @@ public class StanzaManager : MonoBehaviour {
             this.stanzas.Add(newStanza);
             // Reset remainingStanzaWidth.
             this.remainingStanzaWidth = this.maxStanzaWidth();
+
+            // Check for quotes.
+            this.setQuoteState(tinkerText.word);
+            // If the previous word ended a sentence, add a new sentence and force a new stanza.
+            if (this.prevWordEndsSentence) {
+                this.sentences.Add(new Sentence(this.audioManager));
+                Logger.Log(this.sentences.Count);
+                // Force this to be false.
+                this.prevWordEndsSentence = false;
+            } else {
+                // Update whether or not we should try to force a new stanza/sentence next round.
+                this.prevWordEndsSentence = Util.WordEndsSentence(tinkerText.word, this.quoteOpen);
+            }
+
+            // Add to the latest sentence.
+            this.currentSentence().AddStanza(this.currentStanza());
 
             if (this.stanzaIsOnePhrase && !this.prevWordEndsPhrase) {
                 // Overflow but everything is one phrase, so we can't do anything.
@@ -176,16 +200,21 @@ public class StanzaManager : MonoBehaviour {
                 foreach (GameObject tt in this.tinkerTextPhraseBuffer) {
                     buffer.Add(tt);
                 }
+                // Set prevWordEndsStanza for the previous stanza.
+                if (buffer.Count > 0) {
+                    this.prevWordEndsSentence = Util.WordEndsSentence(
+                        this.GetStanza(this.stanzas.Count - 2).GetLastWord(), this.quoteOpen);
+                }
                 foreach(GameObject tt in buffer) {
                     this.AddTinkerText(tt);
                 }
                 buffer.Clear();
             }
 
+            this.prevWordEndsSentence = false;
             // Add the new TinkerText again.
             this.AddTinkerText(tinkerTextObject);
         }
-
     }
 
     // Gets the stanza component at the given index.
@@ -194,6 +223,22 @@ public class StanzaManager : MonoBehaviour {
             return this.stanzas[index].GetComponent<Stanza>();
         } else {
             return null;
+        }
+    }
+
+    // Gets the sentence at the given index.
+    public Sentence GetSentence(int index) {
+        if (index < this.sentences.Count && index >= 0) {
+            return this.sentences[index];
+        } else {
+            return null;
+        }
+    }
+
+    public void SetupSentences() {
+        foreach (Sentence s in this.sentences) {
+            s.SetupAfterAddingStanzas();
+            Logger.Log("sentence text: " + s.GetSentenceText());
         }
     }
 
@@ -209,17 +254,37 @@ public class StanzaManager : MonoBehaviour {
 
     // Returns an array of strings, where each string represents the text of a single stanza.
     public string[] GetAllStanzaTexts() {
-        Logger.Log("Getting stanza texts, number of stanzas: " + this.stanzas.Count);
         string[] stanzaTexts = new string[this.stanzas.Count];
         for (int i = 0; i < this.stanzas.Count; i++) {
             stanzaTexts[i] = this.stanzas[i].GetComponent<Stanza>().GetStanzaText();
         }
-        Logger.Log("stanzaTexts " + Json.Serialize(stanzaTexts));
         return stanzaTexts;
+    }
+
+    public string[] GetAllSentenceTexts() {
+        string[] sentenceTexts = new string[this.sentences.Count];
+        for (int i = 0; i < this.sentences.Count; i++) {
+            sentenceTexts[i] = this.sentences[i].GetSentenceText();
+        }
+        return sentenceTexts;
     }
 
     private GameObject currentStanza() {
         return this.stanzas[this.stanzas.Count - 1];
+    }
+
+    private Sentence currentSentence() {
+        return this.sentences[this.sentences.Count - 1];
+    }
+
+    // Helper for keeping track of the state of if quotes have been opened and not closed.
+    private void setQuoteState(string word) {
+        if (word.StartsWith("\"", StringComparison.CurrentCulture)) {
+            this.quoteOpen = true;
+        }
+        if (word.EndsWith("\"", StringComparison.CurrentCulture)) {
+            this.quoteOpen = false;
+        }
     }
 
     private float maxStanzaWidth() {

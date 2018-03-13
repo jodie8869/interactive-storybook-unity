@@ -7,7 +7,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = true;
+    public static bool USE_ROS = false;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -19,8 +19,8 @@ public static class Constants {
     // in landscape display mode. 850/2048
     public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 0.415f;
     // Desired ratio of graphics panel height to entire landscape panel height
-    // in portrait display mode.
-    public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 0.66f;
+    // in portrait display mode. Note: always running out of space, so making this smaller.
+    public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 0.45f; // 0.66f;
     // Desired ratio of graphics panel height to entire landscape panel height
     // in landscape wide display mode.
     //public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.71f;

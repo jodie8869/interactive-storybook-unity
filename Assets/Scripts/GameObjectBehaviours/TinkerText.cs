@@ -46,6 +46,9 @@ public class TinkerText : MonoBehaviour
     public static float GRAPHIC_PANEL_WIDTH = 80;
     public static float GRAPHIC_PANEL_HEIGHT = 80;
 
+    // Can set the text size depending on how many words there are.
+    public static int TINKER_TEXT_FONT_SIZE = 50;
+
     // Set up click handler.
     void Start() {
         // It's important to do += here and not = for clickUnityAction.
@@ -68,12 +71,15 @@ public class TinkerText : MonoBehaviour
         this.id = id;
         this.word = word;
         this.text.GetComponent<Text>().text = word;
+        this.text.GetComponent<Text>().fontSize = TINKER_TEXT_FONT_SIZE;
         this.audioStartTime = timestamp.start;
         this.audioEndTime = timestamp.end;
         this.triggerAudioEndTime = timestamp.end;
         // Kind of hacky, but this stops the audio clipping.
+        // And prevents words from getting stuck on the pink highlight at the end.
         if (isLastWord) {
             this.audioEndTime = float.MaxValue;
+            this.triggerAudioEndTime -= .1f;
         }
         this.gameObject.SetActive(true);
         // When a TinkerText is clicked, it should highlight.
