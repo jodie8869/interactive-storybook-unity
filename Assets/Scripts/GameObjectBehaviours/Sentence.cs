@@ -32,6 +32,7 @@ public class Sentence {
         }
         for (int i = 0; i < this.stanzas.Count; i++) {
             Stanza stanza = this.stanzas[i].GetComponent<Stanza>();
+            stanza.SetIndexInSentence(i);
             stanza.SetSentenceIndex(indexInSentences);
             if (i == 0) {
                 stanza.SetSentenceTimestamps(this.earliestTimestamp, this.latestTimestamp);

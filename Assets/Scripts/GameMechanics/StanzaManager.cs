@@ -247,14 +247,20 @@ public class StanzaManager : MonoBehaviour {
 
     // Should be called by StoryManager after all stanzas are loaded.
     // Attaches swipe handlers so that StorybookEvent ROS messages get sent when stanzas are swiped.
-    public void SetStanzaSwipeHandlers() {
+    public void SetSentenceSwipeHandlers() {
         for (int i = 0; i < this.stanzas.Count; i++) {
             Stanza stanza = this.stanzas[i].GetComponent<Stanza>();
-            string text = stanza.GetStanzaText();
-            stanza.AddSwipeHandler(this.rosManager.SendStanzaSwipedAction(i, text));
+            // Only first stanza in the sentence needs a swipe handler, the rest are
+            // set as unswipeable anyway.
+            if (stanza.GetIndexInSentence() == 0) {
+                int sentenceIndex = stanza.GetSentenceIndex();
+                Logger.Log(sentenceIndex);
+                string text = this.sentences[sentenceIndex].GetSentenceText();
+                stanza.AddSwipeHandler(this.rosManager.SendSentenceSwipedAction(sentenceIndex, text));
+            }
         }
     }
-
+        
     // Returns an array of strings, where each string represents the text of a single stanza.
     public string[] GetAllStanzaTexts() {
         string[] stanzaTexts = new string[this.stanzas.Count];

@@ -37,6 +37,7 @@ public class Stanza : MonoBehaviour {
     // Know which sentence this stanza is a part of.
     // Index should be into the stanza manager's list of sentences.
     private int sentenceIndex;
+    private int indexInSentence;
 
     public bool specificStanzaAllowSwipe;
     public int index;
@@ -89,6 +90,20 @@ public class Stanza : MonoBehaviour {
         return this.endTimestamp;
     }
 
+    public int GetSentenceIndex() {
+        return this.sentenceIndex;
+    }
+
+    public int GetIndexInSentence() {
+        return this.indexInSentence;
+    }
+
+    // Which stanza this is within its sentence.
+    public void SetIndexInSentence(int index) {
+        this.indexInSentence = index;
+    }
+
+    // Which sentence this stanza belongs to.
     public void SetSentenceIndex(int index) {
         this.sentenceIndex = index;
     }

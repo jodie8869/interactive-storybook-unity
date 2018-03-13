@@ -15,7 +15,7 @@ public enum StorybookEventType {
     SPEECH_ACE_RESULT = 1, // Message is json string representing entire SpeechACE result.
     WORD_TAPPED = 2, // Message is {index: int, word: string} of the tinkertext.
     SCENE_OBJECT_TAPPED = 3, // Message is {id: int, label: string} of the scene object.
-    STANZA_SWIPED = 4 // Message is {index: int, text: string} of the stanza.
+    SENTENCE_SWIPED = 4 // Message is {index: int, text: string} of the stanza.
 }
 
 // Messages coming from the controller to the storybook.
@@ -24,7 +24,7 @@ public enum StorybookCommand {
     PING_TEST = 0, // No params.
     HIGHLIGHT_WORD = 1, // Params is which index word to highlight.
     HIGHLIGHT_SCENE_OBJECT = 2, // Params is which id scene object to highlight.
-    HIGHLIGHT_STANZA = 3 // Params is which index stanza to highlight.
+    HIGHLIGHT_SENTENCE = 3 // Params is which index stanza to highlight.
 }
 
 // Message type representing the high level state of the storybook, to be published at 10Hz.
@@ -37,14 +37,14 @@ public struct StorybookState {
     public string currentStory;
     public int numPages;
      
-    public int evaluatingStanzaIndex; // If in Evaluate mode, this will be which stanza we're on.
+    public int evaluatingSentenceIndex; // If in Evaluate mode, this will be which sentence we're on.
 }
 
 // Message type representing which page of the storybook is currently active.
 public struct StorybookPageInfo {
     public string storyName;
     public int pageNumber; // 0-indexed, where 0 is the title page.
-    public string[] stanzas;
+    public string[] sentences;
     public StorybookSceneObject[] sceneObjects;
     public StorybookTinkerText[] tinkerTexts;
 }

@@ -151,13 +151,13 @@ public class StoryManager : MonoBehaviour {
                                       i == filteredTextWords.Count - 1);
             }
 
-            // After all TinkerTexts and Stanzas have been formatted, set the stanza swipe handlers.
+            // After all TinkerTexts and Stanzas have been formatted, set up all the sentences and
+            // set the stanza swipe handlers.
+            this.stanzaManager.SetupSentences();
             // This will send StorybookEvent ROS messages to the controller when stanzas are swiped.
             if (Constants.USE_ROS) {
-                this.stanzaManager.SetStanzaSwipeHandlers();
+                this.stanzaManager.SetSentenceSwipeHandlers();
             }
-            // this.stanzaManager.GetStanza(this.stanzaManager.stanzas.Count - 1).SetAsLastStanza();
-            this.stanzaManager.SetupSentences();
 
             // Load audio triggers for TinkerText.
             this.loadAudioTriggers();

@@ -25,7 +25,7 @@ public class StorybookStateManager {
             storybookMode = StorybookMode.NotReading,
             currentStory = "",
             numPages = 0,
-            evaluatingStanzaIndex = -1,
+            evaluatingSentenceIndex = -1,
         };
         this.rosMessageData = new Dictionary<string, object>();
         this.rosMessageData.Add("audio_playing", this.currentState.audioPlaying);
@@ -33,7 +33,7 @@ public class StorybookStateManager {
         this.rosMessageData.Add("storybook_mode", (int)this.currentState.storybookMode);
         this.rosMessageData.Add("current_story", this.currentState.currentStory);
         this.rosMessageData.Add("num_pages", this.currentState.numPages);
-        this.rosMessageData.Add("evaluating_stanza_index", this.currentState.evaluatingStanzaIndex);
+        this.rosMessageData.Add("evaluating_sentence_index", this.currentState.evaluatingSentenceIndex);
     }
 
     public StorybookState GetCurrentState() {
@@ -89,9 +89,10 @@ public class StorybookStateManager {
     }
 
     // TODO: when in evaluate mode, update the current stanza as the reading task progresses.
-    public void SetEvaluatingStanza(int stanzaIndex) {
-        this.currentState.evaluatingStanzaIndex = stanzaIndex;
-        this.rosMessageData["evaluating_stanza_index"] = stanzaIndex;
+    // Actually, might not need this, since the controller should be telling us, not vice versa.
+    public void SetEvaluatingSentence(int sentenceIndex) {
+        this.currentState.evaluatingSentenceIndex = sentenceIndex;
+        this.rosMessageData["evaluating_sentence_index"] = sentenceIndex;
     }
         
 }

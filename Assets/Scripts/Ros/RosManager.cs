@@ -153,13 +153,13 @@ public class RosManager {
     }
 
     // Send when Stanza has been swiped.
-    public Action SendStanzaSwipedAction(int stanzaIndex, string text) {
+    public Action SendSentenceSwipedAction(int sentenceIndex, string text) {
         return () => {
             Logger.Log("Sending stanza swiped event message");
             Dictionary<string, object> message = new Dictionary<string, object>();
-            message.Add("index", stanzaIndex);
+            message.Add("index", sentenceIndex);
             message.Add("text", text);
-            this.sendEventMessageToController(StorybookEventType.STANZA_SWIPED,
+            this.sendEventMessageToController(StorybookEventType.SENTENCE_SWIPED,
                 Json.Serialize(message));
         };
     }
@@ -226,7 +226,7 @@ public class RosManager {
             data.Add("header", RosbridgeUtilities.GetROSHeader());
             data.Add("story_name", pageInfo.storyName);
             data.Add("page_number", pageInfo.pageNumber);
-            data.Add("stanzas", pageInfo.stanzas);
+            data.Add("sentences", pageInfo.sentences);
 
             List<Dictionary<string, object>> tinkerTexts =
                 new List<Dictionary<string, object>> ();
