@@ -78,10 +78,6 @@ public class StoryManager : MonoBehaviour {
     private int stanzaIndex;
 
 
-    void Awake() {
-        this.audioManager.SetStorybookStateManager(this.gameController.GetStorybookStateManager());
-    }
-
     void Start() {
         Logger.Log("StoryManager start");
 

@@ -63,7 +63,6 @@ public class GameController : MonoBehaviour {
 
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
-    private StorybookStateManager storybookStateManager;
 
     // Reference to SceneManager so we can load and manipulate story scenes.
     private StoryManager storyManager;
@@ -101,9 +100,8 @@ public class GameController : MonoBehaviour {
         }
         DontDestroyOnLoad(gameObject);
 
-        // Do this in Awake() to avoid null references, since this storybookStateManager
-        // is passed around a lot during initialization because it's a singleton.
-        this.storybookStateManager = new StorybookStateManager();
+        // Do this in Awake() to avoid null references.
+        StorybookStateManager.Init();
     }
 
     void Start()
@@ -270,7 +268,7 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
-        this.storybookStateManager.SetStorybookMode(StorybookMode.Explore);
+        StorybookStateManager.SetStorybookMode(StorybookMode.Explore);
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
@@ -376,23 +374,23 @@ public class GameController : MonoBehaviour {
         this.showElement(this.nextButton.gameObject);
 
         // If in explore mode, then go to evaluate mode.
-        if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.Explore) {
-            StorybookStateManager.instance.SetStorybookMode(StorybookMode.Evaluate);
-            Logger.Log(StorybookStateManager.instance.GetCurrentState().storybookMode);
+        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+            StorybookStateManager.SetStorybookMode(StorybookMode.Evaluate);
+            Logger.Log(StorybookStateManager.GetState().storybookMode);
             this.hideElement(this.backButton.gameObject);
             this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         }
         // If in evaluate mode then go to post-test.
-        else if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.Evaluate) {
-            StorybookStateManager.instance.SetStorybookMode(StorybookMode.PostTest);
+        else if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
+            StorybookStateManager.SetStorybookMode(StorybookMode.PostTest);
             // TODO: send a message so controller can start telling us what pages to load,
             // via StorybookCommands.
         }
         // If in post test then return to story selection.
-        else if (StorybookStateManager.instance.GetCurrentState().storybookMode == StorybookMode.PostTest) {
+        else if (StorybookStateManager.GetState().storybookMode == StorybookMode.PostTest) {
             this.setLandscapeOrientation();
             this.showLibraryPanel(true);
-            this.storybookStateManager.SetStoryExited();
+            StorybookStateManager.SetStoryExited();
             // TODO: should send an event saying that we are done with the interaction.
         }
     }
@@ -430,10 +428,6 @@ public class GameController : MonoBehaviour {
 
     // Helpers.
 
-    public StorybookStateManager GetStorybookStateManager() {
-        return this.storybookStateManager;
-    }
-
     // Argument sentenceIndex is which sentence of 
     public void RecordAudioAndGetSpeechAceResult(int duration, string text, int sentenceIndex) {
         string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
@@ -468,7 +462,7 @@ public class GameController : MonoBehaviour {
         updatedInfo.sentences = this.storyManager.stanzaManager.GetAllSentenceTexts();
 
         // Update state (will get automatically sent to the controller.
-        this.storybookStateManager.SetStorySelected(this.currentStory.GetName(),
+        StorybookStateManager.SetStorySelected(this.currentStory.GetName(),
             this.currentStory.GetNumPages());
 
         // Gather information about scene objects.

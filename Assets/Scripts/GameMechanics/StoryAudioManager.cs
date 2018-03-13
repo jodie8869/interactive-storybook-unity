@@ -15,9 +15,7 @@ public class StoryAudioManager : MonoBehaviour {
         public bool disallowInvokePastStop;
         public Action action;
     }
-
-    private StorybookStateManager storybookStateManager;
-
+        
     // Need an AudioSource and an AudioClip to play audio.
     private string audioFileName;
     public AudioSource audioSource;
@@ -82,12 +80,8 @@ public class StoryAudioManager : MonoBehaviour {
 
         // Update audio state so that StorybookState ROS messages are accurate.
         bool playing = this.audioSource.isPlaying;
-        this.storybookStateManager.SetAudioState(playing, this.audioFileName);
+        StorybookStateManager.SetAudioState(playing, this.audioFileName);
 	}
-
-    public void SetStorybookStateManager(StorybookStateManager manager) {
-        this.storybookStateManager = manager;
-    }
 
     // Load an audio clip as the current clip.
     public void LoadAudio(string audioFileName, AudioClip audioClip) {

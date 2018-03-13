@@ -4,22 +4,16 @@
 using System.Collections.Generic;
 
 
-public class StorybookStateManager {
+public static class StorybookStateManager {
 
-    public static StorybookStateManager instance;
 
-    private StorybookState currentState;
-    private Dictionary<string, object> rosMessageData;
+    private static StorybookState currentState;
+    private static Dictionary<string, object> rosMessageData;
 
-    public StorybookStateManager () {
-        if (instance == null) {
-            instance = this;
-        } else {
-            throw new Exception("Cannot attempt to create multiple StorybookStateManagers");
-        }
+    public static void Init() {
             
         // Set default values for start of interaction.
-        this.currentState = new StorybookState {
+        currentState = new StorybookState {
             audioPlaying = false,
             audioFile = "",
             storybookMode = StorybookMode.NotReading,
@@ -27,72 +21,72 @@ public class StorybookStateManager {
             numPages = 0,
             evaluatingSentenceIndex = -1,
         };
-        this.rosMessageData = new Dictionary<string, object>();
-        this.rosMessageData.Add("audio_playing", this.currentState.audioPlaying);
-        this.rosMessageData.Add("audio_file", this.currentState.audioFile);
-        this.rosMessageData.Add("storybook_mode", (int)this.currentState.storybookMode);
-        this.rosMessageData.Add("current_story", this.currentState.currentStory);
-        this.rosMessageData.Add("num_pages", this.currentState.numPages);
-        this.rosMessageData.Add("evaluating_sentence_index", this.currentState.evaluatingSentenceIndex);
+        rosMessageData = new Dictionary<string, object>();
+        rosMessageData.Add("audio_playing", currentState.audioPlaying);
+        rosMessageData.Add("audio_file", currentState.audioFile);
+        rosMessageData.Add("storybook_mode", (int)currentState.storybookMode);
+        rosMessageData.Add("current_story", currentState.currentStory);
+        rosMessageData.Add("num_pages", currentState.numPages);
+        rosMessageData.Add("evaluating_sentence_index", currentState.evaluatingSentenceIndex);
     }
 
-    public StorybookState GetCurrentState() {
+    public static StorybookState GetState() {
         // It's a struct, so it should return by value.
         return currentState;
     }
 
-    public Dictionary<string, object> GetCurrentRosMessageData() {
-        return new Dictionary<string, object>(this.rosMessageData);
+    public static Dictionary<string, object> GetRosMessageData() {
+        return new Dictionary<string, object>(rosMessageData);
     }
 
     // Used by StoryAudioManager to set whether an audio file is currently playing.
-    public void SetAudioState(bool isPlaying, string audioFile) {
+    public static void SetAudioState(bool isPlaying, string audioFile) {
         // Just make sure I'm not bamboozling myself.
         if (isPlaying && audioFile == "") {
             throw new Exception("Invalid audio state, if isPlaying, then must provide an audio file");
         }
-        this.currentState.audioPlaying = isPlaying;
-        this.currentState.audioFile = audioFile;
+        currentState.audioPlaying = isPlaying;
+        currentState.audioFile = audioFile;
 
-        this.rosMessageData["audio_playing"] = isPlaying;
+        rosMessageData["audio_playing"] = isPlaying;
         // Avoid null values.
         if (audioFile == null) {
-            this.rosMessageData["audio_file"] = "";
+            rosMessageData["audio_file"] = "";
         } else {
-            this.rosMessageData["audio_file"] = audioFile;
+            rosMessageData["audio_file"] = audioFile;
         }
     }
 
     // Used by GameController to update the state when a storybook has been selected,
     // when the user has returned to story selection page, and what game mode is there.
-    public void SetStorySelected(string storyName, int numPages) {
-        this.currentState.currentStory = storyName;
-        this.currentState.numPages = numPages;
-        this.rosMessageData["current_story"] = storyName;
-        this.rosMessageData["num_pages"] = numPages;
+    public static void SetStorySelected(string storyName, int numPages) {
+        currentState.currentStory = storyName;
+        currentState.numPages = numPages;
+        rosMessageData["current_story"] = storyName;
+        rosMessageData["num_pages"] = numPages;
     }
 
-    public void SetStorybookMode(StorybookMode mode) {
-        this.currentState.storybookMode = mode;
-        this.rosMessageData["storybook_mode"] = (int)mode;
+    public static void SetStorybookMode(StorybookMode mode) {
+        currentState.storybookMode = mode;
+        rosMessageData["storybook_mode"] = (int)mode;
     }
 
     // Used by GameController when user returns back to story selection, i.e. finishes
     // or prematurely exists.
-    public void SetStoryExited() {
-        this.currentState.currentStory = "";
-        this.currentState.numPages = 0;
-        this.currentState.storybookMode = StorybookMode.NotReading;
-        this.rosMessageData["current_story"] = "";
-        this.rosMessageData["num_pages"] = 0;
-        this.rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
+    public static void SetStoryExited() {
+        currentState.currentStory = "";
+        currentState.numPages = 0;
+        currentState.storybookMode = StorybookMode.NotReading;
+        rosMessageData["current_story"] = "";
+        rosMessageData["num_pages"] = 0;
+        rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
     }
 
     // TODO: when in evaluate mode, update the current stanza as the reading task progresses.
     // Actually, might not need this, since the controller should be telling us, not vice versa.
-    public void SetEvaluatingSentence(int sentenceIndex) {
-        this.currentState.evaluatingSentenceIndex = sentenceIndex;
-        this.rosMessageData["evaluating_sentence_index"] = sentenceIndex;
+    public static void SetEvaluatingSentence(int sentenceIndex) {
+        currentState.evaluatingSentenceIndex = sentenceIndex;
+        rosMessageData["evaluating_sentence_index"] = sentenceIndex;
     }
         
 }

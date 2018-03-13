@@ -22,13 +22,10 @@ public class RosManager {
     System.Timers.Timer publishStateTimer =
         new System.Timers.Timer(Constants.STORYBOOK_STATE_PUBLISH_DELAY_MS);
 
-    private StorybookStateManager storybookStateManager;
-
     // Constructor.
     public RosManager(string rosIP, string portNum, GameController gameController) {
         Logger.Log("RosManager constructor");
         this.gameController = gameController;
-        this.storybookStateManager = gameController.GetStorybookStateManager();
 
         this.rosClient = new RosbridgeWebSocketClient(rosIP, portNum);
         this.rosClient.receivedMsgEvent += this.onMessageReceived;
@@ -199,7 +196,7 @@ public class RosManager {
         // TODO: should devise a better scheme to make sure states are sent in order.
         // Can also use the sequence numbers provided in the header.
         // Or use a lock in this class so that only one state message can be sent at a time.
-        Dictionary<string, object> data = StorybookStateManager.instance.GetCurrentRosMessageData();
+        Dictionary<string, object> data = StorybookStateManager.GetRosMessageData();
         data.Add("header", RosbridgeUtilities.GetROSHeader());
         // Don't allow audio_file to be null, ROS will get upset.
         if (data["audio_file"] == null) {

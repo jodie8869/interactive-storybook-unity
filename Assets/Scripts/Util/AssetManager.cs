@@ -79,8 +79,8 @@ public class AssetManager : MonoBehaviour {
     public void S3UploadChildAudio(string audioPath) {
         // Use a prefix that includes story, page number, first 2 words of stanza, and date.
         string s3Path = DateTime.Now.ToString("yyyy-MM-dd") + "/" + Constants.CHILD_NAME + "/" +
-            StorybookStateManager.instance.GetCurrentState().currentStory + "/" + 
-            StorybookStateManager.instance.GetCurrentState().storybookMode + "/" +
+            StorybookStateManager.GetState().currentStory + "/" + 
+            StorybookStateManager.GetState().storybookMode + "/" +
             DateTime.Now.ToString("HH:mm:ss") + "_" + audioPath;
         PutObjectRequest request = new PutObjectRequest {
             BucketName = Constants.S3_CHILD_AUDIO_BUCKET,

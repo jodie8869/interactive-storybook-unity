@@ -217,7 +217,7 @@ public class Stanza : MonoBehaviour {
         if (Math.Abs(this.mouseUpPos.y - this.mouseDownPos.y) > STANZA_HEIGHT) {
             return false;
         }
-        // Swipe must be from left to right and be 150 to 1200 pixels long.
+        // Swipe must be from left to right and be 200 to 1200 pixels long.
         if (this.mouseUpPos.x - this.mouseDownPos.x > 1200 ||
            this.mouseUpPos.x - this.mouseDownPos.x < 200) {
             return false;
@@ -226,7 +226,7 @@ public class Stanza : MonoBehaviour {
         if (this.mouseUpPos.x < this.leftX) {
             return false;
         }
-        Logger.Log("Stanza swiped! " + this.startTimestamp + " " + this.endTimestamp);
+        Logger.Log("Stanza swiped! " + this.sentenceIndex + " " + this.startTimestamp + " " + this.endTimestamp);
         return true;
     }
 }
