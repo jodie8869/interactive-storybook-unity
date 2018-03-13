@@ -427,8 +427,8 @@ public class StoryManager : MonoBehaviour {
     // we can figure out the best way to fit the words on the page.
     private void resizeSpacingAndFonts(int numWordsOnPage) {
         if (numWordsOnPage > 32) {
-            TinkerText.TINKER_TEXT_FONT_SIZE = 46;
-            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -20;
+            TinkerText.TINKER_TEXT_FONT_SIZE = 48;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -24;
         } else if (numWordsOnPage > 25) {
             TinkerText.TINKER_TEXT_FONT_SIZE = 48;
             this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -12;
