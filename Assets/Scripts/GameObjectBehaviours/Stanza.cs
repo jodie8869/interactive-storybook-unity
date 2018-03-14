@@ -93,6 +93,17 @@ public class Stanza : MonoBehaviour {
         return this.endTimestamp;
     }
 
+    public float GetEndTimestampNoModification() {
+        GameObject stanzaObject = this.gameObject;
+        RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
+        if (rectTransform.childCount > 0) {
+            GameObject tinkerTextObject = rectTransform.GetChild(rectTransform.childCount - 1).gameObject;
+            return tinkerTextObject.GetComponent<TinkerText>().triggerAudioEndTime;
+        } else {
+            return -1f;
+        }
+    }
+
     public int GetSentenceIndex() {
         return this.sentenceIndex;
     }

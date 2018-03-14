@@ -12,7 +12,10 @@ public class Sentence {
     // Keep track of the time interval in the audio that this sentence
     // corresponds to.
     private float earliestTimestamp;
-    private float latestTimestamp;
+    private float latestAudioPlayTimestamp;
+    // Kind of hacky, sometimes latestAudioPlayTimestamp is set to max value for the audio,
+    // but we want to also keep track of what the value was with no modification.
+    private float latestTimestampNoModification;
 
     public Sentence(StoryAudioManager audio) {
         this.audio = audio;
@@ -28,7 +31,8 @@ public class Sentence {
     public void SetupAfterAddingStanzas(int indexInSentences) {
         if (this.stanzas.Count > 0) {
             this.earliestTimestamp = this.stanzas[0].GetComponent<Stanza>().GetStartTimestamp();
-            this.latestTimestamp = this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().GetEndTimestamp();
+            this.latestAudioPlayTimestamp = this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().GetEndTimestamp();
+            this.latestTimestampNoModification = this.stanzas[this.stanzas.Count - 1].GetComponent<Stanza>().GetEndTimestampNoModification();
         }
         // Swiping on any stanza in the sentence will play that sentence starting from
         // the swiped stanza.
@@ -37,7 +41,7 @@ public class Sentence {
             stanza.SetIndexInSentence(i);
             stanza.SetSentenceIndex(indexInSentences);
             stanza.SetSentenceTimestamps(this.stanzas[i].GetComponent<Stanza>().GetStartTimestamp(),
-                this.latestTimestamp);
+                this.latestAudioPlayTimestamp);
         }
     }
 	
@@ -53,6 +57,11 @@ public class Sentence {
         } else {
             return "";
         }
+    }
+
+    // Get the length of the sentence text.
+    public float GetDuration() {
+        return this.latestTimestampNoModification - this.earliestTimestamp;
     }
 
     public void FadeIn(Color color) {

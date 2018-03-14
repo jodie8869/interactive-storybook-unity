@@ -22,9 +22,10 @@ public enum StorybookEventType {
 // We will need to deal with each one by registering a handler.
 public enum StorybookCommand {
     PING_TEST = 0, // No params.
-    HIGHLIGHT_WORD = 1, // Params is which index word to highlight.
-    HIGHLIGHT_SCENE_OBJECT = 2, // Params is which id scene object to highlight.
-    HIGHLIGHT_NEXT_SENTENCE = 3 // Params is which index sentence to highlight.
+    HIGHLIGHT_WORD = 1, // Params is {index:int}, word to highlight
+    HIGHLIGHT_SCENE_OBJECT = 2, // Params is {id: int}, scene object to highlight
+    HIGHLIGHT_NEXT_SENTENCE = 3, // Params is {index: int, child_turn: bool}, sentence
+    RECORD_AUDIO_AND_SPEECHACE = 4 // Params is {index: int} which sentence
 }
 
 // Message type representing the high level state of the storybook, to be published at 10Hz.
@@ -32,7 +33,7 @@ public struct StorybookState {
     public bool audioPlaying; // Is an audio file playing?
     public string audioFile; // Name of the audio file that's playing, if there is one.
 
-    public StorybookMode storybookMode; // Three modes are NotReading, Explore, Evaluate.
+    public StorybookMode storybookMode; // See Constants.StorybookMode.
 
     public string currentStory;
     public int numPages;

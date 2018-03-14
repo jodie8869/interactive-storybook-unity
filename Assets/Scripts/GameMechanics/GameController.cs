@@ -18,6 +18,7 @@ using UnityEngine.UI;
 using System.IO;
 using NUnit.Framework.Internal;
 using NUnit.Framework;
+using System.Reflection.Emit;
 
 public class GameController : MonoBehaviour {
     public GameObject testObjectRos;
@@ -427,6 +428,7 @@ public class GameController : MonoBehaviour {
     private void registerRosMessageHandlers() {
         this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_NEXT_SENTENCE, this.onHighlightNextSentence);
+        this.rosManager.RegisterHandler(StorybookCommand.RECORD_AUDIO_AND_SPEECHACE, this.onRecordAudioAndSpeechace);
     }
 
     private void onHelloWorldAckReceived(Dictionary<string, object> args) {
@@ -465,30 +467,41 @@ public class GameController : MonoBehaviour {
         };
     }
 
+    private void onRecordAudioAndSpeechace(Dictionary<string, object> args) {
+        this.taskQueue.Enqueue(this.recordAudioAndGetSpeechAceResult(Convert.ToInt32(args["index"])));
+    }
+        
+
+    public Action recordAudioAndGetSpeechAceResult(int sentenceIndex) {
+        return () => {
+            Sentence sentence = this.storyManager.stanzaManager.GetSentence(sentenceIndex);
+            string text = sentence.GetSentenceText();
+            // Approximately the length of the sentence, plus a little more.
+            int duration = Convert.ToInt32(sentence.GetDuration() * 1.33);
+            Logger.Log("Recording for sentence index " + sentenceIndex + " text: " + text + " duration: " + duration);
+            string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
+            // Test recording, saving and loading an audio clip.
+            StartCoroutine(audioRecorder.RecordForDuration(duration, (clip) => {
+                Logger.Log("done recording, getting speechACE results and uploading file to S3...");
+                AudioRecorder.SaveAudioAtPath(tempFileName, clip);
+                StartCoroutine(this.speechAceManager.AnalyzeTextSample(
+                    tempFileName, text, (speechAceResult) => {
+                        if (Constants.USE_ROS) {
+                            this.rosManager.SendSpeechAceResultAction(speechAceResult).Invoke();
+                        }
+                        // If we want to replay for debugging, uncomment this.
+                        // AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
+                        // this.storyManager.audioManager.LoadAudio(loadedClip);
+                        // this.storyManager.audioManager.PlayAudio();
+                        this.assetManager.S3UploadChildAudio(tempFileName);
+                    }));
+            }));  
+        };
+    }
+
     //
     // Helpers.
     //
-
-    // Argument sentenceIndex is which sentence of 
-    public void RecordAudioAndGetSpeechAceResult(int duration, string text, int sentenceIndex) {
-        string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
-        // Test recording, saving and loading an audio clip.
-        StartCoroutine(audioRecorder.RecordForDuration(duration, (clip) => {
-            Logger.Log("done recording, getting speechACE results and uploading file to S3...");
-            AudioRecorder.SaveAudioAtPath(tempFileName, clip);
-            StartCoroutine(this.speechAceManager.AnalyzeTextSample(
-                tempFileName, text, (speechAceResult) => {
-                    if (Constants.USE_ROS) {
-                        this.rosManager.SendSpeechAceResultAction(speechAceResult).Invoke();
-                    }
-                    // If we want to replay for debugging, uncomment this.
-                    // AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
-                    // this.storyManager.audioManager.LoadAudio(loadedClip);
-                    // this.storyManager.audioManager.PlayAudio();
-                    this.assetManager.S3UploadChildAudio(tempFileName);
-                }));
-        }));
-    }
 
     // Helper function to wrap together two actions:
     // (1) loading a page and (2) sending the StorybookPageInfo message over ROS.
