@@ -37,7 +37,7 @@ public static class Constants {
     public static Color GREY_TEXT_COLOR = new Color(1, 1, 1, 128f / 255);
 
     // ROS connection information.
-    public static string DEFAULT_ROSBRIDGE_IP = "10.0.0.48"; // "192.168.1.229";
+    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.229";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.
