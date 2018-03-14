@@ -160,7 +160,7 @@ public static class RosbridgeUtilities
 		// get the command
 		if (msg.ContainsKey("command"))
 		{
-			Logger.Log("[decode ROS msg] command: " + msg["command"]);
+			// Logger.Log("[decode ROS msg] command: " + msg["command"]);
 			try
 			{
 				command = Convert.ToInt32(msg["command"]);
@@ -181,12 +181,10 @@ public static class RosbridgeUtilities
 		}
 
 		// otherwise, we've got params, decode them.
-		Logger.Log("[decode ROS msg] params: " + msg["params"]);
+		// Logger.Log("[decode ROS msg] params: " + msg["params"]);
 
 		// parse data, see if it's valid json
 		Dictionary<string, object> msgParamDict = null;
-		Logger.Log("here t is as a string!");
-		Logger.Log((string)msg["params"]);
 		msgParamDict = Json.Deserialize((string)msg["params"]) as Dictionary<string, object>;
 		// if we can't deserialize the json message, return
 		if (msgParamDict == null)
@@ -214,9 +212,9 @@ public static class RosbridgeUtilities
 			msgParams = msgParamDict;
 		}
 		// otherwise, we got properties!
-		Logger.Log("[decode ROS msg] deserialized " + msgParamDict.Count + " properties from JSON!");
+		// Logger.Log("[decode ROS msg] deserialized " + msgParamDict.Count + " properties from JSON!");
         msgParams = msgParamDict;
-        Logger.Log(msgParamDict);
+        // Logger.Log(msgParamDict);
 
 	}
 

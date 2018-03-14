@@ -449,16 +449,16 @@ public class GameController : MonoBehaviour {
 
     private Action showNextSentence(bool childTurn) {
         return () => {
-            Color color = new Color();
-            if (childTurn) {
-                color = Constants.CHILD_READ_TEXT_COLOR;
-            } else {
-                color = Constants.JIBO_READ_TEXT_COLOR;
-            }
             if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
                 this.storyManager.stanzaManager.GetNumSentences()) {
                 StorybookStateManager.IncrementEvaluatingSentenceIndex();
                 int newIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
+                Color color = new Color();
+                if (childTurn) {
+                    color = Constants.CHILD_READ_TEXT_COLOR;
+                } else {
+                    color = Constants.JIBO_READ_TEXT_COLOR;
+                }
                 this.storyManager.stanzaManager.GetSentence(newIndex).FadeIn(color);
                 if (newIndex - 1 >= 0) {
                     this.storyManager.stanzaManager.GetSentence(newIndex - 1).Highlight(Constants.GREY_TEXT_COLOR);
@@ -477,12 +477,12 @@ public class GameController : MonoBehaviour {
             Sentence sentence = this.storyManager.stanzaManager.GetSentence(sentenceIndex);
             string text = sentence.GetSentenceText();
             // Approximately the length of the sentence, plus a little more.
-            int duration = Convert.ToInt32(sentence.GetDuration() * 1.33);
+            int duration = Convert.ToInt32(sentence.GetDuration() * 1.33) + 1;
             Logger.Log("Recording for sentence index " + sentenceIndex + " text: " + text + " duration: " + duration);
             string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
             // Test recording, saving and loading an audio clip.
             StartCoroutine(audioRecorder.RecordForDuration(duration, (clip) => {
-                Logger.Log("done recording, getting speechACE results and uploading file to S3...");
+                Logger.Log("Done recording, getting speechACE results and uploading file to S3...");
                 AudioRecorder.SaveAudioAtPath(tempFileName, clip);
                 StartCoroutine(this.speechAceManager.AnalyzeTextSample(
                     tempFileName, text, (speechAceResult) => {

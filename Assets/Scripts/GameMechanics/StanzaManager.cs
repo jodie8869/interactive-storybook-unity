@@ -168,7 +168,6 @@ public class StanzaManager : MonoBehaviour {
             // If the previous word ended a sentence, add a new sentence and force a new stanza.
             if (this.prevWordEndsSentence) {
                 this.sentences.Add(new Sentence(this.audioManager));
-                Logger.Log(this.sentences.Count);
                 // Force this to be false.
                 this.prevWordEndsSentence = false;
             } else {
@@ -251,7 +250,7 @@ public class StanzaManager : MonoBehaviour {
         for (int i = 0; i < this.sentences.Count; i++) {
             Sentence s = this.sentences[i];
             s.SetupAfterAddingStanzas(i);
-            Logger.Log("sentence text: " + s.GetSentenceText());
+            // Logger.Log("sentence text: " + s.GetSentenceText());
         }
     }
 

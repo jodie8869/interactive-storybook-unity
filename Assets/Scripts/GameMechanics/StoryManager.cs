@@ -295,7 +295,7 @@ public class StoryManager : MonoBehaviour {
                 if (Util.RefersToSameObject(
                         sceneObject.position,
                     this.sceneObjects[existingObject].GetComponent<SceneObjectManipulator>().position)) {
-                    Logger.Log("Detected overlap for object " + sceneObject.label);
+                    // Logger.Log("Detected overlap for object " + sceneObject.label);
                     return;
                 }
             }
