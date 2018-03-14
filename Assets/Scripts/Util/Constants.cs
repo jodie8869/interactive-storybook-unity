@@ -29,6 +29,8 @@ public static class Constants {
     // UI things.
     public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255);
     public static float SCENE_OBJECT_DISPLAY_TIME = 2.0f;
+    public static Color TINKERTEXT_CLICK_HIGHLIGHT_COLOR = Color.blue;
+    public static Color TINKERTEXT_AUDIO_HIGHLIGHT_COLOR = Color.magenta;
 
     public static Color CHILD_READ_TEXT_COLOR = new Color(0, .5f, 0, 1);
     public static Color JIBO_READ_TEXT_COLOR = new Color(.5f, 0, .5f, 1);

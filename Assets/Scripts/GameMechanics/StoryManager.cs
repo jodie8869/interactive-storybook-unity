@@ -59,7 +59,7 @@ public class StoryManager : MonoBehaviour {
     // Dynamically created TinkerTexts specific to this scene.
     public List<GameObject> tinkerTexts { get; private set; }
     // Dynamically created SceneObjects, keyed by their id.
-    private Dictionary<int, GameObject> sceneObjects;
+    public Dictionary<int, GameObject> sceneObjects { get; private set; }
     private Dictionary<string, List<int>> sceneObjectsLabelToId;
     // The image we loaded for this scene.
     private GameObject storyImage;

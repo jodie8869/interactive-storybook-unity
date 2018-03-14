@@ -112,14 +112,13 @@ public class TinkerText : MonoBehaviour
     public Action Highlight() {
         return () =>
         {
-            this.ChangeTextColor(Color.blue);
+            this.ChangeTextColor(Constants.TINKERTEXT_CLICK_HIGHLIGHT_COLOR);
             // After some amount of time, remove highlighting.
             StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME));
         };
     }
 
-    private IEnumerator undoHighlight(float secondsDelay)
-    {
+    private IEnumerator undoHighlight(float secondsDelay) {
         yield return new WaitForSeconds(secondsDelay);
         this.ChangeTextColor(this.unhighlightedColor);
     }
@@ -142,7 +141,7 @@ public class TinkerText : MonoBehaviour
 
     public void OnStartAudioTrigger() {
         // Change the text color.
-        this.ChangeTextColor(Color.magenta);
+        this.ChangeTextColor(Constants.TINKERTEXT_AUDIO_HIGHLIGHT_COLOR);
     }
 
     public void OnEndAudioTrigger() {

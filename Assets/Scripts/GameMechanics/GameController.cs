@@ -421,22 +421,58 @@ public class GameController : MonoBehaviour {
         this.startStory(this.stories[selectedIdx]);
     }
 
+    //
     // All ROS message handlers.
     // They should add tasks to the task queue.
     // Don't worry about this yet. Use ROS Manager class to handle this.
+    //
 
     private void registerRosMessageHandlers() {
         this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
-        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_NEXT_SENTENCE, this.onHighlightNextSentence);
-        this.rosManager.RegisterHandler(StorybookCommand.RECORD_AUDIO_AND_SPEECHACE, this.onRecordAudioAndSpeechace);
+        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_WORD, this.onHighlightTinkerTextMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_SCENE_OBJECT, this.onHighlightSceneObjectMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_NEXT_SENTENCE, this.onHighlightNextSentenceMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.RECORD_AUDIO_AND_SPEECHACE, this.onRecordAudioAndSpeechaceMessage);
     }
 
     private void onHelloWorldAckReceived(Dictionary<string, object> args) {
-        // Test that this is called from rosManager.
+        // Sanity check from the ping test after tablet app starts up.
         Logger.Log("in hello world ack received in game controller, " + args["obj1"]);
     }
 
-    private void onHighlightNextSentence(Dictionary<string, object> args) {
+    private void onHighlightTinkerTextMessage(Dictionary<string, object> args) {
+        int index = Convert.ToInt32(args["index"]);
+        this.taskQueue.Enqueue(this.highlightTinkerText(index));
+    }
+
+    private Action highlightTinkerText(int index) {
+        return () => {
+            if (index < this.storyManager.tinkerTexts.Count && index >= 0) {
+                this.storyManager.tinkerTexts[index].GetComponent<TinkerText>()
+                    .Highlight().Invoke();   
+            } else {
+                Logger.Log("No word at index: " + index);
+            }
+        };
+    }
+
+    private void onHighlightSceneObjectMessage(Dictionary<string, object> args) {
+        int id = Convert.ToInt32(args["id"]);
+        this.taskQueue.Enqueue(this.highlightSceneObject(id));
+    }
+
+    private Action highlightSceneObject(int id) {
+        return () => {
+            if (this.storyManager.sceneObjects.ContainsKey(id)) {
+                this.storyManager.sceneObjects[id].GetComponent<SceneObjectManipulator>()
+                    .Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR).Invoke();   
+            } else {
+                Logger.Log("No scene object with id: " + id);
+            }
+        };
+    }
+
+    private void onHighlightNextSentenceMessage(Dictionary<string, object> args) {
         // Assert that we are highlighting the appropriate sentence.
         // Need to cast better.
         if (Convert.ToInt32(args["index"]) != StorybookStateManager.GetState().evaluatingSentenceIndex + 1) {
@@ -467,12 +503,12 @@ public class GameController : MonoBehaviour {
         };
     }
 
-    private void onRecordAudioAndSpeechace(Dictionary<string, object> args) {
+    private void onRecordAudioAndSpeechaceMessage(Dictionary<string, object> args) {
         this.taskQueue.Enqueue(this.recordAudioAndGetSpeechAceResult(Convert.ToInt32(args["index"])));
     }
         
 
-    public Action recordAudioAndGetSpeechAceResult(int sentenceIndex) {
+    private Action recordAudioAndGetSpeechAceResult(int sentenceIndex) {
         return () => {
             Sentence sentence = this.storyManager.stanzaManager.GetSentence(sentenceIndex);
             string text = sentence.GetSentenceText();
@@ -498,6 +534,7 @@ public class GameController : MonoBehaviour {
             }));  
         };
     }
+        
 
     //
     // Helpers.
