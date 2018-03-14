@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using NUnit.Framework.Internal;
+using NUnit.Framework;
 
 public class GameController : MonoBehaviour {
     public GameObject testObjectRos;
@@ -333,7 +335,7 @@ public class GameController : MonoBehaviour {
                 this.hideElement(this.rosConnectButton.gameObject);
                 this.showElement(this.enterLibraryButton.gameObject);
                 // Set up the command handlers, happens the first time connection is established.
-                this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
+                this.registerRosMessageHandlers();
                 Thread.Sleep(1000); // Wait for a bit to make sure connection is established.
                 this.rosManager.SendHelloWorldAction().Invoke();
                 Logger.Log("Sent hello ping message");
@@ -422,12 +424,50 @@ public class GameController : MonoBehaviour {
     // They should add tasks to the task queue.
     // Don't worry about this yet. Use ROS Manager class to handle this.
 
-    private void onHelloWorldAckReceived(Dictionary<string, object> properties) {
-        // Test that this is called from rosManager.
-        Logger.Log("in hello world ack received in game controller");
+    private void registerRosMessageHandlers() {
+        this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
+        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_NEXT_SENTENCE, this.onHighlightNextSentence);
     }
 
+    private void onHelloWorldAckReceived(Dictionary<string, object> args) {
+        // Test that this is called from rosManager.
+        Logger.Log("in hello world ack received in game controller, " + args["obj1"]);
+    }
+
+    private void onHighlightNextSentence(Dictionary<string, object> args) {
+        // Assert that we are highlighting the appropriate sentence.
+        // Need to cast better.
+        if (Convert.ToInt32(args["index"]) != StorybookStateManager.GetState().evaluatingSentenceIndex + 1) {
+            Logger.LogError("Sentence index doesn't match " + args["index"] + " " +
+            StorybookStateManager.GetState().evaluatingSentenceIndex + 1);
+            throw new Exception("Sentence index doesn't match, fail fast");
+        }
+        this.taskQueue.Enqueue(this.showNextSentence((bool)args["child_turn"]));
+    }
+
+    private Action showNextSentence(bool childTurn) {
+        return () => {
+            Color color = new Color();
+            if (childTurn) {
+                color = Constants.CHILD_READ_TEXT_COLOR;
+            } else {
+                color = Constants.JIBO_READ_TEXT_COLOR;
+            }
+            if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
+                this.storyManager.stanzaManager.GetNumSentences()) {
+                StorybookStateManager.IncrementEvaluatingSentenceIndex();
+                int newIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
+                this.storyManager.stanzaManager.GetSentence(newIndex).FadeIn(color);
+                if (newIndex - 1 >= 0) {
+                    this.storyManager.stanzaManager.GetSentence(newIndex - 1).Highlight(Constants.GREY_TEXT_COLOR);
+                }
+            } 
+        };
+    }
+
+    //
     // Helpers.
+    //
 
     // Argument sentenceIndex is which sentence of 
     public void RecordAudioAndGetSpeechAceResult(int duration, string text, int sentenceIndex) {
@@ -501,24 +541,6 @@ public class GameController : MonoBehaviour {
         // Send the message.
         if (Constants.USE_ROS) {
             this.rosManager.SendStorybookPageInfoAction(updatedInfo);
-        }
-    }
-
-    private void showNextSentence(bool childTurn) {
-        Color color = new Color();
-        if (childTurn) {
-            color = Constants.CHILD_READ_TEXT_COLOR;
-        } else {
-            color = Constants.JIBO_READ_TEXT_COLOR;
-        }
-        if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
-            this.storyManager.stanzaManager.GetNumSentences()) {
-            StorybookStateManager.IncrementEvaluatingSentenceIndex();
-            int newIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
-            this.storyManager.stanzaManager.GetSentence(newIndex).FadeIn(color);
-            if (newIndex - 1 >= 0) {
-                this.storyManager.stanzaManager.GetSentence(newIndex - 1).Highlight(Constants.GREY_TEXT_COLOR);
-            }
         }
     }
 

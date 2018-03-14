@@ -24,7 +24,7 @@ public enum StorybookCommand {
     PING_TEST = 0, // No params.
     HIGHLIGHT_WORD = 1, // Params is which index word to highlight.
     HIGHLIGHT_SCENE_OBJECT = 2, // Params is which id scene object to highlight.
-    HIGHLIGHT_SENTENCE = 3 // Params is which index stanza to highlight.
+    HIGHLIGHT_NEXT_SENTENCE = 3 // Params is which index sentence to highlight.
 }
 
 // Message type representing the high level state of the storybook, to be published at 10Hz.
