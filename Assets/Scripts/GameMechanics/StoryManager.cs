@@ -325,6 +325,15 @@ public class StoryManager : MonoBehaviour {
             new Vector2(pos.width * this.imageScaleFactor,
                         pos.height * this.imageScaleFactor)
         )();
+
+
+        Sprite toadSprite = Resources.Load<Sprite>("toad_sprite");
+        manip.SetSprite(toadSprite);
+        // Set the pivot.
+        manip.SetPivotToCenter();
+        manip.Scale(new Vector3(1.1f, 1.1f));
+
+
         // Add a dummy handler to check things.
         manip.AddClickHandler(() =>
         {

@@ -79,6 +79,27 @@ public class SceneObjectManipulator : MonoBehaviour
         };
     }
 
+    public void Scale(Vector3 scaleFactor) {
+        Vector3 newScale = Vector3.Scale(this.rectTransform.localScale, scaleFactor);
+        this.rectTransform.localScale = newScale;
+    }
+
+    public void SetSprite(Sprite sprite) {
+        this.image.sprite = sprite;
+    }
+
+    public void SetPivotToCenter() {
+        this.setPivot(new Vector2(.5f, .5f));
+    }
+
+    private void setPivot(Vector2 pivot) {
+        Vector2 size = this.rectTransform.rect.size;
+        Vector2 deltaPivot = this.rectTransform.pivot - pivot;
+        Vector3 deltaPosition = new Vector3(deltaPivot.x * size.x, deltaPivot.y * size.y);
+        this.rectTransform.pivot = pivot;
+        this.rectTransform.localPosition -= deltaPosition;
+    }
+
     //public Action PlayAnimation() {
     //    return () =>
     //    {
