@@ -26,22 +26,29 @@ public class StoryManager : MonoBehaviour {
 	public GameObject landscapeWideGraphicsPanel;
 	public GameObject landscapeWideTextPanel;
 
+    public GameObject landscapeReaderPanel;
+    public GameObject portraitReaderPanel;
+
+    public GameObject portraitTitleImagePanel;
+    public GameObject landscapeTitleImagePanel; // Panel for just the book cover image.
+    public GameObject landscapeTitlePanel; // Panel for entire title page screen.
     public GameObject portraitTitlePanel;
-    public GameObject landscapeTitlePanel;
 
     public GameObject popupLabel;
 
     private bool autoplayAudio = false;
 
     // Used for internal references.
+    private GameObject readerPanel;
     private GameObject graphicsPanel;
     private GameObject textPanel;
+    private GameObject titleImagePanel;
     private GameObject titlePanel;
 
     private float graphicsPanelWidth;
     private float graphicsPanelHeight;
     private float graphicsPanelAspectRatio;
-    private float titlePanelAspectRatio;
+    private float titlePanelImageAspectRatio;
 
     // These all need to be set after we determine the screen size.
     // They are set in initPanelSizesOnStartup() and used in resetPanelSizes().
@@ -119,10 +126,18 @@ public class StoryManager : MonoBehaviour {
         this.audioManager.LoadAudio(description.audioFile, this.assetManager.GetAudioClip(description.audioFile));
 
         if (description.isTitle) {
+            // Show only the title panel.
+            this.titlePanel.SetActive(true);
+            this.readerPanel.SetActive(false);
+
             // Special case for title page.
             // No TinkerTexts, and image takes up a larger space.
             this.loadTitlePage(description);
         } else {
+            // Show only the text and graphics panels.
+            this.titlePanel.SetActive(false);
+            this.readerPanel.SetActive(true);
+           
             // Load image.
             this.loadImage(description.storyImageFile);
 
@@ -194,12 +209,12 @@ public class StoryManager : MonoBehaviour {
         GameObject newObj = new GameObject();
         newObj.AddComponent<Image>();
         newObj.AddComponent<AspectRatioFitter>();
-        newObj.transform.SetParent(this.titlePanel.transform, false);
+        newObj.transform.SetParent(this.titleImagePanel.transform, false);
         newObj.transform.localPosition = Vector3.zero;
         newObj.GetComponent<AspectRatioFitter>().aspectMode =
                   AspectRatioFitter.AspectMode.FitInParent;
         newObj.GetComponent<AspectRatioFitter>().aspectRatio =
-                  this.titlePanelAspectRatio;
+                  this.titlePanelImageAspectRatio;
 
         Logger.Log("loading title page");
         newObj.GetComponent<Image>().sprite = this.assetManager.GetSprite(imageFile);
@@ -524,44 +539,50 @@ public class StoryManager : MonoBehaviour {
             if (this.graphicsPanel != null) {
                 this.graphicsPanel.SetActive(false);
                 this.textPanel.SetActive(false);
-                this.titlePanel.SetActive(false);
+                this.titleImagePanel.SetActive(false);
             }
             switch (this.displayMode)
             {
-                case DisplayMode.Landscape:
-                    this.graphicsPanel = this.landscapeGraphicsPanel;
-                    this.textPanel = this.landscapeTextPanel;
-                    this.titlePanel = this.landscapeTitlePanel;
-                    break;
-                case DisplayMode.LandscapeWide:
-                    this.graphicsPanel = this.landscapeWideGraphicsPanel;
-                    this.textPanel = this.landscapeWideTextPanel;
-                    this.titlePanel = this.landscapeTitlePanel;
-                    break;
-                case DisplayMode.Portrait:
-                    this.graphicsPanel = this.portraitGraphicsPanel;
-                    this.textPanel = this.portraitTextPanel;
-                    this.titlePanel = this.portraitTitlePanel;
-                    // Resize back to normal.
-                    this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
-                            new Vector2(this.PORTRAIT_WIDTH,
-                                        this.PORTRAIT_GRAPHICS_HEIGHT);
-                    break;
-                default:
-                    Logger.LogError("unknown display mode " + newMode);
-                    break;
+            case DisplayMode.Landscape:
+                this.graphicsPanel = this.landscapeGraphicsPanel;
+                this.textPanel = this.landscapeTextPanel;
+                this.titleImagePanel = this.landscapeTitleImagePanel;
+                this.titlePanel = this.landscapeTitlePanel;
+                this.readerPanel = this.landscapeReaderPanel;
+                break;
+            case DisplayMode.LandscapeWide:
+                this.graphicsPanel = this.landscapeWideGraphicsPanel;
+                this.textPanel = this.landscapeWideTextPanel;
+                this.titleImagePanel = this.landscapeTitleImagePanel;
+                this.titlePanel = this.landscapeTitlePanel;
+                this.readerPanel = this.landscapeReaderPanel;
+                break;
+            case DisplayMode.Portrait:
+                this.graphicsPanel = this.portraitGraphicsPanel;
+                this.textPanel = this.portraitTextPanel;
+                this.titleImagePanel = this.portraitTitleImagePanel;
+                this.titlePanel = this.portraitTitlePanel;
+                this.readerPanel = this.portraitReaderPanel;
+                // Resize back to normal.
+                this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
+                        new Vector2(this.PORTRAIT_WIDTH,
+                                    this.PORTRAIT_GRAPHICS_HEIGHT);
+                break;
+            default:
+                Logger.LogError("unknown display mode " + newMode);
+                break;
             }
             this.graphicsPanel.SetActive(true);
             this.textPanel.SetActive(true);
-            this.titlePanel.SetActive(true);
+            this.titleImagePanel.SetActive(true);
             Vector2 rect =
                 this.graphicsPanel.GetComponent<RectTransform>().sizeDelta;
             this.graphicsPanelWidth = rect.x;
             this.graphicsPanelHeight = rect.y;
             this.graphicsPanelAspectRatio =
                 this.graphicsPanelWidth / this.graphicsPanelHeight;
-            rect = this.titlePanel.GetComponent<RectTransform>().sizeDelta;
-            this.titlePanelAspectRatio = rect.x / rect.y;
+            rect = this.titleImagePanel.GetComponent<RectTransform>().sizeDelta;
+            this.titlePanelImageAspectRatio = rect.x / rect.y;
 
             // TODO: verify this is correct.
             // Update the popup panel to have its parent be the correct graphicsPanel.
@@ -615,8 +636,9 @@ public class StoryManager : MonoBehaviour {
             new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.LANDSCAPE_WIDE_TEXT_HEIGHT));
 
         // And the title panels.
-        Util.SetSize(this.landscapeTitlePanel, new Vector2(landscapeWidth, landscapeHeight));
-        Util.SetSize(this.portraitTitlePanel, new Vector2(portraitWidth, portraitHeight));
+        // COMMENTED OUT BECAUSE THESE ARE NOW HARDCODED TO MATCH THE BOOK IMAGE ASSET.
+        // Util.SetSize(this.landscapeTitleImagePanel, new Vector2(landscapeWidth, landscapeHeight));
+        // Util.SetSize(this.portraitTitleImagePanel, new Vector2(portraitWidth, portraitHeight));
     }
 
     private void resetPanelSizes() {

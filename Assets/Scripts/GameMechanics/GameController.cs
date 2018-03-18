@@ -34,9 +34,13 @@ public class GameController : MonoBehaviour {
     public Button landscapeNextButton;
     public Button landscapeBackButton;
     public Button landscapeFinishButton;
+    public Button landscapeStartStoryButton;
+    public Button landscapeBackToLibraryButton;
     public Button portraitNextButton;
     public Button portraitBackButton;
     public Button portraitFinishButton;
+    public Button portraitStartStoryButton;
+    public Button portraitBackToLibraryButton;
 
     public Button landscapeToggleAudioButton;
     public Button portraitToggleAudioButton;
@@ -45,8 +49,10 @@ public class GameController : MonoBehaviour {
     private Button backButton;
     private Button finishButton;
     private Button toggleAudioButton;
+    private Button startStoryButton;
+    private Button backToLibraryButton;
 
-    public Button startStoryButton;
+    public Button selectStoryButton;
     public GameObject loadingBar;
 
     public GameObject landscapePanel;
@@ -128,9 +134,12 @@ public class GameController : MonoBehaviour {
         this.portraitFinishButton.interactable = true;
         this.portraitFinishButton.onClick.AddListener(this.onFinishButtonClick);
 
-        this.rosConnectButton.onClick.AddListener(this.onRosConnectButtonClicked);
-        this.enterLibraryButton.onClick.AddListener(this.onEnterLibraryButtonClicked);
-        this.startStoryButton.onClick.AddListener(this.onStartStoryClicked);
+        this.landscapeStartStoryButton.onClick.AddListener(this.onNextButtonClick);
+        this.portraitStartStoryButton.onClick.AddListener(this.onNextButtonClick);
+
+        this.rosConnectButton.onClick.AddListener(this.onRosConnectButtonClick);
+        this.enterLibraryButton.onClick.AddListener(this.onEnterLibraryButtonClick);
+        this.selectStoryButton.onClick.AddListener(this.onStartStoryClick);
 
         this.landscapeToggleAudioButton.onClick.AddListener(this.toggleAudio);
         this.portraitToggleAudioButton.onClick.AddListener(this.toggleAudio);
@@ -237,7 +246,7 @@ public class GameController : MonoBehaviour {
         foreach (StoryJson json in storyJsons) {
             this.storyPages.Add(new SceneDescription(json.GetText(), this.orientation));
         }
-        this.changeButtonText(this.nextButton, "Begin Story!");
+        // this.changeButtonText(this.nextButton, "Begin Story!");
         this.hideElement(this.backButton.gameObject);
 
         if (Constants.LOAD_ASSETS_LOCALLY ||
@@ -318,7 +327,7 @@ public class GameController : MonoBehaviour {
     }
 
     // All button handlers.
-    private void onRosConnectButtonClicked() {
+    private void onRosConnectButtonClick() {
         Logger.Log("Ros Connect Button clicked");
         string rosbridgeIp = Constants.DEFAULT_ROSBRIDGE_IP;
         // If user entered a different IP, use it, otherwise stick to default.
@@ -349,7 +358,7 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    private void onEnterLibraryButtonClicked() {
+    private void onEnterLibraryButtonClick() {
         // Prepares the assets for showing the library, and then displays the panel.
         this.downloadStoryTitles();
     }
@@ -361,7 +370,7 @@ public class GameController : MonoBehaviour {
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         if (this.currentPageNumber == 1) {
             // Special case, need to change the text and show the back button.
-            this.changeButtonText(this.nextButton, "Next Page");
+            // this.changeButtonText(this.nextButton, "Next Page");
             this.showElement(this.backButton.gameObject);
         }
         if (this.currentPageNumber == this.storyPages.Count - 1) {
@@ -415,7 +424,7 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    private void onStartStoryClicked() {
+    private void onStartStoryClick() {
         // Read the selected value of the story dropdown and start that story.
         int selectedIdx = this.storyDropdown.value;
         this.startStory(this.stories[selectedIdx]);
@@ -665,6 +674,8 @@ public class GameController : MonoBehaviour {
         this.backButton = this.landscapeBackButton;
         this.finishButton = this.landscapeFinishButton;
         this.toggleAudioButton = this.landscapeToggleAudioButton;
+        this.startStoryButton = this.landscapeStartStoryButton;
+        this.backToLibraryButton = this.landscapeBackToLibraryButton;
 
         // TODO: is this necessary?
         Screen.orientation = ScreenOrientation.Landscape;
@@ -677,6 +688,8 @@ public class GameController : MonoBehaviour {
         this.backButton = this.portraitBackButton;
         this.finishButton = this.portraitFinishButton;
         this.toggleAudioButton = this.portraitToggleAudioButton;
+        this.startStoryButton = this.portraitStartStoryButton;
+        this.backToLibraryButton = this.portraitBackToLibraryButton;
         Screen.orientation = ScreenOrientation.Portrait;
     }
 
