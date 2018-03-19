@@ -36,13 +36,15 @@ public class GameController : MonoBehaviour {
     public Button landscapeFinishButton;
     public Button landscapeStartStoryButton;
     public Button landscapeBackToLibraryButton;
+    public Button landscapeHomeButton; // In reader mode, to exit the story.
+    public Button landscapeToggleAudioButton;
+
     public Button portraitNextButton;
     public Button portraitBackButton;
     public Button portraitFinishButton;
     public Button portraitStartStoryButton;
     public Button portraitBackToLibraryButton;
-
-    public Button landscapeToggleAudioButton;
+    public Button portraitHomeButton; // In reader mode, to exit the story..
     public Button portraitToggleAudioButton;
 
     private Button nextButton;
@@ -133,6 +135,11 @@ public class GameController : MonoBehaviour {
         this.landscapeFinishButton.onClick.AddListener(this.onFinishButtonClick);
         this.portraitFinishButton.interactable = true;
         this.portraitFinishButton.onClick.AddListener(this.onFinishButtonClick);
+
+        this.landscapeBackToLibraryButton.onClick.AddListener(this.onBackToLibraryButtonClick);
+        this.portraitBackToLibraryButton.onClick.AddListener(this.onBackToLibraryButtonClick);
+        this.landscapeHomeButton.onClick.AddListener(this.onBackToLibraryButtonClick);
+        this.portraitHomeButton.onClick.AddListener(this.onBackToLibraryButtonClick);
 
         this.landscapeStartStoryButton.onClick.AddListener(this.onNextButtonClick);
         this.portraitStartStoryButton.onClick.AddListener(this.onNextButtonClick);
@@ -361,6 +368,15 @@ public class GameController : MonoBehaviour {
     private void onEnterLibraryButtonClick() {
         // Prepares the assets for showing the library, and then displays the panel.
         this.downloadStoryTitles();
+    }
+
+    // When user clicks button to go back to the library and exit the current story they're in.
+    private void onBackToLibraryButtonClick() {
+        this.storyManager.ClearPage();
+        this.storyManager.audioManager.StopAudio();
+        this.currentPageNumber = 0;
+        this.setLandscapeOrientation();
+        this.showLibraryPanel(true);
     }
 
     private void onNextButtonClick() {
@@ -702,15 +718,20 @@ public class GameController : MonoBehaviour {
         // It should all be read from a single file, whose url is known.
         // In the future, consider using AmazonS3 API to manually read all the buckets.
         // Don't really want to do that now because it seems like more effort than worth.
-        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("will_clifford_win", 9, "landscape"));
-        this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
-        this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
-        this.stories.Add(new StoryMetadata("jazz_class", 12, "portrait"));
-        this.stories.Add(new StoryMetadata("a_rain_forest_day", 15,"portrait"));
-        this.stories.Add(new StoryMetadata("a_cub_can", 11,"portrait"));
+
         this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
         this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
+        this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
+        this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
+
+
+        // Other stories, commented out because they're not used in the study.
+//        this.stories.Add(new StoryMetadata("will_clifford_win", 9, "landscape"));
+//        this.stories.Add(new StoryMetadata("jazz_class", 12, "portrait"));
+//        this.stories.Add(new StoryMetadata("a_rain_forest_day", 15,"portrait"));
+//        this.stories.Add(new StoryMetadata("a_cub_can", 11,"portrait"));
     }
 
 }

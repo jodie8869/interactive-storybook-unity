@@ -15,6 +15,7 @@ public static class Constants {
     // Participant information.
     public static string CHILD_NAME = "child_test";
 
+
     // Desired ratio of graphics panel width to entire landscape panel width
     // in landscape display mode.
     public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 850f / (850f + 1048f);

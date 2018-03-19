@@ -75,11 +75,15 @@ public class TinkerText : MonoBehaviour
         this.audioStartTime = timestamp.start;
         this.audioEndTime = timestamp.end;
         this.triggerAudioEndTime = timestamp.end;
+        // TODO: think of a better way to handle this.
         // Kind of hacky, but this stops the audio clipping.
         // And prevents words from getting stuck on the pink highlight at the end.
         if (isLastWord) {
             this.audioEndTime = float.MaxValue;
-            this.triggerAudioEndTime -= .1f;
+            // Take diff into account so the subtraction doesn't make "end" occur before "start". 
+            float diff = timestamp.end - timestamp.start;
+            this.triggerAudioEndTime -= Math.Min(.15f, diff*.25f);
+            Logger.Log("triggerAudioEndTime " + triggerAudioEndTime);
         }
         this.gameObject.SetActive(true);
         // When a TinkerText is clicked, it should highlight.
