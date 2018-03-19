@@ -17,14 +17,13 @@ public static class Constants {
 
     // Desired ratio of graphics panel width to entire landscape panel width
     // in landscape display mode. 850/2048
-    public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 0.415f;
+    public static float LANDSCAPE_GRAPHICS_WIDTH_FRACTION = 850f / (850f + 1048f);
     // Desired ratio of graphics panel height to entire landscape panel height
     // in portrait display mode. Note: always running out of space, so making this smaller.
-    public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 0.47f; // 0.66f;
+    public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 650f / (650f + 900f);
     // Desired ratio of graphics panel height to entire landscape panel height
     // in landscape wide display mode.
-    //public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.71f;
-    public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 0.5f;
+    public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 650f / (650f + 550f);
 
     // UI things.
     public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255);

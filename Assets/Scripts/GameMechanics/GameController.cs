@@ -484,6 +484,7 @@ public class GameController : MonoBehaviour {
     private void onHighlightNextSentenceMessage(Dictionary<string, object> args) {
         // Assert that we are highlighting the appropriate sentence.
         // Need to cast better.
+        Logger.Log("onHighlightNextSentenceMessage");
         if (Convert.ToInt32(args["index"]) != StorybookStateManager.GetState().evaluatingSentenceIndex + 1) {
             Logger.LogError("Sentence index doesn't match " + args["index"] + " " +
             StorybookStateManager.GetState().evaluatingSentenceIndex + 1);
@@ -494,6 +495,7 @@ public class GameController : MonoBehaviour {
 
     private Action showNextSentence(bool childTurn) {
         return () => {
+            Logger.Log("Showing next sentence from inside task queue");
             if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
                 this.storyManager.stanzaManager.GetNumSentences()) {
                 StorybookStateManager.IncrementEvaluatingSentenceIndex();
@@ -513,12 +515,14 @@ public class GameController : MonoBehaviour {
     }
 
     private void onRecordAudioAndSpeechaceMessage(Dictionary<string, object> args) {
+        Logger.Log("onRecordAudioAndSpeechaceMessage");
         this.taskQueue.Enqueue(this.recordAudioAndGetSpeechAceResult(Convert.ToInt32(args["index"])));
     }
         
 
     private Action recordAudioAndGetSpeechAceResult(int sentenceIndex) {
         return () => {
+            Logger.Log("Recording audio from inside task queue");
             Sentence sentence = this.storyManager.stanzaManager.GetSentence(sentenceIndex);
             string text = sentence.GetSentenceText();
             // Approximately the length of the sentence, plus a little more.
