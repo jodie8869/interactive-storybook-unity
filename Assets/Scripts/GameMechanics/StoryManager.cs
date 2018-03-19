@@ -608,10 +608,13 @@ public class StoryManager : MonoBehaviour {
     // new values as constants so that resetPanelSizes() can use them to
     // dynamically resize the panels between scenes.
     private void initPanelSizesOnStartup() {
-        float landscapeWidth = (float)Util.GetScreenWidth() - 150f; // Subtract border
-        float landscapeHeight = (float)Util.GetScreenHeight() - 336f; // Subtract border
+        // Size of the graphics + text panel in the reader panel.
+        float landscapeWidth = (float)Util.GetScreenWidth() - 198f; // Subtract border
+        float landscapeHeight = (float)Util.GetScreenHeight() - 436f; // Graphics panel is shorter.
         float portraitWidth = (float)Util.GetScreenHeight() - 161f; // Subtract border
         float portraitHeight = (float)Util.GetScreenWidth() - 498f; // Subtract border
+
+        Logger.Log(landscapeWidth + " " + landscapeHeight + " " + portraitWidth + " " + portraitHeight);
 
         this.LANDSCAPE_GRAPHICS_WIDTH =
                 Constants.LANDSCAPE_GRAPHICS_WIDTH_FRACTION * landscapeWidth;
@@ -642,7 +645,7 @@ public class StoryManager : MonoBehaviour {
         this.LANDSCAPE_WIDE_WIDTH = landscapeWidth;
         Util.SetSize(
             this.landscapeWideGraphicsPanel,
-            new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT));
+            new Vector2(landscapeWidth, this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT));
         Util.SetSize(
             this.landscapeWideTextPanel,
             new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.LANDSCAPE_WIDE_TEXT_HEIGHT));

@@ -24,7 +24,7 @@ public static class Constants {
     public static float PORTRAIT_GRAPHICS_HEIGHT_FRACTION = 650f / (650f + 900f);
     // Desired ratio of graphics panel height to entire landscape panel height
     // in landscape wide display mode.
-    public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 650f / (650f + 550f);
+    public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 620f / (620f + 500f);
 
     // UI things.
     public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255);

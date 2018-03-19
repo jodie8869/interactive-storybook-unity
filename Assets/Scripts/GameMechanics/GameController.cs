@@ -722,9 +722,10 @@ public class GameController : MonoBehaviour {
         this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
         this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
         this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("clifford_and_the_jet", 9, "landscape"));
         this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
         this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
+        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
 
 
         // Other stories, commented out because they're not used in the study.

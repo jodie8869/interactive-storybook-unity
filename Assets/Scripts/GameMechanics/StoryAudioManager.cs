@@ -51,7 +51,6 @@ public class StoryAudioManager : MonoBehaviour {
             // make sure we call any outstanding triggers.
             if (this.currentTimestamp < this.lastTimestamp) {
                 maxCutoffTime = float.MaxValue;
-                Logger.Log("here");
             }
             foreach (KeyValuePair<float, List<AudioTrigger>> trigger in this.triggers) {
                 // TODO: need a special case for first one? but not for hungry toad
@@ -76,7 +75,6 @@ public class StoryAudioManager : MonoBehaviour {
                 Logger.Log("stopping because current is " + this.currentTimestamp + " and stop is " + this.stopTimestamp);
                 this.StopAudio();
             }
-            Logger.Log(this.currentTimestamp);
         }
         this.lastTimestamp = this.currentTimestamp;
 
