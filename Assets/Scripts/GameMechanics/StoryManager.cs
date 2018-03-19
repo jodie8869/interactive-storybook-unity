@@ -247,10 +247,22 @@ public class StoryManager : MonoBehaviour {
         // TODO: If height is constraining factor, then use up all possible
         // width by pushing the image over, only in landscape mode though.
         // Do the symmetric thing in portrait mode if width is constraining.
+        // ^ Kind of done, maybe not perfect.
         if (imageAspectRatio > this.graphicsPanelAspectRatio) {
             // Width is the constraining factor.
             this.storyImageWidth = this.graphicsPanelWidth;
             this.storyImageHeight = this.graphicsPanelWidth / imageAspectRatio;
+            if (this.displayMode == DisplayMode.Portrait) {
+                Logger.Log("fixing width is constraining");
+                float heightDiff = this.graphicsPanelHeight - this.storyImageHeight;
+                this.graphicsPanelHeight = this.storyImageHeight;
+                this.graphicsPanel.GetComponent<RectTransform>().sizeDelta = 
+                    new Vector2(this.storyImageWidth, this.storyImageHeight);
+                Vector2 currentTextPanelSize =
+                    this.textPanel.GetComponent<RectTransform>().sizeDelta;
+                this.textPanel.GetComponent<RectTransform>().sizeDelta =
+                    new Vector2(currentTextPanelSize.x, currentTextPanelSize.y + heightDiff);
+            }
             this.storyImageX = 0;
             this.storyImageY =
                 -(this.graphicsPanelHeight - this.storyImageHeight) / 2;
@@ -258,8 +270,7 @@ public class StoryManager : MonoBehaviour {
             // Height is the constraining factor.
             this.storyImageHeight = this.graphicsPanelHeight;
             this.storyImageWidth = this.graphicsPanelHeight * imageAspectRatio;
-            if (this.displayMode == DisplayMode.Landscape)
-            {
+            if (this.displayMode == DisplayMode.Landscape) {
                 float widthDiff = this.graphicsPanelWidth - this.storyImageWidth;
                 this.graphicsPanelWidth = this.storyImageWidth;
                 this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
@@ -581,6 +592,7 @@ public class StoryManager : MonoBehaviour {
             this.graphicsPanelHeight = rect.y;
             this.graphicsPanelAspectRatio =
                 this.graphicsPanelWidth / this.graphicsPanelHeight;
+            Logger.Log("width: " + graphicsPanelWidth + " height: " + graphicsPanelHeight);
             rect = this.titleImagePanel.GetComponent<RectTransform>().sizeDelta;
             this.titlePanelImageAspectRatio = rect.x / rect.y;
 
@@ -596,10 +608,10 @@ public class StoryManager : MonoBehaviour {
     // new values as constants so that resetPanelSizes() can use them to
     // dynamically resize the panels between scenes.
     private void initPanelSizesOnStartup() {
-        float landscapeWidth = (float)Util.GetScreenWidth() - 100f; // Subtract border
-        float landscapeHeight = (float)Util.GetScreenHeight() - 330f; // Subtract border + buttons
-        float portraitWidth = (float)Util.GetScreenHeight() - 100f; // Subtract border
-        float portraitHeight = (float)Util.GetScreenWidth() - 330f; // Subtract border + buttons
+        float landscapeWidth = (float)Util.GetScreenWidth() - 150f; // Subtract border
+        float landscapeHeight = (float)Util.GetScreenHeight() - 336f; // Subtract border
+        float portraitWidth = (float)Util.GetScreenHeight() - 161f; // Subtract border
+        float portraitHeight = (float)Util.GetScreenWidth() - 498f; // Subtract border
 
         this.LANDSCAPE_GRAPHICS_WIDTH =
                 Constants.LANDSCAPE_GRAPHICS_WIDTH_FRACTION * landscapeWidth;
