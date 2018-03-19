@@ -19,6 +19,7 @@ using System.IO;
 using NUnit.Framework.Internal;
 using NUnit.Framework;
 using System.Reflection.Emit;
+using UnityEngine.Events;
 
 public class GameController : MonoBehaviour {
     public GameObject testObjectRos;
@@ -72,6 +73,8 @@ public class GameController : MonoBehaviour {
     public Text rosPlaceholderText;
 
     public Button enterLibraryButton;
+    public Button readButton;
+    public Button findMoreStoriesButton;
 
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
@@ -90,6 +93,11 @@ public class GameController : MonoBehaviour {
 
     // List of stories to populate dropdown.
     private List<StoryMetadata> stories;
+
+    public GameObject bookshelfPanel;
+    private List<GameObject> libraryShelves;
+    private List<GameObject> libraryBooks;
+    private int selectedLibraryBookIndex = -1;
 
     // Some information about the current state of the storybook.
     private StoryMetadata currentStory;
@@ -151,6 +159,8 @@ public class GameController : MonoBehaviour {
         this.landscapeToggleAudioButton.onClick.AddListener(this.toggleAudio);
         this.portraitToggleAudioButton.onClick.AddListener(this.toggleAudio);
 
+        this.readButton.onClick.AddListener(this.onStartStoryClick);
+
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
         this.resizePanelsOnStartup();
@@ -161,6 +171,9 @@ public class GameController : MonoBehaviour {
         this.assetManager = GetComponent<AssetManager>();
         this.audioRecorder = GetComponent<AudioRecorder>();
         this.speechAceManager = GetComponent<SpeechAceManager>();
+
+        this.libraryBooks = new List<GameObject>();
+        this.libraryShelves = new List<GameObject>();
 
         this.stories = new List<StoryMetadata>();
         this.initStories();
@@ -225,6 +238,30 @@ public class GameController : MonoBehaviour {
             this.setupStoryDropdown();
             this.showLibraryPanel(true);
         }));
+    }
+
+    private Action onLibraryBookClick(int index, StoryMetadata story) {
+        return () => {
+            Logger.Log("Clicked book: " + index + " " + story.GetName());
+            // Make all books normal size.
+            if (this.selectedLibraryBookIndex >= 0) {
+                this.libraryBooks[this.selectedLibraryBookIndex]
+                    .GetComponent<LibraryBook>().ReturnToOriginalSize();
+            }
+
+            if (this.selectedLibraryBookIndex == index) {
+                this.selectedLibraryBookIndex = -1;
+                this.hideElement(this.readButton.gameObject);
+            } else {
+                this.selectedLibraryBookIndex = index;
+                // Enlarge the appropriate library book.
+                this.libraryBooks[index].GetComponent<LibraryBook>().Enlarge();
+                // Show the Read button.
+                this.showElement(this.readButton.gameObject);
+            }
+
+
+        };
     }
 
     private void startStory(StoryMetadata story) {
@@ -299,17 +336,42 @@ public class GameController : MonoBehaviour {
 
         // Show human readable story names and pull title images when possible.
     private void setupStoryDropdown() {
-        this.storyDropdown.ClearOptions();
-        List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-        foreach (StoryMetadata story in this.stories) {
-            // Get human readable text and load the image.
-            Dropdown.OptionData newOption = new Dropdown.OptionData();
-            newOption.text = story.GetHumanReadableName();
-            newOption.image = this.assetManager.GetTitleSprite(story);
-            options.Add(newOption);
+        int row = 0;
+        int col = 0;
+        for (int i = 0; i < this.stories.Count; i++) {
+            if (col == 0) {
+                this.libraryShelves.Add(Instantiate((GameObject)Resources.Load("Prefabs/Shelf")));
+                this.libraryShelves[row].transform.SetParent(this.bookshelfPanel.transform);
+                Util.UpdateShelfPosition(this.libraryShelves[row], row);
+            }
+            StoryMetadata story = this.stories[i];
+            GameObject bookObject =
+                Instantiate((GameObject)Resources.Load("Prefabs/LibraryBook"));
+            LibraryBook libraryBook = bookObject.GetComponent<LibraryBook>();
+            libraryBook.AddClickHandler(this.onLibraryBookClick(i, story));
+            libraryBook.SetStory(story);
+            libraryBook.SetSprite(this.assetManager.GetTitleSprite(story));
+            bookObject.transform.SetParent(this.libraryShelves[row].transform);
+            this.libraryBooks.Add(bookObject);
+            col += 1;
+            if (col / Constants.NUM_LIBRARY_COLS > 0) {
+                col = col % Constants.NUM_LIBRARY_COLS;
+                row += 1;
+            }
         }
+           
 
-        this.storyDropdown.AddOptions(options);
+//        this.storyDropdown.ClearOptions();
+//        List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+//        foreach (StoryMetadata story in this.stories) {
+//            // Get human readable text and load the image.
+//            Dropdown.OptionData newOption = new Dropdown.OptionData();
+//            newOption.text = story.GetHumanReadableName();
+//            newOption.image = this.assetManager.GetTitleSprite(story);
+//            options.Add(newOption);
+//        }
+//
+//        this.storyDropdown.AddOptions(options);
     }
 
     private void showLibraryPanel(bool show) {
@@ -442,8 +504,13 @@ public class GameController : MonoBehaviour {
 
     private void onStartStoryClick() {
         // Read the selected value of the story dropdown and start that story.
-        int selectedIdx = this.storyDropdown.value;
-        this.startStory(this.stories[selectedIdx]);
+//        int selectedIdx = this.storyDropdown.value;
+//        this.startStory(this.stories[selectedIdx]);
+        LibraryBook selectedBook = this.libraryBooks[this.selectedLibraryBookIndex]
+            .GetComponent<LibraryBook>();
+        this.hideElement(readButton.gameObject);
+        this.startStory(selectedBook.story);
+        selectedBook.ReturnToOriginalSize();
     }
 
     //
@@ -719,13 +786,21 @@ public class GameController : MonoBehaviour {
         // In the future, consider using AmazonS3 API to manually read all the buckets.
         // Don't really want to do that now because it seems like more effort than worth.
 
-        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
         this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
+        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
         this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
         this.stories.Add(new StoryMetadata("clifford_and_the_jet", 9, "landscape"));
         this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
+        this.stories.Add(new StoryMetadata("geraldine_first", 21, "landscape"));
         this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
+        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("mice_on_ice", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("paws_and_claws", 14, "landscape"));
+        this.stories.Add(new StoryMetadata("pete_the_cat_too_cool_for_school", 28, "portrait"));
+        this.stories.Add(new StoryMetadata("the_biggest_cookie_in_the_world", 21, "landscape"));
         this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("troll_tricks", 15, "portrait"));
+        this.stories.Add(new StoryMetadata("who_hid_it", 9, "landscape"));
 
 
         // Other stories, commented out because they're not used in the study.

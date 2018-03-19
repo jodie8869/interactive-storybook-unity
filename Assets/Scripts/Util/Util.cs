@@ -2,6 +2,7 @@
 
 using System;
 using UnityEngine;
+using NUnit.Framework.Constraints;
 
 public static class Util {
     // TODO: should include comma or not? Sometimes that makes it too vertical.
@@ -64,6 +65,14 @@ public static class Util {
         }
         return true;
     }
+
+    // Returns a vector to use as the position of the library book at given (row, col).
+    public static void UpdateShelfPosition(GameObject shelf, int row) {
+        int y = Constants.FIRST_SHELF_Y_VALUE - row * Constants.SHELF_Y_DIFF;
+        float x = Constants.SHELF_X_VALUE;
+        shelf.GetComponent<RectTransform>().anchoredPosition = new Vector3(x, y);
+    }
+
 
     // Turns a positive integer (0 <= x < 100) into a 2 digit string.
     public static string TwoDigitStringFromInt(int num) {

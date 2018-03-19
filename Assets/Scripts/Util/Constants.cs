@@ -36,6 +36,13 @@ public static class Constants {
     public static Color JIBO_READ_TEXT_COLOR = new Color(.5f, 0, .5f, 1);
     public static Color GREY_TEXT_COLOR = new Color(1, 1, 1, 128f / 255);
 
+    // Library Panel. For now, just hardcode stuff.
+    public static int NUM_LIBRARY_COLS = 4;
+    public static int SHELF_X_VALUE = -80;
+    public static int FIRST_SHELF_Y_VALUE = 1285;
+    public static int SHELF_Y_DIFF = 473;
+        
+
     // ROS connection information.
     public static string DEFAULT_ROSBRIDGE_IP = "10.0.0.48"; //"192.168.1.229";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
