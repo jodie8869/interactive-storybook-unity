@@ -11,6 +11,7 @@ public class AudioRecorder : MonoBehaviour {
     public static string BUILTIN_MICROPHONE = "Built-in Microphone";
         
     AudioClip audioClipMidRecord;
+    bool isRecording = false;
 
     // Use this for initialization
 	void Start() {
@@ -27,14 +28,26 @@ public class AudioRecorder : MonoBehaviour {
     // Caller should call EndRecording() to stop the recording.
     public void StartRecording() {
         // Pass null as the device name to use the default microphone. 
-        Logger.Log("start recording");
+        Logger.Log("Start recording...");
         this.audioClipMidRecord = Microphone.Start(BUILTIN_MICROPHONE, false, 30, 44100);
+        this.isRecording = true;
     }
 
     public void EndRecording(Action<AudioClip> callback) {
-        Microphone.End(BUILTIN_MICROPHONE);
-        Logger.Log("end recording with length " + this.audioClipMidRecord.length);
-        callback(this.audioClipMidRecord);
+        if (this.isRecording) {
+            this.isRecording = false;
+            int length = Microphone.GetPosition(BUILTIN_MICROPHONE);
+            Microphone.End(BUILTIN_MICROPHONE);
+            float[] clipData = new float[length];
+            this.audioClipMidRecord.GetData(clipData, 0);
+            AudioClip trimmedClip = AudioClip.Create("trimmed clip", clipData.Length,
+                this.audioClipMidRecord.channels, 44100, false);
+            trimmedClip.SetData(clipData, 0);
+            Logger.Log("End recording with length " + length * 1.0f / 44100f);
+            callback(trimmedClip);
+        } else {
+            callback(null);
+        }
     }
 
     public IEnumerator RecordForDuration(int seconds, Action<AudioClip> callback) {
@@ -55,6 +68,7 @@ public class AudioRecorder : MonoBehaviour {
     public static void SaveAudioAtPath(string filepath, AudioClip audio) {
         string path = Application.persistentDataPath + "/" + filepath;
         SavWav.Save(path, audio);
+        Logger.Log("Saved audio locally at " + path);
     }
 
     // Same filepath as passed to SaveAudioAtPath().

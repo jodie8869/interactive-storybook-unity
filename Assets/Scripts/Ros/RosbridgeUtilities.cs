@@ -127,7 +127,7 @@ public static class RosbridgeUtilities
 			Logger.LogWarning("[decode ROS msg] Could not parse JSON message!");
 			return;
 		}
-		Logger.Log("[decode ROS msg] deserialized " + data.Count + " objects from JSON!");
+		// Logger.Log("[decode ROS msg] deserialized " + data.Count + " objects from JSON!");
 
 		// message sent over rosbridge comes with the topic name and what the
 		// operation was
@@ -145,16 +145,16 @@ public static class RosbridgeUtilities
 			return;
 		}
 
-		Logger.Log("[decode ROS msg] Got " + data["op"] + " message on topic " + data["topic"]);
+		// Logger.Log("[decode ROS msg] Got " + data["op"] + " message on topic " + data["topic"]);
 
 		// parse the actual message
-		Logger.Log("[decode ROS msg] Parsing message: " + data["msg"]);
+		// Logger.Log("[decode ROS msg] Parsing message: " + data["msg"]);
 		Dictionary<string, object> msg = data["msg"] as Dictionary<string, object>;
 
 		// print header for debugging
 		if (msg.ContainsKey("header"))
 		{
-			Logger.Log("[decode ROS msg]" + msg["header"]);
+			// Logger.Log("[decode ROS msg]" + msg["header"]);
 		}
 
 		// get the command
@@ -176,7 +176,7 @@ public static class RosbridgeUtilities
 		if (!msg.ContainsKey("params") ||
 			((string)msg["params"]).Equals(""))
 		{
-			Logger.Log("[decode ROS msg] no params found, done parsing");
+			// Logger.Log("[decode ROS msg] no params found, done parsing");
 			return;
 		}
 
@@ -189,12 +189,13 @@ public static class RosbridgeUtilities
 		// if we can't deserialize the json message, return
 		if (msgParamDict == null)
 		{
-			Logger.Log("[decode ROS msg] Could not parse JSON properties! Could just be a string.");
+			// Logger.Log("[decode ROS msg] Could not parse JSON properties! Could just be a string.");
 
 
 			// params can be just a string (e.g. for loading animals)
 			if (msg["params"] is String)
 			{
+                // Logger.Log("[decode ROS msg] Params is a string");
 				msgParams = (string)msg["params"];
 			}
 			else
@@ -208,7 +209,7 @@ public static class RosbridgeUtilities
 
 		if (msgParamDict.ContainsKey("letters"))
 		{
-			Logger.Log("DecodeROSJson detected letters!");
+			// Logger.Log("DecodeROSJson detected letters!");
 			msgParams = msgParamDict;
 		}
 		// otherwise, we got properties!

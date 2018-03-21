@@ -37,23 +37,27 @@ public class GameController : MonoBehaviour {
     public Button landscapeFinishButton;
     public Button landscapeStartStoryButton;
     public Button landscapeBackToLibraryButton;
-    public Button landscapeHomeButton; // In reader mode, to exit the story.
+    public Button landscapeHomeButton; // In reader view, to exit the story.
     public Button landscapeToggleAudioButton;
+    public Button landscapeDoneRecordingButton; // In reader view, stop recording, tell controller.
 
     public Button portraitNextButton;
     public Button portraitBackButton;
     public Button portraitFinishButton;
     public Button portraitStartStoryButton;
     public Button portraitBackToLibraryButton;
-    public Button portraitHomeButton; // In reader mode, to exit the story..
+    public Button portraitHomeButton; // In reader view, to exit the story.
     public Button portraitToggleAudioButton;
+    public Button portraitDoneRecordingButton; // In reader view, stop recording, tell controller.
 
     private Button nextButton;
     private Button backButton;
     private Button finishButton;
     private Button toggleAudioButton;
-    private Button startStoryButton;
-    private Button backToLibraryButton;
+    private Button startStoryButton; // "Begin" button in title page.
+    private Button backToLibraryButton; // Back button in title page.
+    private Button homeButton; // Home icon in reader.
+    private Button doneRecordingButton;
 
     public Button selectStoryButton;
     public GameObject loadingBar;
@@ -63,7 +67,6 @@ public class GameController : MonoBehaviour {
 
     // Objects for Library Screen, Story Selection and Mode Selection.
     public GameObject libraryPanel;
-    public Dropdown storyDropdown;
 
     // Objects for ROS connection.
     public GameObject rosPanel;
@@ -154,12 +157,15 @@ public class GameController : MonoBehaviour {
 
         this.rosConnectButton.onClick.AddListener(this.onRosConnectButtonClick);
         this.enterLibraryButton.onClick.AddListener(this.onEnterLibraryButtonClick);
-        this.selectStoryButton.onClick.AddListener(this.onStartStoryClick);
+        this.selectStoryButton.onClick.AddListener(this.onReadButtonClick);
 
         this.landscapeToggleAudioButton.onClick.AddListener(this.toggleAudio);
         this.portraitToggleAudioButton.onClick.AddListener(this.toggleAudio);
 
-        this.readButton.onClick.AddListener(this.onStartStoryClick);
+        this.landscapeDoneRecordingButton.onClick.AddListener(this.onDoneRecordingButtonClick);
+        this.portraitDoneRecordingButton.onClick.AddListener(this.onDoneRecordingButtonClick);
+
+        this.readButton.onClick.AddListener(this.onReadButtonClick);
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -209,7 +215,7 @@ public class GameController : MonoBehaviour {
             this.downloadedTitles = true;
             // Set up the dropdown, load library panel.
             if (Constants.LOAD_ASSETS_LOCALLY) {
-                this.setupStoryDropdown();
+                this.setupStoryLibrary();
                 this.showLibraryPanel(true);
             }
             else {
@@ -227,6 +233,82 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    // =============================
+    // Setup functions.
+    // =============================
+
+    private void initStories() {
+        // TODO: Read story metadata from the cloud here instead of hardcoding this stuff.
+        // It should all be read from a single file, whose url is known.
+        // In the future, consider using AmazonS3 API to manually read all the buckets.
+        // Don't really want to do that now because it seems like more effort than worth.
+
+        this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
+        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
+        this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("clifford_and_the_jet", 9, "landscape"));
+        this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
+        this.stories.Add(new StoryMetadata("geraldine_first", 21, "landscape"));
+        this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
+        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("mice_on_ice", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("paws_and_claws", 14, "landscape"));
+        this.stories.Add(new StoryMetadata("pete_the_cat_too_cool_for_school", 28, "portrait"));
+        this.stories.Add(new StoryMetadata("the_biggest_cookie_in_the_world", 21, "landscape"));
+        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("troll_tricks", 15, "portrait"));
+        this.stories.Add(new StoryMetadata("who_hid_it", 9, "landscape"));
+
+
+        // Other stories, commented out because they're not used in the study.
+        //        this.stories.Add(new StoryMetadata("will_clifford_win", 9, "landscape"));
+        //        this.stories.Add(new StoryMetadata("jazz_class", 12, "portrait"));
+        //        this.stories.Add(new StoryMetadata("a_rain_forest_day", 15,"portrait"));
+        //        this.stories.Add(new StoryMetadata("a_cub_can", 11,"portrait"));
+    }
+
+    // Called at startup if Constants.USE_ROS is true.
+    private void setupRosScreen() {
+        // Set placeholder text to be default IP.
+        this.rosPlaceholderText.text = Constants.DEFAULT_ROSBRIDGE_IP;
+        this.rosPanel.SetActive(true);
+        this.landscapePanel.SetActive(false);
+        this.portraitPanel.SetActive(false);
+        this.libraryPanel.SetActive(false);
+    }
+
+    // Show human readable story names and pull title images when possible.
+    private void setupStoryLibrary() {
+        Logger.Log("setting up story library");
+        int row = 0;
+        int col = 0;
+        for (int i = 0; i < this.stories.Count; i++) {
+            if (col == 0) {
+                this.libraryShelves.Add(Instantiate((GameObject)Resources.Load("Prefabs/Shelf")));
+                this.libraryShelves[row].transform.SetParent(this.bookshelfPanel.transform);
+                Util.UpdateShelfPosition(this.libraryShelves[row], row);
+            }
+            StoryMetadata story = this.stories[i];
+            GameObject bookObject =
+                Instantiate((GameObject)Resources.Load("Prefabs/LibraryBook"));
+            LibraryBook libraryBook = bookObject.GetComponent<LibraryBook>();
+            libraryBook.AddClickHandler(this.onLibraryBookClick(i, story));
+            libraryBook.SetStory(story);
+            libraryBook.SetSprite(this.assetManager.GetTitleSprite(story));
+            bookObject.transform.SetParent(this.libraryShelves[row].transform);
+            this.libraryBooks.Add(bookObject);
+            col += 1;
+            if (col / Constants.NUM_LIBRARY_COLS > 0) {
+                col = col % Constants.NUM_LIBRARY_COLS;
+                row += 1;
+            }
+        }
+    }
+
+    // ================================================================
+    // Functions for starting a story and downloading assets.
+    // ================================================================
+
     private void downloadStoryTitles() {
         List<string> storyNames = new List<string>();
         foreach (StoryMetadata story in this.stories) {
@@ -235,7 +317,7 @@ public class GameController : MonoBehaviour {
         StartCoroutine(this.assetManager.DownloadTitlePages(storyNames,
         (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
             // Callback for when download is complete.
-            this.setupStoryDropdown();
+            this.setupStoryLibrary();
             this.showLibraryPanel(true);
         }));
     }
@@ -259,11 +341,9 @@ public class GameController : MonoBehaviour {
                 // Show the Read button.
                 this.showElement(this.readButton.gameObject);
             }
-
-
         };
     }
-
+        
     private void startStory(StoryMetadata story) {
         this.currentStory = story;
 
@@ -325,77 +405,23 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
-        StorybookStateManager.SetStorybookMode(StorybookMode.Explore);
+        this.rosManager.SendStorybookLoaded().Invoke();
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
         this.showElement(this.nextButton.gameObject);
         this.showElement(this.toggleAudioButton.gameObject);
         this.setOrientationView(this.orientation);
-    }
-
-        // Show human readable story names and pull title images when possible.
-    private void setupStoryDropdown() {
-        int row = 0;
-        int col = 0;
-        for (int i = 0; i < this.stories.Count; i++) {
-            if (col == 0) {
-                this.libraryShelves.Add(Instantiate((GameObject)Resources.Load("Prefabs/Shelf")));
-                this.libraryShelves[row].transform.SetParent(this.bookshelfPanel.transform);
-                Util.UpdateShelfPosition(this.libraryShelves[row], row);
-            }
-            StoryMetadata story = this.stories[i];
-            GameObject bookObject =
-                Instantiate((GameObject)Resources.Load("Prefabs/LibraryBook"));
-            LibraryBook libraryBook = bookObject.GetComponent<LibraryBook>();
-            libraryBook.AddClickHandler(this.onLibraryBookClick(i, story));
-            libraryBook.SetStory(story);
-            libraryBook.SetSprite(this.assetManager.GetTitleSprite(story));
-            bookObject.transform.SetParent(this.libraryShelves[row].transform);
-            this.libraryBooks.Add(bookObject);
-            col += 1;
-            if (col / Constants.NUM_LIBRARY_COLS > 0) {
-                col = col % Constants.NUM_LIBRARY_COLS;
-                row += 1;
-            }
-        }
-           
-
-//        this.storyDropdown.ClearOptions();
-//        List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-//        foreach (StoryMetadata story in this.stories) {
-//            // Get human readable text and load the image.
-//            Dropdown.OptionData newOption = new Dropdown.OptionData();
-//            newOption.text = story.GetHumanReadableName();
-//            newOption.image = this.assetManager.GetTitleSprite(story);
-//            options.Add(newOption);
-//        }
-//
-//        this.storyDropdown.AddOptions(options);
-    }
-
-    private void showLibraryPanel(bool show) {
-        if (show) {
-            this.libraryPanel.SetActive(true);
-            this.landscapePanel.SetActive(false);
-            this.portraitPanel.SetActive(false);
-            this.rosPanel.SetActive(false);
-        } else {
-            this.libraryPanel.SetActive(false);
+        // If in evaluate mode, don't show any navigation buttons.
+        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
+            this.showNavigationButtons(false);
         }
     }
 
-    // Called at startup if Constants.USE_ROS is true.
-    private void setupRosScreen() {
-        // Set placeholder text to be default IP.
-        this.rosPlaceholderText.text = Constants.DEFAULT_ROSBRIDGE_IP;
-        this.rosPanel.SetActive(true);
-        this.landscapePanel.SetActive(false);
-        this.portraitPanel.SetActive(false);
-        this.libraryPanel.SetActive(false);
-    }
-
+    // ====================================
     // All button handlers.
+    // ====================================
+
     private void onRosConnectButtonClick() {
         Logger.Log("Ros Connect Button clicked");
         string rosbridgeIp = Constants.DEFAULT_ROSBRIDGE_IP;
@@ -432,6 +458,19 @@ public class GameController : MonoBehaviour {
         this.downloadStoryTitles();
     }
 
+    // Starts the story currently selected in the library.
+    private void onReadButtonClick() {
+        // Read the selected value of the story dropdown and start that story.
+        LibraryBook selectedBook = this.libraryBooks[this.selectedLibraryBookIndex]
+            .GetComponent<LibraryBook>();
+        this.hideElement(readButton.gameObject);
+        // Send ROS message.
+        bool needsDownload = !this.assetManager.JsonHasBeenDownloaded(selectedBook.story.GetName());
+        this.rosManager.SendStorybookSelected(needsDownload).Invoke();
+        this.startStory(selectedBook.story);
+        selectedBook.ReturnToOriginalSize();
+    }
+
     // When user clicks button to go back to the library and exit the current story they're in.
     private void onBackToLibraryButtonClick() {
         this.storyManager.ClearPage();
@@ -443,9 +482,7 @@ public class GameController : MonoBehaviour {
 
     private void onNextButtonClick() {
         Logger.Log("Next Button clicked.");
-        this.currentPageNumber += 1;
-        this.storyManager.ClearPage();
-        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
+        this.goToNextPage();
         if (this.currentPageNumber == 1) {
             // Special case, need to change the text and show the back button.
             // this.changeButtonText(this.nextButton, "Next Page");
@@ -458,39 +495,19 @@ public class GameController : MonoBehaviour {
 	}
 
     private void onFinishButtonClick() {
-        this.storyManager.ClearPage();
-        this.storyManager.audioManager.StopAudio();
-        this.currentPageNumber = 0;
+        // Note: don't transition between modes automatically here anymore.
+        // Just go back to the library.
+        Logger.Log("Finish Button clicked.");
+        this.finishStory();
         this.hideElement(this.finishButton.gameObject);
         this.showElement(this.nextButton.gameObject);
-
-        // If in explore mode, then go to evaluate mode.
-        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
-            StorybookStateManager.SetStorybookMode(StorybookMode.Evaluate);
-            Logger.Log(StorybookStateManager.GetState().storybookMode);
-            this.hideElement(this.backButton.gameObject);
-            this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
-        }
-        // If in evaluate mode then go to post-test.
-        else if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
-            StorybookStateManager.SetStorybookMode(StorybookMode.PostTest);
-            // TODO: send a message so controller can start telling us what pages to load,
-            // via StorybookCommands.
-        }
-        // If in post test then return to story selection.
-        else if (StorybookStateManager.GetState().storybookMode == StorybookMode.PostTest) {
-            this.setLandscapeOrientation();
-            this.showLibraryPanel(true);
-            StorybookStateManager.SetStoryExited();
-            // TODO: should send an event saying that we are done with the interaction.
-        }
     }
 
     private void onBackButtonClick() {
         Logger.Log("Back Button clicked.");
-        this.currentPageNumber -= 1;
-        this.storyManager.ClearPage();
-        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
+        this.goToPrevPage();
+        // Only if the button is actually clikced do we do the button navigation stuff.
+        // Otherwise, we only call goToPrevPage() directly from a different place.
         if (this.currentPageNumber == 0) {
             // Hide the back button because we're at the beginning.
             this.hideElement(this.backButton.gameObject);
@@ -501,32 +518,32 @@ public class GameController : MonoBehaviour {
             this.showElement(this.nextButton.gameObject);
         }
     }
-
-    private void onStartStoryClick() {
-        // Read the selected value of the story dropdown and start that story.
-//        int selectedIdx = this.storyDropdown.value;
-//        this.startStory(this.stories[selectedIdx]);
-        LibraryBook selectedBook = this.libraryBooks[this.selectedLibraryBookIndex]
-            .GetComponent<LibraryBook>();
-        this.hideElement(readButton.gameObject);
-        this.startStory(selectedBook.story);
-        selectedBook.ReturnToOriginalSize();
+        
+    private void onDoneRecordingButtonClick() {
+        Logger.Log("Done Recording Button Click");
+        this.stopRecordingAndDoSpeechace();
     }
+   
 
-    //
+    // =================================================================
     // All ROS message handlers.
     // They should add tasks to the task queue.
-    // Don't worry about this yet. Use ROS Manager class to handle this.
-    //
+    // =================================================================
 
     private void registerRosMessageHandlers() {
         this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_WORD, this.onHighlightTinkerTextMessage);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_SCENE_OBJECT, this.onHighlightSceneObjectMessage);
-        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_NEXT_SENTENCE, this.onHighlightNextSentenceMessage);
-        this.rosManager.RegisterHandler(StorybookCommand.RECORD_AUDIO_AND_SPEECHACE, this.onRecordAudioAndSpeechaceMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.SHOW_NEXT_SENTENCE, this.onShowNextSentenceMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.BEGIN_RECORD, this.onBeginRecordMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.CANCEL_RECORD, this.onCancelRecordMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.SET_STORYBOOK_MODE, this.onSetStorybookModeMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.NEXT_PAGE, this.onNextPageMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.GO_TO_END_PAGE, this.onGoToEndPageMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.SHOW_LIBRARY_PANEL, this.onShowLibraryPanelMessage);
     }
 
+    // PING_TEST
     private void onHelloWorldAckReceived(Dictionary<string, object> args) {
         // Sanity check from the ping test after tablet app starts up.
         Logger.Log("in hello world ack received in game controller, " + args["obj1"]);
@@ -537,6 +554,7 @@ public class GameController : MonoBehaviour {
         this.taskQueue.Enqueue(this.highlightTinkerText(index));
     }
 
+    // HIGHLIGHT_WORD
     private Action highlightTinkerText(int index) {
         return () => {
             if (index < this.storyManager.tinkerTexts.Count && index >= 0) {
@@ -548,6 +566,7 @@ public class GameController : MonoBehaviour {
         };
     }
 
+    // HIGHLIGHT_SCENE_OBJECT
     private void onHighlightSceneObjectMessage(Dictionary<string, object> args) {
         int id = Convert.ToInt32(args["id"]);
         this.taskQueue.Enqueue(this.highlightSceneObject(id));
@@ -564,19 +583,20 @@ public class GameController : MonoBehaviour {
         };
     }
 
-    private void onHighlightNextSentenceMessage(Dictionary<string, object> args) {
+    // SHOW_NEXT_SENTENCE
+    private void onShowNextSentenceMessage(Dictionary<string, object> args) {
         // Assert that we are highlighting the appropriate sentence.
         // Need to cast better.
-        Logger.Log("onHighlightNextSentenceMessage");
+        Logger.Log("onShowNextSentenceMessage");
         if (Convert.ToInt32(args["index"]) != StorybookStateManager.GetState().evaluatingSentenceIndex + 1) {
             Logger.LogError("Sentence index doesn't match " + args["index"] + " " +
             StorybookStateManager.GetState().evaluatingSentenceIndex + 1);
             throw new Exception("Sentence index doesn't match, fail fast");
         }
-        this.taskQueue.Enqueue(this.showNextSentence((bool)args["child_turn"]));
+        this.taskQueue.Enqueue(this.showNextSentence((bool)args["child_turn"], (bool)args["record"]));
     }
 
-    private Action showNextSentence(bool childTurn) {
+    private Action showNextSentence(bool childTurn, bool shouldRecord) {
         return () => {
             Logger.Log("Showing next sentence from inside task queue");
             if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
@@ -593,48 +613,160 @@ public class GameController : MonoBehaviour {
                 if (newIndex - 1 >= 0) {
                     this.storyManager.stanzaManager.GetSentence(newIndex - 1).Highlight(Constants.GREY_TEXT_COLOR);
                 }
-            } 
+                if (shouldRecord) {
+                    this.recordAudioForCurrentSentence(newIndex).Invoke();
+                }
+            } else {
+                throw new Exception("Cannot show sentence, index out of range");
+            }
         };
     }
 
-    private void onRecordAudioAndSpeechaceMessage(Dictionary<string, object> args) {
-        Logger.Log("onRecordAudioAndSpeechaceMessage");
-        this.taskQueue.Enqueue(this.recordAudioAndGetSpeechAceResult(Convert.ToInt32(args["index"])));
+    // BEGIN_RECORD
+    private void onBeginRecordMessage(Dictionary<string, object> args) {
+        Logger.Log("onBeginRecordMessage");
+        int sentenceIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
+        this.taskQueue.Enqueue(this.recordAudioForCurrentSentence(sentenceIndex));
     }
-        
 
-    private Action recordAudioAndGetSpeechAceResult(int sentenceIndex) {
+    private Action recordAudioForCurrentSentence(int sentenceIndex) {
         return () => {
             Logger.Log("Recording audio from inside task queue");
             Sentence sentence = this.storyManager.stanzaManager.GetSentence(sentenceIndex);
             string text = sentence.GetSentenceText();
             // Approximately the length of the sentence, plus a little more.
-            int duration = Convert.ToInt32(sentence.GetDuration() * 1.33) + 1;
-            Logger.Log("Recording for sentence index " + sentenceIndex + " text: " + text + " duration: " + duration);
-            string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
-            // Test recording, saving and loading an audio clip.
-            StartCoroutine(audioRecorder.RecordForDuration(duration, (clip) => {
-                Logger.Log("Done recording, getting speechACE results and uploading file to S3...");
-                AudioRecorder.SaveAudioAtPath(tempFileName, clip);
-                StartCoroutine(this.speechAceManager.AnalyzeTextSample(
-                    tempFileName, text, (speechAceResult) => {
-                        if (Constants.USE_ROS) {
-                            this.rosManager.SendSpeechAceResultAction(speechAceResult).Invoke();
-                        }
-                        // If we want to replay for debugging, uncomment this.
-                        // AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
-                        // this.storyManager.audioManager.LoadAudio(loadedClip);
-                        // this.storyManager.audioManager.PlayAudio();
-                        this.assetManager.S3UploadChildAudio(tempFileName);
-                    }));
-            }));  
+            // int duration = Convert.ToInt32(sentence.GetDuration() * 1.33) + 1;
+            Logger.Log("Start recording for sentence index " + sentenceIndex + " text: " + text);
+            this.audioRecorder.StartRecording();            
         };
     }
-        
 
-    //
+    // CANCEL_RECORD
+    private void onCancelRecordMessage(Dictionary<string, object> args) {
+        Logger.Log("onCancelRecordMessage");
+        this.taskQueue.Enqueue(this.cancelAndDiscardCurrentRecording());
+    }
+
+    private Action cancelAndDiscardCurrentRecording() {
+        return () => {
+            this.audioRecorder.EndRecording((clip) => {
+                // Do nothing with the clip.
+                Logger.Log("Recording ended");
+            }); 
+        };
+    }
+
+    // SET_STORYBOOK_MODE
+    private void onSetStorybookModeMessage(Dictionary<string, object> args) {
+        Logger.Log("onSetStorybookModeMessage");
+        this.taskQueue.Enqueue(this.setStorybookMode(Convert.ToInt32(args["mode"])));
+    }
+
+    private Action setStorybookMode(int mode) {
+        return () => {
+            // Convert to StorybookMode.
+            StorybookMode newMode = (StorybookMode)mode;
+            StorybookStateManager.SetStorybookMode(newMode);
+
+        };
+    }
+
+    // NEXT_PAGE
+    private void onNextPageMessage(Dictionary<string, object> args) {
+        Logger.Log("onNextPageMessage");
+        this.taskQueue.Enqueue(this.goToNextPage);
+    }
+
+    // FINISH_STORY
+    private void onGoToEndPageMessage(Dictionary<string, object> args) {
+        Logger.Log("onGoToEndPageMessage");
+        this.taskQueue.Enqueue(this.goToTheEndPage);
+    }
+
+    // SHOW_LIBRARY_PANEL
+    private void onShowLibraryPanelMessage(Dictionary<string, object> args) {
+        Logger.Log("onShowLibraryPanelMessage");
+        this.taskQueue.Enqueue(() => {this.showLibraryPanel(true);});
+    }
+
+    // =================
     // Helpers.
-    //
+    // =================
+   
+    // Separate the logic of showing buttons from actually moving pages.
+    // In evaluate mode, we want to be able to instruct the tablet to navigate the pages
+    // without the child needing to press any buttons.
+    private void goToPrevPage() {
+        this.currentPageNumber -= 1;
+        if (this.currentPageNumber < 0) {
+            // Fail fast.
+            throw new Exception("Cannot go back any farther, already at beginning");
+        }
+        this.storyManager.ClearPage();
+        StorybookStateManager.ResetEvaluatingSentenceIndex();
+        // Explicitly send the state to make sure it gets sent before the page info does.
+        this.rosManager.SendStorybookState();
+        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
+    }
+
+    private void goToNextPage() {
+        this.currentPageNumber += 1;
+        if (this.currentPageNumber > StorybookStateManager.GetState().numPages) {
+            throw new Exception("Cannot go forward anymore, already at end " + this.currentPageNumber +  " " + StorybookStateManager.GetState().numPages);
+        }
+        this.storyManager.ClearPage();
+        StorybookStateManager.ResetEvaluatingSentenceIndex();
+        // Explicitly send the state to make sure it gets sent before the page info does.
+        this.rosManager.SendStorybookState();
+        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
+    }
+
+    private void goToTheEndPage() {
+        this.storyManager.ClearPage();
+        this.storyManager.audioManager.StopAudio();
+        // TODO: show the TheEnd page, and should show the home button to go back.
+    }
+
+    private void finishStory() {
+        this.storyManager.ClearPage();
+        this.storyManager.audioManager.StopAudio();
+        this.currentPageNumber = 0;
+        this.setLandscapeOrientation();
+        this.showLibraryPanel(true);
+        StorybookStateManager.SetStoryExited();
+    }
+
+
+    // When child is done speaking, get SpeechACE results and save the recording.
+    private void stopRecordingAndDoSpeechace() {
+        int sentenceIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
+        string text = this.storyManager.stanzaManager.GetSentence(sentenceIndex).GetSentenceText();
+        string tempFileName = this.currentPageNumber + "_" + sentenceIndex + ".wav";
+        this.audioRecorder.EndRecording((clip) => {
+            if (clip == null) {
+                Logger.Log("Got null clip, means user pressed stop recording when no recording was active");
+                return;
+            }
+            Logger.Log("Done recording, getting speechACE results and uploading file to S3...");
+            // Tell controller we're done recording!
+            this.rosManager.SendRecordAudioComplete(sentenceIndex).Invoke();
+            // TODO: should also delete these audio files after we don't need them anymore.
+            AudioRecorder.SaveAudioAtPath(tempFileName, clip);
+            float duration = clip.length;
+            StartCoroutine(this.speechAceManager.AnalyzeTextSample(
+                tempFileName, text, (speechAceResult) => {
+                    if (Constants.USE_ROS) {
+                        this.rosManager.SendSpeechAceResultAction(sentenceIndex, text,
+                            duration, speechAceResult).Invoke();
+                    }
+                    // If we want to replay for debugging, uncomment this.
+                    // AudioClip loadedClip = AudioRecorder.LoadAudioLocal(fileName);
+                    // this.storyManager.audioManager.LoadAudio(loadedClip);
+                    // this.storyManager.audioManager.PlayAudio();
+                    this.assetManager.S3UploadChildAudio(tempFileName);
+                }));
+        });
+    }
 
     // Helper function to wrap together two actions:
     // (1) loading a page and (2) sending the StorybookPageInfo message over ROS.
@@ -690,11 +822,37 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    // TODO: Not sure if this will be necessary.
     private void toggleAudio() {
-        this.showNextSentence(true);
-        // TODO: change this back to what it's supposed to be, which is just toggling audio.
-        // this.RecordAudioAndGetSpeechAceResult(6, "There once was a toad named toad", 0);
         // this.storyManager.ToggleAudio();
+    }
+
+    // ====================
+    // UI Helpers.
+    // ====================
+
+
+    private void showLibraryPanel(bool show) {
+        if (show) {
+            this.libraryPanel.SetActive(true);
+            this.landscapePanel.SetActive(false);
+            this.portraitPanel.SetActive(false);
+            this.rosPanel.SetActive(false);
+        } else {
+            this.libraryPanel.SetActive(false);
+        }
+    }
+
+    private void showNavigationButtons(bool show) {
+        if (show) {
+            this.showElement(this.nextButton.gameObject);
+            this.showElement(this.backButton.gameObject);
+            this.showElement(this.homeButton.gameObject);
+        } else {
+            this.hideElement(this.nextButton.gameObject);
+            this.hideElement(this.backButton.gameObject);
+            this.hideElement(this.homeButton.gameObject);
+        }
     }
 
     private void changeButtonText(Button button, string text) {
@@ -761,8 +919,10 @@ public class GameController : MonoBehaviour {
         this.backButton = this.landscapeBackButton;
         this.finishButton = this.landscapeFinishButton;
         this.toggleAudioButton = this.landscapeToggleAudioButton;
+        this.homeButton = this.landscapeHomeButton;
         this.startStoryButton = this.landscapeStartStoryButton;
         this.backToLibraryButton = this.landscapeBackToLibraryButton;
+        this.doneRecordingButton = this.landscapeDoneRecordingButton;
 
         // TODO: is this necessary?
         Screen.orientation = ScreenOrientation.Landscape;
@@ -775,39 +935,12 @@ public class GameController : MonoBehaviour {
         this.backButton = this.portraitBackButton;
         this.finishButton = this.portraitFinishButton;
         this.toggleAudioButton = this.portraitToggleAudioButton;
+        this.homeButton = this.portraitHomeButton;
         this.startStoryButton = this.portraitStartStoryButton;
         this.backToLibraryButton = this.portraitBackToLibraryButton;
+        this.doneRecordingButton = this.portraitDoneRecordingButton;
+
         Screen.orientation = ScreenOrientation.Portrait;
-    }
-
-    private void initStories() {
-        // TODO: Read story metadata from the cloud here instead of hardcoding this stuff.
-        // It should all be read from a single file, whose url is known.
-        // In the future, consider using AmazonS3 API to manually read all the buckets.
-        // Don't really want to do that now because it seems like more effort than worth.
-
-        this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
-        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
-        this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("clifford_and_the_jet", 9, "landscape"));
-        this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
-        this.stories.Add(new StoryMetadata("geraldine_first", 21, "landscape"));
-        this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
-        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("mice_on_ice", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("paws_and_claws", 14, "landscape"));
-        this.stories.Add(new StoryMetadata("pete_the_cat_too_cool_for_school", 28, "portrait"));
-        this.stories.Add(new StoryMetadata("the_biggest_cookie_in_the_world", 21, "landscape"));
-        this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("troll_tricks", 15, "portrait"));
-        this.stories.Add(new StoryMetadata("who_hid_it", 9, "landscape"));
-
-
-        // Other stories, commented out because they're not used in the study.
-//        this.stories.Add(new StoryMetadata("will_clifford_win", 9, "landscape"));
-//        this.stories.Add(new StoryMetadata("jazz_class", 12, "portrait"));
-//        this.stories.Add(new StoryMetadata("a_rain_forest_day", 15,"portrait"));
-//        this.stories.Add(new StoryMetadata("a_cub_can", 11,"portrait"));
     }
 
 }

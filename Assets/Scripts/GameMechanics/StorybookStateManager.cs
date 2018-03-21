@@ -19,8 +19,9 @@ public static class StorybookStateManager {
             storybookMode = StorybookMode.NotReading,
             currentStory = "",
             numPages = 0,
-            evaluatingSentenceIndex = -1,
+            evaluatingSentenceIndex = -1, // Something that's not -1 or higher, but can't use null.
         };
+
         rosMessageData = new Dictionary<string, object>();
         rosMessageData.Add("audio_playing", currentState.audioPlaying);
         rosMessageData.Add("audio_file", currentState.audioFile);
@@ -87,13 +88,12 @@ public static class StorybookStateManager {
         rosMessageData["evaluating_sentence_index"] = -1;
     }
 
-    // TODO: when in evaluate mode, update the current stanza as the reading task progresses.
-    // Actually, might not need this, since the controller should be telling us, not vice versa.
+    // When in evaluate mode, update the current stanza as the reading task progresses.
     public static void IncrementEvaluatingSentenceIndex() {
         currentState.evaluatingSentenceIndex += 1;
         rosMessageData["evaluating_sentence_index"] = currentState.evaluatingSentenceIndex;
     }
-        
+
 }
 
 

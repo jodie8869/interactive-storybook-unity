@@ -15,17 +15,25 @@ public enum StorybookEventType {
     SPEECH_ACE_RESULT = 1, // Message is json string representing entire SpeechACE result.
     WORD_TAPPED = 2, // Message is {index: int, word: string} of the tinkertext.
     SCENE_OBJECT_TAPPED = 3, // Message is {id: int, label: string} of the scene object.
-    SENTENCE_SWIPED = 4 // Message is {index: int, text: string} of the stanza.
+    SENTENCE_SWIPED = 4, // Message is {index: int, text: string} of the stanza.
+    RECORD_AUDIO_COMPLETE = 5, // Message is index of sentence. 
+    STORY_SELECTED = 6, // Message is {needs_download: bool}.
+    STORY_LOADED = 7, // Message is empty.
 }
 
 // Messages coming from the controller to the storybook.
 // We will need to deal with each one by registering a handler.
 public enum StorybookCommand {
     PING_TEST = 0, // No params.
-    HIGHLIGHT_WORD = 1, // Params is {index:int}, word to highlight
-    HIGHLIGHT_SCENE_OBJECT = 2, // Params is {id: int}, scene object to highlight
-    HIGHLIGHT_NEXT_SENTENCE = 3, // Params is {index: int, child_turn: bool}, sentence
-    RECORD_AUDIO_AND_SPEECHACE = 4 // Params is {index: int} which sentence
+    HIGHLIGHT_WORD = 1, // Params is {index:int}, word to highlight.
+    HIGHLIGHT_SCENE_OBJECT = 2, // Params is {id: int}, scene object to highlight.
+    SHOW_NEXT_SENTENCE = 3, // Params is {index: int, child_turn: bool, record: bool}.
+    BEGIN_RECORD = 4, // Params is empty. Start the recording without reshowing sentence.
+    CANCEL_RECORD = 5, // Stop and discard the recording. Params is empty.
+    SET_STORYBOOK_MODE = 6, // Params is {mode: int}, new mode.
+    NEXT_PAGE = 7, // Params is empty.
+    GO_TO_END_PAGE = 8, // Params is empty.
+    SHOW_LIBRARY_PANEL = 9, // Params is empty.
 }
 
 // Message type representing the high level state of the storybook, to be published at 10Hz.

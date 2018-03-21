@@ -171,7 +171,6 @@ public class StoryManager : MonoBehaviour {
             // If we are in evaluate mode, all stanzas should be hidden by default.
             if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
                 this.stanzaManager.HideAllSentences();
-                StorybookStateManager.ResetEvaluatingSentenceIndex();
             }
             // This will send StorybookEvent ROS messages to the controller when stanzas are swiped.
             if (Constants.USE_ROS) {

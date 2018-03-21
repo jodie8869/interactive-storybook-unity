@@ -178,6 +178,7 @@ public class Stanza : MonoBehaviour {
 
     // Highlight the entire stanza with a given color.
     public void Highlight(Color color) {
+        Logger.Log("Highlighting stanza");
         GameObject stanzaObject = this.gameObject;
         RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
         for (int j = 0; j < rectTransform.childCount; j++) {

@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using MiniJSON;
+using UnityEditor.VersionControl;
 
 public class RosManager {
 
@@ -119,9 +120,18 @@ public class RosManager {
     }
 
     // Send the SpeechACE results.
-    public Action SendSpeechAceResultAction(string jsonResults) {
+    public Action SendSpeechAceResultAction(int sentenceIndex, string text,
+        float duration, string jsonResults) {
         return () => {
-            this.sendEventMessageToController(StorybookEventType.SPEECH_ACE_RESULT, jsonResults);
+            Logger.Log("Sending speech ace result event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("index", sentenceIndex);
+            message.Add("text", text);
+            message.Add("duration", duration);
+            message.Add("speechace", jsonResults);
+            this.sendEventMessageToController(StorybookEventType.SPEECH_ACE_RESULT,
+                Json.Serialize(message));
+    
         };
     }
 
@@ -161,6 +171,36 @@ public class RosManager {
         };
     }
 
+    // Send when recording is complete. (Can be before it's sent up to SpeechACE).
+    public Action SendRecordAudioComplete(int sentenceIndex) {
+        return () => {
+            Logger.Log("Sending record audio complete event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("index", sentenceIndex);
+            this.sendEventMessageToController(StorybookEventType.RECORD_AUDIO_COMPLETE,
+                Json.Serialize(message));
+        };
+    }
+
+    // Send when story is selected from the library (and we're waiting for it to load).
+    public Action SendStorybookSelected(bool needsDownload) {
+        return () => {
+            Logger.Log("Sending storybook selected event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("needs_download", needsDownload);
+            this.sendEventMessageToController(StorybookEventType.STORY_SELECTED,
+                Json.Serialize(message));
+        };
+    }
+
+    // Send when story has loaded.
+    public Action SendStorybookLoaded() {
+        return () => {
+            Logger.Log("Sending storybook loaded event message");
+            this.sendEventMessageToController(StorybookEventType.STORY_LOADED, "");
+        };
+    }
+
     // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {
@@ -182,9 +222,16 @@ public class RosManager {
         t.Start();
     }
 
+    // Public wrapper to send storybook state at a specific time, when a timely update
+    // is necessary. For example, after next page, need to make sure controller has
+    // seen an updated evaluating_sentence_index before trying to send the next sentence.
+    public void SendStorybookState() {
+        this.sendStorybookState(null, null);
+    }
+
     // Send a message representing storybook state to the controller, in a new thread.
     // Doesn't need to return Action because it's only used as a timer elapsed handler.
-    private void sendStorybookState(object sender, System.Timers.ElapsedEventArgs e) {
+    private void sendStorybookState(object _, System.Timers.ElapsedEventArgs __) {
         Dictionary<string, object> publish = new Dictionary<string, object>();
         publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
         publish.Add("op", "publish");

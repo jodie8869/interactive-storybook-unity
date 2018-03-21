@@ -64,7 +64,6 @@ public static class SavWav {
         ClipData clipdata = new ClipData();
         clipdata.samples = clip.samples;
         clipdata.channels = clip.channels;
-        Logger.Log(clip.samples + " " + clip.channels);
         float[] dataFloat = new float[clip.samples * clip.channels];
         clip.GetData(dataFloat, 0); // Fill clipdata starting from beginning of clip.
         clipdata.samplesData = dataFloat;
@@ -138,7 +137,7 @@ public static class SavWav {
             //Debug.Log (samples [i]);
         }
         Buffer.BlockCopy(intData, 0, bytesData, 0, bytesData.Length);
-        Logger.Log("number of bytes written for clip data: " + bytesData.Length);
+        // Logger.Log("number of bytes written for clip data: " + bytesData.Length);
         memStream.Write(bytesData, 0, bytesData.Length);
     }
 
