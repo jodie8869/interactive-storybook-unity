@@ -9,15 +9,20 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.Runtime;
 using Amazon.CognitoIdentity;
+using NUnit.Framework.Internal;
+using NUnit.Framework;
 
 public class AssetManager : MonoBehaviour {
 
     private int expectedNumSprites;
     private int expectedNumAudioClips;
     private int expectedNumJsons;
+    private int expectedNumStoryMetadatas;
     private ConcurrentDictionary<string, Sprite> spritesMidDownload;
     private ConcurrentDictionary<string, AudioClip> audioClipsMidDownload;
     private ConcurrentDictionary<string, StoryJson> jsonMidDownload;
+    private ConcurrentDictionary<string, StoryMetadata> storyMetadataMidDownload;
+
 
     // The assets we have already downloaded and are storing in memory until the app
     // is shut down.
@@ -25,6 +30,7 @@ public class AssetManager : MonoBehaviour {
     private Dictionary<string, Sprite> storySprites;
     private Dictionary<string, AudioClip> storyAudioClips;
     private Dictionary<string, List<StoryJson>> storyJsons;
+    private Dictionary<string, StoryMetadata> storyMetadatas;
 
     private AmazonS3Client s3Client;
     private AWSCredentials awsCredentials;
@@ -33,11 +39,13 @@ public class AssetManager : MonoBehaviour {
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
         this.jsonMidDownload = new ConcurrentDictionary<string, StoryJson>();
+        this.storyMetadataMidDownload = new ConcurrentDictionary<string, StoryMetadata>();
 
         this.downloadedStories = new Dictionary<string, bool>();
         this.storySprites = new Dictionary<string, Sprite>();
         this.storyAudioClips = new Dictionary<string, AudioClip>();
         this.storyJsons = new Dictionary<string, List<StoryJson>>();
+        this.storyMetadatas = new Dictionary<string, StoryMetadata>();
     
         // Set up S3 credentials and client.
         AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
@@ -46,6 +54,7 @@ public class AssetManager : MonoBehaviour {
             RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
         );
         this.s3Client = new AmazonS3Client(this.awsCredentials, RegionEndpoint.USEast1);
+
     }
 
     void Update() {
@@ -62,7 +71,6 @@ public class AssetManager : MonoBehaviour {
         this.s3Client.GetObjectAsync(
             Constants.S3_JSON_BUCKET, storyName + "/" + jsonFileName + ".json",
             (responseObj) => {
-                 Logger.Log("Got a response");
                  using (Stream responseStream = responseObj.Response.ResponseStream)
                  using (StreamReader reader = new StreamReader(responseStream))
                  {
@@ -96,31 +104,99 @@ public class AssetManager : MonoBehaviour {
         });
     }
 
-    // Check for all storybooks that exist (will need to then store them all in persistent storage).
-    // TODO: for now this is just testing that we can read all files/subdirectories in a given directory.
-    public void S3GetAvailableStoryNames(Action<List<StoryMetadata>> callback = null) {
-        // Set delimiter to "/" to only get top level objects,
-        // which will be the directories corresponding to the story names.
+    // Use StoryMetadata to get the existing storybooks that we haven't already downloaded.
+    public void c(Action<List<StoryMetadata>> onDownloadComplete = null) {
         ListObjectsRequest request = new ListObjectsRequest {
-            BucketName = Constants.S3_JSON_BUCKET,
-            Delimiter = "/"
+            BucketName = Constants.S3_STORY_METADATA_BUCKET
         };
-        this.s3Client.ListObjectsAsync(request, (responseObj) => {
-            if (responseObj.Exception == null) {
-                List<StoryMetadata> results = new List<StoryMetadata>();
-                Logger.Log(responseObj.Response.CommonPrefixes.Count);
-                foreach (string storyName in responseObj.Response.CommonPrefixes) {
-                    // Assume each object will be a space separated line with the properties
-                    // necessary for StoryMetadata, naemely the name, number of files, display mode.
-                    // TODO: create StoryMetadata objects and add them to the list.
-                    results.Add(new StoryMetadata(storyName.Substring(0, storyName.Length - 1), 5, "landscape"));
+        this.s3Client.ListObjectsAsync(request, (responseObject) =>  {
+            if (responseObject.Exception == null) {
+                List<string> newStories = new List<string>();
+                foreach (S3Object obj in responseObject.Response.S3Objects) {
+                    if (obj.Key.EndsWith(".json")) {
+                        string storyName = obj.Key.Substring(0, obj.Key.Length - ".json".Length);
+                        if (!this.storyMetadatas.ContainsKey(storyName)) {
+                            newStories.Add(storyName);
+                        }
+                    } else {
+                        Logger.Log("Skipping non-json files: " + obj.Key);
+                    }
                 }
-                callback?.Invoke(results);
+                // Download any new stories.
+                if (newStories.Count > 0) {
+                    this.expectedNumStoryMetadatas = newStories.Count;
+                    foreach(string storyName in newStories) {
+                        this.downloadOneStoryMetadata(storyName, onDownloadComplete); 
+                    }
+                } else {
+                    // Directly invoke callback with an empty list.
+                    onDownloadComplete?.Invoke(new List<StoryMetadata>());
+                }
             } else {
-                Logger.Log("Failed to list objects of " + Constants.S3_JSON_BUCKET);
+                Logger.LogError("Couldn't get StoryMetadatas: " + responseObject.Exception.Data);
+                throw new Exception("Couldn't get StoryMetadatas");
             }
         });
     }
+
+    private void downloadOneStoryMetadata(string storyName, Action<List<StoryMetadata>> callback) {
+        this.s3Client.GetObjectAsync(
+            Constants.S3_STORY_METADATA_BUCKET, storyName + ".json",
+            (responseObj) => {
+                using (Stream responseStream = responseObj.Response.ResponseStream)
+                using (StreamReader reader = new StreamReader(responseStream))
+                {
+                    string responseBody = reader.ReadToEnd();
+                    // Parse the JSON into a StoryMetadata, add it to mid download dictionary.
+                    Logger.Log(responseBody);
+                    this.storyMetadataMidDownload[storyName] = new StoryMetadata(responseBody);
+                    this.checkStoryMetadataDownloadComplete(callback);
+
+                }
+            });
+    }
+
+    // Called after each async download finishes so that we know when the parallel download of
+    // many assets is complete and we can invoke the given callback with the aggregated results.
+    private void checkStoryMetadataDownloadComplete(Action<List<StoryMetadata>> callback = null) {
+        if (this.expectedNumStoryMetadatas == this.storyMetadataMidDownload.Count) {
+            // Return a copy of the data.
+            List<StoryMetadata> metadatasToReturn = new List<StoryMetadata>();
+            foreach(KeyValuePair<string, StoryMetadata> data in this.storyMetadataMidDownload) {
+                this.storyMetadatas.Add(data.Key, data.Value);
+                metadatasToReturn.Add(data.Value);
+            }
+
+            callback?.Invoke(metadatasToReturn);
+            this.storyMetadataMidDownload.Clear();
+        }
+    }
+
+//    // Commented out because this functionality is replaced by S3GetNewStoryMetadata().
+//
+//    // Check for all storybooks that exist. Gives callback a list of story names.
+//    public void S3GetAvailableStoryNames(Action<List<string>> callback = null) {
+//        List<string> storyNames = new List<string>();
+//        ListObjectsRequest request = new ListObjectsRequest {
+//            BucketName = Constants.S3_STORY_METADATA_BUCKET
+//        };
+//        this.s3Client.ListObjectsAsync(request, (responseObject) =>  {
+//            if (responseObject.Exception == null) {
+//                this.expectedNumStoryMetadatas = responseObject.Response.S3Objects.Count;
+//                foreach (S3Object obj in responseObject.Response.S3Objects) {
+//                    if (obj.Key.EndsWith(".json")) {
+//                        storyNames.Add(obj.Key.Substring(0, obj.Key.Length - ".json".Length));
+//                    } else {
+//                        Logger.Log("Skipping non-json files: " + obj.Key);
+//                    }
+//                }
+//            } else {
+//                Logger.LogError("Couldn't get StoryMetadatas: " + responseObject.Exception.Data);
+//                throw new Exception("Couldn't get StoryMetadatas");
+//            }
+//            callback.Invoke(storyNames);
+//        });
+//    }
 
     // Get the title sprite for the dropdown menu.
     public Sprite GetTitleSprite(StoryMetadata story) {

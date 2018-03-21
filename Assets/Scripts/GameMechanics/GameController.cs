@@ -405,7 +405,9 @@ public class GameController : MonoBehaviour {
     }
 
     private void loadFirstPage() {
-        this.rosManager.SendStorybookLoaded().Invoke();
+        if (Constants.USE_ROS) {
+            this.rosManager.SendStorybookLoaded().Invoke();
+        }
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
         this.hideElement(this.loadingBar);
@@ -466,7 +468,9 @@ public class GameController : MonoBehaviour {
         this.hideElement(readButton.gameObject);
         // Send ROS message.
         bool needsDownload = !this.assetManager.JsonHasBeenDownloaded(selectedBook.story.GetName());
-        this.rosManager.SendStorybookSelected(needsDownload).Invoke();
+        if (Constants.USE_ROS) {
+            this.rosManager.SendStorybookSelected(needsDownload).Invoke();
+        }
         this.startStory(selectedBook.story);
         selectedBook.ReturnToOriginalSize();
     }
@@ -477,6 +481,7 @@ public class GameController : MonoBehaviour {
         this.storyManager.audioManager.StopAudio();
         this.currentPageNumber = 0;
         this.setLandscapeOrientation();
+        this.selectedLibraryBookIndex = -1;
         this.showLibraryPanel(true);
     }
 
@@ -705,7 +710,9 @@ public class GameController : MonoBehaviour {
         this.storyManager.ClearPage();
         StorybookStateManager.ResetEvaluatingSentenceIndex();
         // Explicitly send the state to make sure it gets sent before the page info does.
-        this.rosManager.SendStorybookState();
+        if (Constants.USE_ROS) {
+            this.rosManager.SendStorybookState();
+        }
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
     }
 
@@ -717,7 +724,9 @@ public class GameController : MonoBehaviour {
         this.storyManager.ClearPage();
         StorybookStateManager.ResetEvaluatingSentenceIndex();
         // Explicitly send the state to make sure it gets sent before the page info does.
-        this.rosManager.SendStorybookState();
+        if (Constants.USE_ROS) {
+            this.rosManager.SendStorybookState();
+        }
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
     }
 
@@ -749,7 +758,9 @@ public class GameController : MonoBehaviour {
             }
             Logger.Log("Done recording, getting speechACE results and uploading file to S3...");
             // Tell controller we're done recording!
-            this.rosManager.SendRecordAudioComplete(sentenceIndex).Invoke();
+            if (Constants.USE_ROS) {
+                this.rosManager.SendRecordAudioComplete(sentenceIndex).Invoke();
+            }
             // TODO: should also delete these audio files after we don't need them anymore.
             AudioRecorder.SaveAudioAtPath(tempFileName, clip);
             float duration = clip.length;

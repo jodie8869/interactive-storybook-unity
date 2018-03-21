@@ -6,25 +6,36 @@ using System.Collections;
 
 public class StoryMetadata {
 	
-    private string name;
-    private string humanReadableName;
-    private int numPages;
-    private ScreenOrientation orientation;
+    public string name;
+    public string humanReadableName;
+    public int numPages;
+    public ScreenOrientation orientation;
+    public string orientationString;
 
-    public StoryMetadata(string name, int numPages, string orientation, string humanReadableName = null) {
+    public StoryMetadata(string name, int numPages, string orientationString, string humanReadableName = null) {
         this.name = name;
         this.numPages = numPages;
+        this.orientationString = orientationString;
+        this.humanReadableName = humanReadableName;
+        this.initFields();
+    }
+        
+    public StoryMetadata(string jsonData) {
+        JsonUtility.FromJsonOverwrite(jsonData, this);
+        this.initFields();
+    }
 
-        if (orientation == "landscape") {
+    private void initFields() {
+        if (this.orientationString == "landscape") {
             this.orientation = ScreenOrientation.Landscape;
-        } else if (orientation == "portrait") {
+        } else if (this.orientationString == "portrait") {
             this.orientation = ScreenOrientation.Portrait;
         } else {
-            Logger.LogError("Unknown orientation " + orientation);
+            Logger.LogError("Unknown orientation " + this.orientationString);
         }
 
-        if (humanReadableName == null) {
-            this.humanReadableName = Util.HumanReadableStoryName(name);
+        if (this.humanReadableName == null) {
+            this.humanReadableName = Util.HumanReadableStoryName(this.name);
         }
     }
 

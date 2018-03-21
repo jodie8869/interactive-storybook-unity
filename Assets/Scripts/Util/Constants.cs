@@ -7,7 +7,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = true;
+    public static bool USE_ROS = false;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -76,6 +76,7 @@ public static class Constants {
     public static string S3_IMAGES_BUCKET = "storycorpus-images-without-text";
     public static string S3_AUDIO_BUCKET = "storycorpus-audio";
     public static string S3_CHILD_AUDIO_BUCKET = "storybook-collected-child-audio";
+    public static string S3_STORY_METADATA_BUCKET = "storybook-story-metadata";
 }
 
 // Display Modes.
