@@ -29,10 +29,15 @@ public class StoryManager : MonoBehaviour {
     public GameObject landscapeReaderPanel;
     public GameObject portraitReaderPanel;
 
-    public GameObject portraitTitleImagePanel;
     public GameObject landscapeTitleImagePanel; // Panel for just the book cover image.
     public GameObject landscapeTitlePanel; // Panel for entire title page screen.
+    public GameObject portraitTitleImagePanel;
     public GameObject portraitTitlePanel;
+
+    public GameObject landscapeEndPagePanel;
+    public GameObject portraitEndPagePanel;
+    public GameObject landscapeConfettiObject;
+    public GameObject portraitConfettiObject;
 
     public GameObject popupLabel;
 
@@ -44,6 +49,8 @@ public class StoryManager : MonoBehaviour {
     private GameObject textPanel;
     private GameObject titleImagePanel;
     private GameObject titlePanel;
+    private GameObject endPagePanel;
+    private GameObject confettiObject;
 
     private float graphicsPanelWidth;
     private float graphicsPanelHeight;
@@ -110,12 +117,35 @@ public class StoryManager : MonoBehaviour {
         this.stanzaManager.SetRosManager(this.rosManager);
     }
 
+    // Shows the TheEnd page.
+    public void ShowTheEndPage(bool show) {
+        if (show) {
+            this.titlePanel.SetActive(false);
+            this.readerPanel.SetActive(false);
+            this.endPagePanel.SetActive(true);
+            // TODO: animate in the confetti, play the animation.
+            StartCoroutine(this.fadeInConfetti());
+        } else {
+            this.endPagePanel.SetActive(false);
+        }
+    }
+
+    private IEnumerator fadeInConfetti() {
+        this.confettiObject.GetComponent<CanvasGroup>().alpha = 0f;
+        while (this.confettiObject.GetComponent<CanvasGroup>().alpha < 1) {
+            this.confettiObject.GetComponent<CanvasGroup>().alpha += Time.deltaTime * .5f;
+            yield return null;
+        }
+        yield return null;
+    }
+
     // Main function to be called by GameController.
     // Passes in a description received over ROS or hardcoded.
     // LoadScene is responsible for loading all resources and putting them in
     // place, and attaching callbacks to created GameObjects, where these
     // callbacks involve functions from SceneManipulatorAPI.
     public void LoadPage(SceneDescription description) {
+
         this.setDisplayModeFromSceneDescription(description);
         this.resetPanelSizes();
 
@@ -351,9 +381,10 @@ public class StoryManager : MonoBehaviour {
                         pos.height * this.imageScaleFactor)
         )();
 
+        // TODO: find the appropriate sprite and assign it here.
+        // Sprite toadSprite = Resources.Load<Sprite>("toad_sprite");
+        //manip.SetSprite(toadSprite);
 
-        Sprite toadSprite = Resources.Load<Sprite>("toad_sprite");
-        manip.SetSprite(toadSprite);
         // Set the pivot.
         manip.SetPivotToCenter();
         manip.Scale(new Vector3(1.1f, 1.1f));
@@ -508,8 +539,10 @@ public class StoryManager : MonoBehaviour {
         this.sceneObjects.Clear();
         this.sceneObjectsLabelToId.Clear();
         // Remove all images.
-        Destroy(this.storyImage.gameObject);
-        this.storyImage = null;
+        if (this.storyImage != null) {
+            Destroy(this.storyImage.gameObject);
+            this.storyImage = null;   
+        }
         // Remove audio triggers.
         this.audioManager.ClearTriggersAndReset();
     }
@@ -558,21 +591,27 @@ public class StoryManager : MonoBehaviour {
                 this.textPanel = this.landscapeTextPanel;
                 this.titleImagePanel = this.landscapeTitleImagePanel;
                 this.titlePanel = this.landscapeTitlePanel;
+                this.endPagePanel = this.landscapeEndPagePanel;
                 this.readerPanel = this.landscapeReaderPanel;
+                this.confettiObject = this.landscapeConfettiObject;
                 break;
             case DisplayMode.LandscapeWide:
                 this.graphicsPanel = this.landscapeWideGraphicsPanel;
                 this.textPanel = this.landscapeWideTextPanel;
                 this.titleImagePanel = this.landscapeTitleImagePanel;
                 this.titlePanel = this.landscapeTitlePanel;
+                this.endPagePanel = this.landscapeEndPagePanel;
                 this.readerPanel = this.landscapeReaderPanel;
+                this.confettiObject = this.landscapeConfettiObject;
                 break;
             case DisplayMode.Portrait:
                 this.graphicsPanel = this.portraitGraphicsPanel;
                 this.textPanel = this.portraitTextPanel;
                 this.titleImagePanel = this.portraitTitleImagePanel;
                 this.titlePanel = this.portraitTitlePanel;
+                this.endPagePanel = this.portraitEndPagePanel;
                 this.readerPanel = this.portraitReaderPanel;
+                this.confettiObject = this.portraitConfettiObject;
                 // Resize back to normal.
                 this.graphicsPanel.GetComponent<RectTransform>().sizeDelta =
                         new Vector2(this.PORTRAIT_WIDTH,

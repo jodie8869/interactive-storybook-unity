@@ -151,7 +151,7 @@ public class RosManager {
         return () => {
             Logger.Log("Sending scene object tapped event message");
             Dictionary<string, object> message = new Dictionary<string, object>();
-            message.Add("sceneObjectId", sceneObjectId);
+            message.Add("id", sceneObjectId);
             message.Add("label", label);
             this.sendEventMessageToController(StorybookEventType.SCENE_OBJECT_TAPPED,
                 Json.Serialize(message));  

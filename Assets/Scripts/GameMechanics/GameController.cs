@@ -31,6 +31,7 @@ public class GameController : MonoBehaviour {
     public Button landscapeBackButton;
     public Button landscapeFinishButton;
     public Button landscapeStartStoryButton;
+    public Button landscapeEndStoryBackToLibraryButton;
     public Button landscapeBackToLibraryButton;
     public Button landscapeHomeButton; // In reader view, to exit the story.
     public Button landscapeToggleAudioButton;
@@ -40,6 +41,7 @@ public class GameController : MonoBehaviour {
     public Button portraitBackButton;
     public Button portraitFinishButton;
     public Button portraitStartStoryButton;
+    public Button portraitEndStoryBackToLibraryButton;
     public Button portraitBackToLibraryButton;
     public Button portraitHomeButton; // In reader view, to exit the story.
     public Button portraitToggleAudioButton;
@@ -146,6 +148,8 @@ public class GameController : MonoBehaviour {
         this.portraitBackToLibraryButton.onClick.AddListener(this.onBackToLibraryButtonClick);
         this.landscapeHomeButton.onClick.AddListener(this.onBackToLibraryButtonClick);
         this.portraitHomeButton.onClick.AddListener(this.onBackToLibraryButtonClick);
+        this.landscapeEndStoryBackToLibraryButton.onClick.AddListener(this.onBackToLibraryButtonClick);
+        this.portraitEndStoryBackToLibraryButton.onClick.AddListener(this.onBackToLibraryButtonClick);
 
         this.landscapeStartStoryButton.onClick.AddListener(this.onNextButtonClick);
         this.portraitStartStoryButton.onClick.AddListener(this.onNextButtonClick);
@@ -477,7 +481,8 @@ public class GameController : MonoBehaviour {
         this.currentPageNumber = 0;
         this.setLandscapeOrientation();
         this.selectedLibraryBookIndex = -1;
-        this.showLibraryPanel(true);
+        // This call includes going back to the library panel.
+        this.finishStory();
     }
 
     private void onNextButtonClick() {
@@ -498,7 +503,7 @@ public class GameController : MonoBehaviour {
         // Note: don't transition between modes automatically here anymore.
         // Just go back to the library.
         Logger.Log("Finish Button clicked.");
-        this.finishStory();
+        this.goToTheEndPage();
         this.hideElement(this.finishButton.gameObject);
         this.showElement(this.nextButton.gameObject);
     }
@@ -687,7 +692,7 @@ public class GameController : MonoBehaviour {
     // SHOW_LIBRARY_PANEL
     private void onShowLibraryPanelMessage(Dictionary<string, object> args) {
         Logger.Log("onShowLibraryPanelMessage");
-        this.taskQueue.Enqueue(() => {this.showLibraryPanel(true);});
+        this.taskQueue.Enqueue(() => {this.finishStory();});
     }
 
     // HIGHLIGHT_ALL_SENTENCES
@@ -741,12 +746,13 @@ public class GameController : MonoBehaviour {
     private void goToTheEndPage() {
         this.storyManager.ClearPage();
         this.storyManager.audioManager.StopAudio();
-        // TODO: show the TheEnd page, and should show the home button to go back.
+        this.storyManager.ShowTheEndPage(true);
     }
 
     private void finishStory() {
         this.storyManager.ClearPage();
         this.storyManager.audioManager.StopAudio();
+        this.storyManager.ShowTheEndPage(false);
         this.currentPageNumber = 0;
         this.setLandscapeOrientation();
         this.showLibraryPanel(true);
