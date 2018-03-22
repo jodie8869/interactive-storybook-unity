@@ -57,7 +57,8 @@ public class GameController : MonoBehaviour {
     private Button doneRecordingButton;
 
     public Button selectStoryButton;
-    public GameObject loadingBar;
+//    public GameObject loadingBar;
+    public GameObject loadingPanel;
 
     public GameObject landscapePanel;
     public GameObject portraitPanel;
@@ -348,7 +349,7 @@ public class GameController : MonoBehaviour {
 
         // Check if we need to download the json files.
         if (!Constants.LOAD_ASSETS_LOCALLY && !this.assetManager.JsonHasBeenDownloaded(story.GetName())) {
-            this.showElement(this.loadingBar);
+            this.showLoadingPanel(true);
             StartCoroutine(this.assetManager.DownloadStoryJson(story, (_) => {
                 List<StoryJson> storyJsons = this.assetManager.GetStoryJson(story);
                 this.startStoryHelper(story, storyJsons);    
@@ -409,7 +410,7 @@ public class GameController : MonoBehaviour {
         }
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
-        this.hideElement(this.loadingBar);
+        this.showLoadingPanel(false);
         this.showElement(this.nextButton.gameObject);
         this.showElement(this.toggleAudioButton.gameObject);
         this.setOrientationView(this.orientation);
@@ -856,6 +857,18 @@ public class GameController : MonoBehaviour {
     // UI Helpers.
     // ====================
 
+
+    private void showLoadingPanel(bool show) {
+        if (show) {
+            this.hideElement(this.libraryPanel.gameObject);
+            this.showElement(this.loadingPanel);
+            this.loadingPanel.GetComponent<LoadingBook>().StartAnimating();
+        } else {
+            this.hideElement(this.loadingPanel);
+            this.loadingPanel.GetComponent<LoadingBook>().StopAnimatingAndReset();
+        }
+
+    }
 
     private void showLibraryPanel(bool show) {
         if (show) {
