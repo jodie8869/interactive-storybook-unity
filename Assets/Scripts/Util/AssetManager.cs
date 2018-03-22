@@ -9,8 +9,6 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.Runtime;
 using Amazon.CognitoIdentity;
-using NUnit.Framework.Internal;
-using NUnit.Framework;
 
 public class AssetManager : MonoBehaviour {
 

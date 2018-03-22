@@ -34,6 +34,7 @@ public enum StorybookCommand {
     NEXT_PAGE = 7, // Params is empty.
     GO_TO_END_PAGE = 8, // Params is empty.
     SHOW_LIBRARY_PANEL = 9, // Params is empty.
+    HIGHLIGHT_ALL_SENTENCES = 10, // Params is empty.
 }
 
 // Message type representing the high level state of the storybook, to be published at 10Hz.

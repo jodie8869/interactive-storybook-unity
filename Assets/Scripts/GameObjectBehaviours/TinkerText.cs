@@ -113,18 +113,28 @@ public class TinkerText : MonoBehaviour
 
     // TODO: also increase font size or something maybe, other visual cues.
     // If we do increase font size, will need to increase the size of the object too.
-    public Action Highlight() {
+    public Action Highlight(bool returnToDefaultColor=true) {
         return () =>
         {
+            Color originalColor = this.text.GetComponent<Text>().color;
             this.ChangeTextColor(Constants.TINKERTEXT_CLICK_HIGHLIGHT_COLOR);
             // After some amount of time, remove highlighting.
-            StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME));
+            if (returnToDefaultColor) {
+                StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME));
+            } else {
+                StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME,
+                originalColor));
+            }
         };
     }
-
-    private IEnumerator undoHighlight(float secondsDelay) {
+        
+    private IEnumerator undoHighlight(float secondsDelay, Color originalColor = new Color()) {
         yield return new WaitForSeconds(secondsDelay);
-        this.ChangeTextColor(this.unhighlightedColor);
+        if (originalColor == new Color()) {
+            this.ChangeTextColor(this.unhighlightedColor);
+        } else {
+            this.ChangeTextColor(originalColor);
+        }
     }
 
     public void ChangeTextColor(Color color) {

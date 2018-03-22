@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Reflection.Emit;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 // PopupLabel is a script attached to the popup panel game object, which appears

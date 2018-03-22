@@ -246,11 +246,16 @@ public class StanzaManager : MonoBehaviour {
         }
     }
 
+    public void HighlightAllSentences() {
+        foreach (Sentence s in this.sentences) {
+            s.ChangeTextColor(Color.black);
+        }
+    }
+
     public void SetupSentences() {
         for (int i = 0; i < this.sentences.Count; i++) {
             Sentence s = this.sentences[i];
             s.SetupAfterAddingStanzas(i);
-            // Logger.Log("sentence text: " + s.GetSentenceText());
         }
     }
 

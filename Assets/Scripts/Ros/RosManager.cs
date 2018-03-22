@@ -8,7 +8,6 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using MiniJSON;
-using UnityEditor.VersionControl;
 
 public class RosManager {
 
@@ -253,7 +252,7 @@ public class RosManager {
 
         bool success = this.rosClient.SendMessage(Json.Serialize(publish));
         if (!success) {
-            Logger.Log("Failed to send StorybookState message: " + Json.Serialize((publish)));
+            // Logger.Log("Failed to send StorybookState message: " + Json.Serialize((publish)));
         }       
     }
 

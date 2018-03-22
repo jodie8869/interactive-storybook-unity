@@ -83,9 +83,9 @@ public class Sentence {
     }
 
     // Highlights the entire sentence. Used for turn taking reading interaction.
-    public void Highlight(Color color) {
+    public void ChangeTextColor(Color color) {
         foreach (GameObject stanzaObject in this.stanzas) {
-            stanzaObject.GetComponent<Stanza>().Highlight(color);
+            stanzaObject.GetComponent<Stanza>().ChangeTextColor(color);
         }
     }
 

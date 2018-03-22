@@ -13,7 +13,7 @@ public class Stanza : MonoBehaviour {
 
     public static bool ALLOW_SWIPE;
     public static float STANZA_HEIGHT = 165; // Matches prefab.
-    public static float ANIMATE_IN_SPEED = 2.0f;
+    public static float ANIMATE_IN_SPEED = 1.0f;
 
     public GameObject stanzaPanel;
     private RectTransform rect;
@@ -154,7 +154,7 @@ public class Stanza : MonoBehaviour {
 
     public void FadeIn(Color color) {
         this.Show();
-        this.Highlight(color);
+        this.ChangeTextColor(color);
         StartCoroutine(this.fadeInStanza());
     }
 
@@ -177,8 +177,7 @@ public class Stanza : MonoBehaviour {
     }
 
     // Highlight the entire stanza with a given color.
-    public void Highlight(Color color) {
-        Logger.Log("Highlighting stanza");
+    public void ChangeTextColor(Color color) {
         GameObject stanzaObject = this.gameObject;
         RectTransform rectTransform = stanzaObject.GetComponent<RectTransform>();
         for (int j = 0; j < rectTransform.childCount; j++) {

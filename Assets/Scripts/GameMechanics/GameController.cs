@@ -15,11 +15,6 @@ using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System.IO;
-using NUnit.Framework.Internal;
-using NUnit.Framework;
-using System.Reflection.Emit;
-using UnityEngine.Events;
 
 public class GameController : MonoBehaviour {
     public GameObject testObjectRos;
@@ -546,6 +541,7 @@ public class GameController : MonoBehaviour {
         this.rosManager.RegisterHandler(StorybookCommand.NEXT_PAGE, this.onNextPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.GO_TO_END_PAGE, this.onGoToEndPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.SHOW_LIBRARY_PANEL, this.onShowLibraryPanelMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_ALL_SENTENCES, this.onHighlightAllSentencesMessage);
     }
 
     // PING_TEST
@@ -616,9 +612,10 @@ public class GameController : MonoBehaviour {
                 }
                 this.storyManager.stanzaManager.GetSentence(newIndex).FadeIn(color);
                 if (newIndex - 1 >= 0) {
-                    this.storyManager.stanzaManager.GetSentence(newIndex - 1).Highlight(Constants.GREY_TEXT_COLOR);
+                    this.storyManager.stanzaManager.GetSentence(newIndex - 1).ChangeTextColor(Constants.GREY_TEXT_COLOR);
                 }
                 if (shouldRecord) {
+                    Logger.Log("shouldRecord is true in showNextSentence");
                     this.recordAudioForCurrentSentence(newIndex).Invoke();
                 }
             } else {
@@ -672,7 +669,6 @@ public class GameController : MonoBehaviour {
             // Convert to StorybookMode.
             StorybookMode newMode = (StorybookMode)mode;
             StorybookStateManager.SetStorybookMode(newMode);
-
         };
     }
 
@@ -692,6 +688,18 @@ public class GameController : MonoBehaviour {
     private void onShowLibraryPanelMessage(Dictionary<string, object> args) {
         Logger.Log("onShowLibraryPanelMessage");
         this.taskQueue.Enqueue(() => {this.showLibraryPanel(true);});
+    }
+
+    // HIGHLIGHT_ALL_SENTENCES
+    private void onHighlightAllSentencesMessage(Dictionary<string, object> args) {
+        Logger.Log("onHighlightAllSentencesMessage");
+        this.taskQueue.Enqueue(this.highlightAllSentences());
+    }
+
+    private Action highlightAllSentences() {
+        return () => {
+            this.storyManager.stanzaManager.HighlightAllSentences();  
+        };
     }
 
     // =================
@@ -860,6 +868,7 @@ public class GameController : MonoBehaviour {
             this.showElement(this.backButton.gameObject);
             this.showElement(this.homeButton.gameObject);
         } else {
+            Logger.Log("Hiding navigation buttons");
             this.hideElement(this.nextButton.gameObject);
             this.hideElement(this.backButton.gameObject);
             this.hideElement(this.homeButton.gameObject);

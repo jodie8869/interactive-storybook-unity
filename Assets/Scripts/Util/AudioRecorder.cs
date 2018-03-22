@@ -29,7 +29,8 @@ public class AudioRecorder : MonoBehaviour {
     public void StartRecording() {
         // Pass null as the device name to use the default microphone. 
         Logger.Log("Start recording...");
-        this.audioClipMidRecord = Microphone.Start(BUILTIN_MICROPHONE, false, 30, 44100);
+        Microphone.End(BUILTIN_MICROPHONE);
+        this.audioClipMidRecord = Microphone.Start(BUILTIN_MICROPHONE, true, 30, 44100);
         this.isRecording = true;
     }
 

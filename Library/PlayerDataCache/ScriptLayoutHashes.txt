@@ -76,7 +76,7 @@ c63db43c730fa2cbb8ca07de15898cb6 UnityEngine.UI.dll:UnityEngine.UI.Toggle
 f61c0793411f10cf5fbfa1473fef5ef2 UnityEngine.UI.dll:UnityEngine.UI.ToggleGroup
 86d36c43c53541d667100dc90b89cfba UnityEngine.UI.dll:UnityEngine.EventSystems.TouchInputModule
 1b8c02d0aa82fbf036a2b9b2d713eec3 UnityEngine.UI.dll:UnityEngine.UI.VerticalLayoutGroup
-7d4e11441b634bf74060720acac0c6d5 Assembly-CSharp.dll:.GameController
+61ef5b12ba62e8bdb2e51f524ce54ba2 Assembly-CSharp.dll:.GameController
 05524b8f659e7bfe5756d1335fec24ba UnityEngine.Timeline.dll:UnityEngine.Timeline.ActivationPlayableAsset
 970a95104359198fe1a98ef48655de8c UnityEngine.Timeline.dll:UnityEngine.Timeline.ActivationTrack
 8144169769d51429c4aedc8b0f92d47b UnityEngine.Timeline.dll:UnityEngine.Timeline.AnimationPlayableAsset
@@ -113,6 +113,7 @@ bc68edb0af574bf79f9550ead8ebae5c UnityEngine.HoloLens.dll:UnityEngine.Audio.Audi
 c2275a8bfbb9f9942cad75ecdfded41d UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.SpatialMappingCollider
 45f3431f0103c41611e8d4eec3d439df UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.SpatialMappingRenderer
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.AudioRecorder
+4f15ee6dd51f07fa7670f4e6b0c8a23b Assembly-CSharp.dll:.LibraryBook
 6e2af9c7c9e5cbdd03bcbe5a4db40f2f Assembly-CSharp.dll:AWSSDK.Examples.S3Example
 fc1e0f4d8439d9928083474691511a13 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkAnimator
 05524b8f659e7bfe5756d1335fec24ba UnityEngine.Networking.dll:UnityEngine.Networking.NetworkBehaviour
@@ -141,7 +142,7 @@ c2275a8bfbb9f9942cad75ecdfded41d UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.Spa
 45f3431f0103c41611e8d4eec3d439df UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.SpatialMappingRenderer
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.SpeechAceManager
 9de3a22eca9aefadba2d10d5987cefe3 UnityEngine.SpatialTracking.dll:UnityEngine.SpatialTracking.TrackedPoseDriver
-0d84ab74086be215bf9b3a8a0a53f6cf Assembly-CSharp.dll:.StoryManager
+43ebe066414d6daa7cc5e9355f7d3fe6 Assembly-CSharp.dll:.StoryManager
 3c2d5eab443c33d8b9f447ccbd7335c6 Assembly-CSharp.dll:.StanzaManager
 05524b8f659e7bfe5756d1335fec24ba AWSSDK.Core.dll:Amazon.UnityInitializer
 05524b8f659e7bfe5756d1335fec24ba AWSSDK.Core.dll:Amazon.Runtime.Internal.UnityMainThreadDispatcher

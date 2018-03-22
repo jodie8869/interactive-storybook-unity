@@ -7,7 +7,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = false;
+    public static bool USE_ROS = true;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -44,7 +44,7 @@ public static class Constants {
         
 
     // ROS connection information.
-    public static string DEFAULT_ROSBRIDGE_IP = "10.0.0.48"; //"192.168.1.229";
+    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.156";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.
@@ -60,7 +60,7 @@ public static class Constants {
     public static string STORYBOOK_COMMAND_MESSAGE_TYPE = "/unity_game_msgs/StorybookCommand";
 
     // Publishing rate for StorybookState messages.
-    public static float STORYBOOK_STATE_PUBLISH_HZ = 8.0f;
+    public static float STORYBOOK_STATE_PUBLISH_HZ = 3.0f;
     public static float STORYBOOK_STATE_PUBLISH_DELAY_MS = 1000.0f / STORYBOOK_STATE_PUBLISH_HZ;
 
     // Download URLs for story assets.
