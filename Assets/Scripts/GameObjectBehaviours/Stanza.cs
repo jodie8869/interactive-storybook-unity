@@ -155,7 +155,8 @@ public class Stanza : MonoBehaviour {
     public void FadeIn(Color color) {
         this.Show();
         this.ChangeTextColor(color);
-        StartCoroutine(this.fadeInStanza());
+        this.canvasGroup.alpha = 1; // For now don't bother with fade.
+//        StartCoroutine(this.fadeInStanza());
     }
 
     // Show and Hide are used when we only want to have the stanzas appear one at a time.

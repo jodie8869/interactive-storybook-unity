@@ -102,7 +102,7 @@ public class GameController : MonoBehaviour {
 
     // Some information about the current state of the storybook.
     private StoryMetadata currentStory;
-    private ScreenOrientation orientation;
+    public ScreenOrientation orientation { get; private set; }
     // Stores the scene descriptions for the current story.
     private List<SceneDescription> storyPages;
     private int currentPageNumber = 0; // 0-indexed, index into this.storyPages, 0 is title page.
@@ -166,6 +166,7 @@ public class GameController : MonoBehaviour {
         this.portraitDoneRecordingButton.onClick.AddListener(this.onDoneRecordingButtonClick);
 
         this.readButton.onClick.AddListener(this.onReadButtonClick);
+        this.findMoreStoriesButton.onClick.AddListener(this.onfindMoreStoriesButtonClick);
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -197,6 +198,25 @@ public class GameController : MonoBehaviour {
 
     // Update() is called once per frame.
     void Update() {
+        handleTaskQueue();
+
+        // Kinda sketch, make sure this happens once after everyone's Start has been called.
+        // TODO: Move some things in other classes to Awake and then call this in Start?
+        if (!this.downloadedTitles && !Constants.USE_ROS) {
+            this.downloadedTitles = true;
+            // Set up the dropdown, load library panel.
+            if (Constants.LOAD_ASSETS_LOCALLY) {
+                this.setupStoryLibrary();
+                this.showLibraryPanel(true);
+            }
+            else {
+                this.downloadStoryTitlesAndShowLibrary();
+            }
+        }
+    }
+        
+    // Handle main task queue.
+    private void handleTaskQueue() {
         // Pop tasks from the task queue and perform them.
         // Tasks are added from other threads, usually in response to ROS msgs.
         if (this.taskQueue.Count > 0) {
@@ -207,22 +227,8 @@ public class GameController : MonoBehaviour {
                 Logger.LogError("Error invoking action on main thread!\n" + e);
             }
         }
-
-        // Kinda sketch, make sure this happens once after everyone's Start
-        // has been called.
-        // TODO: Move some things in other classes to Awake and then call this in Start?
-        if (!this.downloadedTitles && !Constants.USE_ROS) {
-            this.downloadedTitles = true;
-            // Set up the dropdown, load library panel.
-            if (Constants.LOAD_ASSETS_LOCALLY) {
-                this.setupStoryLibrary();
-                this.showLibraryPanel(true);
-            }
-            else {
-                this.downloadStoryTitles();
-            }
-        }
     }
+
     // Clean up.
     void OnApplicationQuit() {
         if (this.rosManager != null && this.rosManager.isConnected()) {
@@ -259,6 +265,9 @@ public class GameController : MonoBehaviour {
         this.stories.Add(new StoryMetadata("troll_tricks", 15, "portrait"));
         this.stories.Add(new StoryMetadata("who_hid_it", 9, "landscape"));
 
+        // For now, let AssetManager know about these stories so that when we do download new
+        // ones, it knows we already have these.
+        this.assetManager.AddStoryMetadatas(this.stories);
 
         // Other stories, commented out because they're not used in the study.
         //        this.stories.Add(new StoryMetadata("will_clifford_win", 9, "landscape"));
@@ -280,6 +289,18 @@ public class GameController : MonoBehaviour {
     // Show human readable story names and pull title images when possible.
     private void setupStoryLibrary() {
         Logger.Log("setting up story library");
+
+        // First clear everything.
+        foreach (GameObject g in this.libraryShelves) {
+            Destroy(g);
+        }
+        foreach (GameObject g in this.libraryBooks) {
+            Destroy(g);
+        }
+        this.libraryShelves.Clear();
+        this.libraryBooks.Clear();
+
+        // Then build/rebuild the library.
         int row = 0;
         int col = 0;
         for (int i = 0; i < this.stories.Count; i++) {
@@ -309,14 +330,24 @@ public class GameController : MonoBehaviour {
     // Functions for starting a story and downloading assets.
     // ================================================================
 
-    private void downloadStoryTitles() {
+    // Called when first entering the library, and also whenever new books are added
+    // to the library from the cloud, because we will need to download the title
+    // pages of any new books added and show them in the library.
+    private void downloadStoryTitlesAndShowLibrary(bool useSubset = false, List<StoryMetadata> subset = null) {
         List<string> storyNames = new List<string>();
-        foreach (StoryMetadata story in this.stories) {
-            storyNames.Add(story.GetName());
+        if (useSubset) {
+            foreach (StoryMetadata story in subset) {
+                storyNames.Add(story.GetName());
+            }
+        } else {
+            foreach (StoryMetadata story in this.stories) {
+                storyNames.Add(story.GetName());
+            }   
         }
         StartCoroutine(this.assetManager.DownloadTitlePages(storyNames,
         (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
             // Callback for when download is complete.
+            Logger.Log("in callback for download story titles");
             this.setupStoryLibrary();
             this.showLibraryPanel(true);
         }));
@@ -457,7 +488,7 @@ public class GameController : MonoBehaviour {
 
     private void onEnterLibraryButtonClick() {
         // Prepares the assets for showing the library, and then displays the panel.
-        this.downloadStoryTitles();
+        this.downloadStoryTitlesAndShowLibrary();
     }
 
     // Starts the story currently selected in the library.
@@ -529,6 +560,16 @@ public class GameController : MonoBehaviour {
         this.stopRecordingAndDoSpeechace();
     }
    
+    private void onfindMoreStoriesButtonClick() {
+        Logger.Log("Find More Stories Button Click");
+        // Get a list of new stories that are new.
+        this.assetManager.GetNewStoryMetadatas((newMetadatas) => {
+            foreach (StoryMetadata m in newMetadatas) {
+                this.stories.Add(m);
+            }
+            this.downloadStoryTitlesAndShowLibrary(true, newMetadatas);
+        });
+    }
 
     // =================================================================
     // All ROS message handlers.
@@ -604,7 +645,7 @@ public class GameController : MonoBehaviour {
 
     private Action showNextSentence(bool childTurn, bool shouldRecord) {
         return () => {
-            Logger.Log("Showing next sentence from inside task queue");
+            Logger.Log("Showing next sentence from inside Action");
             if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
                 this.storyManager.stanzaManager.GetNumSentences()) {
                 StorybookStateManager.IncrementEvaluatingSentenceIndex();
@@ -622,9 +663,11 @@ public class GameController : MonoBehaviour {
                 if (shouldRecord) {
                     Logger.Log("shouldRecord is true in showNextSentence");
                     this.recordAudioForCurrentSentence(newIndex).Invoke();
+                } else {
+                    Logger.Log("shouldRecord is false in showNextSentence");
                 }
             } else {
-                throw new Exception("Cannot show sentence, index out of range");
+                // throw new Exception("Cannot show sentence, index out of range");
             }
         };
     }
@@ -771,6 +814,10 @@ public class GameController : MonoBehaviour {
                 return;
             }
             Logger.Log("Done recording, getting speechACE results and uploading file to S3...");
+            if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
+                this.storyManager.stanzaManager.GetNumSentences()) {
+                this.showNextSentence(true, true).Invoke();
+            }
             // Tell controller we're done recording!
             if (Constants.USE_ROS) {
                 this.rosManager.SendRecordAudioComplete(sentenceIndex).Invoke();
@@ -797,6 +844,13 @@ public class GameController : MonoBehaviour {
     // (1) loading a page and (2) sending the StorybookPageInfo message over ROS.
     private void loadPageAndSendRosMessage(SceneDescription sceneDescription) {
         // Load the page.
+        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
+            this.hideElement(this.startStoryButton.gameObject);
+            this.hideElement(this.backToLibraryButton.gameObject);
+        } else {
+            this.showElement(this.startStoryButton.gameObject);
+            this.showElement(this.backToLibraryButton.gameObject);
+        }
         this.storyManager.LoadPage(sceneDescription);
 
         // Send the ROS message to update the controller about what page we're on now.

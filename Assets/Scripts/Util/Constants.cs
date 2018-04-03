@@ -7,7 +7,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = false;
+    public static bool USE_ROS = true;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -25,6 +25,11 @@ public static class Constants {
     // Desired ratio of graphics panel height to entire landscape panel height
     // in landscape wide display mode.
     public static float LANDSCAPE_WIDE_GRAPHICS_HEIGHT_FRACTION = 620f / (620f + 500f);
+
+    // Extra height the book should have so that graphics panel and text panel don't cover
+    // the book curved pages.
+    public static float BOOK_EXTRA_WIDTH = 80f;
+    public static float BOOK_EXTRA_HEIGHT = 270f;
 
     // UI things.
     public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255f);

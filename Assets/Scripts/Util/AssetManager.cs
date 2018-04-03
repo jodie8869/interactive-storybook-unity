@@ -33,7 +33,7 @@ public class AssetManager : MonoBehaviour {
     private AmazonS3Client s3Client;
     private AWSCredentials awsCredentials;
 
-    void Start() {
+    void Awake() {
         this.spritesMidDownload = new ConcurrentDictionary<string, Sprite>();
         this.audioClipsMidDownload = new ConcurrentDictionary<string, AudioClip>();
         this.jsonMidDownload = new ConcurrentDictionary<string, StoryJson>();
@@ -44,7 +44,9 @@ public class AssetManager : MonoBehaviour {
         this.storyAudioClips = new Dictionary<string, AudioClip>();
         this.storyJsons = new Dictionary<string, List<StoryJson>>();
         this.storyMetadatas = new Dictionary<string, StoryMetadata>();
-    
+    }
+
+    void Start() {
         // Set up S3 credentials and client.
         AWSConfigs.HttpClient = AWSConfigs.HttpClientOption.UnityWebRequest;
         this.awsCredentials = new CognitoAWSCredentials(
@@ -52,7 +54,6 @@ public class AssetManager : MonoBehaviour {
             RegionEndpoint.GetBySystemName(Constants.COGNITO_IDENTITY_REGION)
         );
         this.s3Client = new AmazonS3Client(this.awsCredentials, RegionEndpoint.USEast1);
-
     }
 
     void Update() {
@@ -102,8 +103,17 @@ public class AssetManager : MonoBehaviour {
         });
     }
 
+    // Let the asset manager know about story metadatas that we already have.
+    // Basically just used for initialization, with the stories that GameController
+    // is initialized with.
+    public void AddStoryMetadatas(List<StoryMetadata> metadatas) {
+        foreach (StoryMetadata m in metadatas) {
+            this.storyMetadatas.Add(m.GetName(), m);
+        }
+    }
+
     // Use StoryMetadata to get the existing storybooks that we haven't already downloaded.
-    public void c(Action<List<StoryMetadata>> onDownloadComplete = null) {
+    public void GetNewStoryMetadatas(Action<List<StoryMetadata>> onDownloadComplete = null) {
         ListObjectsRequest request = new ListObjectsRequest {
             BucketName = Constants.S3_STORY_METADATA_BUCKET
         };
@@ -146,7 +156,7 @@ public class AssetManager : MonoBehaviour {
                 {
                     string responseBody = reader.ReadToEnd();
                     // Parse the JSON into a StoryMetadata, add it to mid download dictionary.
-                    Logger.Log(responseBody);
+                    // Logger.Log(responseBody);
                     this.storyMetadataMidDownload[storyName] = new StoryMetadata(responseBody);
                     this.checkStoryMetadataDownloadComplete(callback);
 
@@ -264,6 +274,11 @@ public class AssetManager : MonoBehaviour {
         return this.downloadedStories.ContainsKey(storyName);
     }
 
+    // Called to check if a story's title page has already been downloaded.
+    public bool ImageHasBeenDownloaded(string imageFileName) {
+        return this.storySprites.ContainsKey(imageFileName);
+    }
+
     // Called on app startup to download the title pages so we can show them in
     // the dropdown before the user actually selects a story and download all assets.
     public IEnumerator DownloadTitlePages(List<string> storyNames,
@@ -274,6 +289,7 @@ public class AssetManager : MonoBehaviour {
         this.audioClipsMidDownload.Clear();
 
         this.expectedNumSprites = storyNames.Count;
+        Logger.Log(expectedNumSprites);
         this.expectedNumAudioClips = 0;
 
         Logger.Log("DownloadTitlePages");
@@ -281,7 +297,10 @@ public class AssetManager : MonoBehaviour {
         foreach (string storyName in storyNames) {
             // Brittle, but our files in the cloud all have this format, ok for now.
             string imageFile = storyName + "_01";
-            StartCoroutine(downloadImage(storyName, imageFile, onDownloadComplete, false));
+            if (!this.ImageHasBeenDownloaded(imageFile)) {
+                Logger.Log("Title page hasn't been downloaded yet " + imageFile);
+                StartCoroutine(downloadImage(storyName, imageFile, onDownloadComplete, false));
+            }
         }
         yield return null;
     }
@@ -344,7 +363,7 @@ public class AssetManager : MonoBehaviour {
         string url = Constants.IMAGE_BASE_URL + storyName + "/" + imageFile + ".png?raw=1";
         // Using yield return for the new www object will wait until the download is complete
         // but without blocking the rest of the game.
-        //Logger.Log("started download of image " + imageFile);
+        // Logger.Log("started download of image " + imageFile);
         WWW www = new WWW(url);
         yield return www;
         Sprite sprite = Sprite.Create(www.texture,

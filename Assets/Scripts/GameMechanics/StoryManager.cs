@@ -25,6 +25,8 @@ public class StoryManager : MonoBehaviour {
     public GameObject landscapeTextPanel;
 	public GameObject landscapeWideGraphicsPanel;
 	public GameObject landscapeWideTextPanel;
+    public GameObject portraitOpenBookBackground;
+    public GameObject landscapeOpenBookBackground;
 
     public GameObject landscapeReaderPanel;
     public GameObject portraitReaderPanel;
@@ -47,6 +49,7 @@ public class StoryManager : MonoBehaviour {
     private GameObject readerPanel;
     private GameObject graphicsPanel;
     private GameObject textPanel;
+    private GameObject openBookBackground;
     private GameObject titleImagePanel;
     private GameObject titlePanel;
     private GameObject endPagePanel;
@@ -102,6 +105,7 @@ public class StoryManager : MonoBehaviour {
         this.sceneObjectsLabelToId = new Dictionary<string, List<int>>();
 
         this.stanzaManager.SetTextPanel(this.textPanel);
+
         this.initPanelSizesOnStartup();
 
         this.stanzaIndex = 0;
@@ -589,6 +593,7 @@ public class StoryManager : MonoBehaviour {
             case DisplayMode.Landscape:
                 this.graphicsPanel = this.landscapeGraphicsPanel;
                 this.textPanel = this.landscapeTextPanel;
+                this.openBookBackground = this.landscapeOpenBookBackground;
                 this.titleImagePanel = this.landscapeTitleImagePanel;
                 this.titlePanel = this.landscapeTitlePanel;
                 this.endPagePanel = this.landscapeEndPagePanel;
@@ -598,6 +603,7 @@ public class StoryManager : MonoBehaviour {
             case DisplayMode.LandscapeWide:
                 this.graphicsPanel = this.landscapeWideGraphicsPanel;
                 this.textPanel = this.landscapeWideTextPanel;
+                this.openBookBackground = this.landscapeOpenBookBackground;
                 this.titleImagePanel = this.landscapeTitleImagePanel;
                 this.titlePanel = this.landscapeTitlePanel;
                 this.endPagePanel = this.landscapeEndPagePanel;
@@ -607,6 +613,7 @@ public class StoryManager : MonoBehaviour {
             case DisplayMode.Portrait:
                 this.graphicsPanel = this.portraitGraphicsPanel;
                 this.textPanel = this.portraitTextPanel;
+                this.openBookBackground = this.portraitOpenBookBackground;
                 this.titleImagePanel = this.portraitTitleImagePanel;
                 this.titlePanel = this.portraitTitlePanel;
                 this.endPagePanel = this.portraitEndPagePanel;
@@ -647,10 +654,16 @@ public class StoryManager : MonoBehaviour {
     // dynamically resize the panels between scenes.
     private void initPanelSizesOnStartup() {
         // Size of the graphics + text panel in the reader panel.
-        float landscapeWidth = (float)Util.GetScreenWidth() - 198f; // Subtract border
-        float landscapeHeight = (float)Util.GetScreenHeight() - 436f; // Graphics panel is shorter.
-        float portraitWidth = (float)Util.GetScreenHeight() - 161f; // Subtract border
-        float portraitHeight = (float)Util.GetScreenWidth() - 498f; // Subtract border
+        float screenHeight =  Util.GetScreenHeight();
+        float screenWidth = Util.GetScreenWidth();
+//        if (this.gameController.orientation == ScreenOrientation.Portrait) {
+//            screenHeight = 2048f;
+//            screenWidth = 1536f;
+//        }
+        float landscapeWidth = screenWidth - 198f; // Subtract border
+        float landscapeHeight = screenHeight - 436f; // Graphics panel is shorter.
+        float portraitWidth = screenHeight - 161f; // Subtract border
+        float portraitHeight = screenWidth - 498f; // Subtract border
 
         Logger.Log(landscapeWidth + " " + landscapeHeight + " " + portraitWidth + " " + portraitHeight);
 
@@ -697,26 +710,35 @@ public class StoryManager : MonoBehaviour {
     private void resetPanelSizes() {
         Vector2 graphicsSize = new Vector2();
         Vector2 textSize = new Vector2();
+        Vector2 bookSize = new Vector2();
         switch(this.displayMode) {
-            case DisplayMode.Landscape:
-                graphicsSize = new Vector2(this.LANDSCAPE_GRAPHICS_WIDTH, this.LANDSCAPE_HEIGHT);
-                textSize = new Vector2(this.LANDSCAPE_TEXT_WIDTH, this.LANDSCAPE_HEIGHT);
-                break;
-            case DisplayMode.Portrait:
-                graphicsSize = new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_GRAPHICS_HEIGHT);
-                textSize = new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_TEXT_HEIGHT);
-                break;
-            case DisplayMode.LandscapeWide:
-                graphicsSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH,
-                                           this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT);
-                textSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.PORTRAIT_TEXT_HEIGHT);
-                break;
-            default:
-                Logger.LogError("Unknown display mode: " + displayMode);
-                break;
+        case DisplayMode.Landscape:
+            graphicsSize = new Vector2(this.LANDSCAPE_GRAPHICS_WIDTH, this.LANDSCAPE_HEIGHT);
+            textSize = new Vector2(this.LANDSCAPE_TEXT_WIDTH, this.LANDSCAPE_HEIGHT);
+            bookSize = new Vector2(this.LANDSCAPE_TEXT_WIDTH + this.LANDSCAPE_GRAPHICS_WIDTH,
+                this.LANDSCAPE_HEIGHT);
+            break;
+        case DisplayMode.Portrait:
+            graphicsSize = new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_GRAPHICS_HEIGHT);
+            textSize = new Vector2(this.PORTRAIT_WIDTH, this.PORTRAIT_TEXT_HEIGHT);
+            bookSize = new Vector2(this.PORTRAIT_WIDTH,
+                this.PORTRAIT_TEXT_HEIGHT + this.PORTRAIT_GRAPHICS_HEIGHT);
+            break;
+        case DisplayMode.LandscapeWide:
+            graphicsSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH,
+                this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT);
+            textSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH, this.LANDSCAPE_WIDE_TEXT_HEIGHT); // used to be this.PORTRAIT_TEXT_HEIGHT
+            bookSize = new Vector2(this.LANDSCAPE_WIDE_WIDTH,
+                this.LANDSCAPE_WIDE_GRAPHICS_HEIGHT + this.LANDSCAPE_WIDE_TEXT_HEIGHT);
+            break;
+        default:
+            Logger.LogError("Unknown display mode: " + displayMode);
+            break;
         }
         Util.SetSize(this.graphicsPanel, graphicsSize);
         Util.SetSize(this.textPanel, textSize);
+        Util.SetSize(this.openBookBackground, bookSize + new Vector2(Constants.BOOK_EXTRA_WIDTH,
+            Constants.BOOK_EXTRA_HEIGHT));
     }
 
 }
