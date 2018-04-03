@@ -491,7 +491,6 @@ public class GameController : MonoBehaviour {
         this.goToNextPage();
         if (this.currentPageNumber == 1) {
             // Special case, need to change the text and show the back button.
-            // this.changeButtonText(this.nextButton, "Next Page");
             this.showElement(this.backButton.gameObject);
         }
         if (this.currentPageNumber == this.storyPages.Count - 1) {
