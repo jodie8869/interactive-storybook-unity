@@ -2,6 +2,8 @@
 
 using System;
 using UnityEngine;
+using MiniJSON;
+using System.Collections.Generic;
 
 public static class Util {
     // TODO: should include comma or not? Sometimes that makes it too vertical.
@@ -63,6 +65,23 @@ public static class Util {
             }
         }
         return true;
+    }
+
+    // Given a string that is a json serialization of an array of integers, return
+    // an actual array of integers.
+    public static int[] ParseIntArrayFromRosMessageParams(Dictionary<string, object> input) {
+        string serialized = Json.Serialize(input); // Will be something like '{"ids":[0,1]}'
+        string array = serialized.Split(':')[1];
+        if (array.Length < 3) {
+            return new int[]{ };
+        }
+        array = array.Trim().Substring(1, array.Length - 3);
+        string[] strings = array.Split(',');
+        int[] values = new int[strings.Length];
+        for (int i = 0; i < strings.Length; i++) {
+            values[i] = Convert.ToInt32(strings[i]);
+        }
+        return values;
     }
 
     // Returns a vector to use as the position of the library book at given (row, col).

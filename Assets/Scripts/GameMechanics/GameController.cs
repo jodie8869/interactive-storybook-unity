@@ -166,7 +166,7 @@ public class GameController : MonoBehaviour {
         this.portraitDoneRecordingButton.onClick.AddListener(this.onDoneRecordingButtonClick);
 
         this.readButton.onClick.AddListener(this.onReadButtonClick);
-        this.findMoreStoriesButton.onClick.AddListener(this.onfindMoreStoriesButtonClick);
+        this.findMoreStoriesButton.onClick.AddListener(this.onFindMoreStoriesButtonClick);
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -560,12 +560,13 @@ public class GameController : MonoBehaviour {
         this.stopRecordingAndDoSpeechace();
     }
    
-    private void onfindMoreStoriesButtonClick() {
+    private void onFindMoreStoriesButtonClick() {
         Logger.Log("Find More Stories Button Click");
         // Get a list of new stories that are new.
         this.assetManager.GetNewStoryMetadatas((newMetadatas) => {
             foreach (StoryMetadata m in newMetadatas) {
                 this.stories.Add(m);
+                Logger.Log("new story added: " + m.GetName());
             }
             this.downloadStoryTitlesAndShowLibrary(true, newMetadatas);
         });
@@ -597,35 +598,41 @@ public class GameController : MonoBehaviour {
     }
 
     private void onHighlightTinkerTextMessage(Dictionary<string, object> args) {
-        int index = Convert.ToInt32(args["index"]);
-        this.taskQueue.Enqueue(this.highlightTinkerText(index));
+        // TODO: not sure if this will actually work but maybe...otherwise manually.
+        int[] indexes = Util.ParseIntArrayFromRosMessageParams(args);
+        this.taskQueue.Enqueue(this.highlightTinkerText(indexes));
     }
 
     // HIGHLIGHT_WORD
-    private Action highlightTinkerText(int index) {
+    private Action highlightTinkerText(int[] indexes) {
         return () => {
-            if (index < this.storyManager.tinkerTexts.Count && index >= 0) {
-                this.storyManager.tinkerTexts[index].GetComponent<TinkerText>()
-                    .Highlight().Invoke();   
-            } else {
-                Logger.Log("No word at index: " + index);
+            foreach (int index in indexes) {
+                if (index < this.storyManager.tinkerTexts.Count && index >= 0) {
+                    this.storyManager.tinkerTexts[index].GetComponent<TinkerText>()
+                        .Highlight().Invoke();   
+                } else {
+                    Logger.Log("No word at index: " + index);
+                
+                }
             }
         };
     }
 
     // HIGHLIGHT_SCENE_OBJECT
     private void onHighlightSceneObjectMessage(Dictionary<string, object> args) {
-        int id = Convert.ToInt32(args["id"]);
-        this.taskQueue.Enqueue(this.highlightSceneObject(id));
+        int[] ids = Util.ParseIntArrayFromRosMessageParams(args);
+        this.taskQueue.Enqueue(this.highlightSceneObject(ids));
     }
 
-    private Action highlightSceneObject(int id) {
+    private Action highlightSceneObject(int[] ids) {
         return () => {
-            if (this.storyManager.sceneObjects.ContainsKey(id)) {
-                this.storyManager.sceneObjects[id].GetComponent<SceneObjectManipulator>()
-                    .Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR).Invoke();   
-            } else {
-                Logger.Log("No scene object with id: " + id);
+            foreach (int id in ids) {
+                if (this.storyManager.sceneObjects.ContainsKey(id)) {
+                    this.storyManager.sceneObjects[id].GetComponent<SceneObjectManipulator>()
+                        .Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR).Invoke();   
+                } else {
+                    Logger.Log("No scene object with id: " + id);
+                }
             }
         };
     }
@@ -650,12 +657,7 @@ public class GameController : MonoBehaviour {
                 this.storyManager.stanzaManager.GetNumSentences()) {
                 StorybookStateManager.IncrementEvaluatingSentenceIndex();
                 int newIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
-                Color color = new Color();
-                if (childTurn) {
-                    color = Constants.CHILD_READ_TEXT_COLOR;
-                } else {
-                    color = Constants.JIBO_READ_TEXT_COLOR;
-                }
+                Color color = childTurn ? Constants.CHILD_READ_TEXT_COLOR : Constants.JIBO_READ_TEXT_COLOR;
                 this.storyManager.stanzaManager.GetSentence(newIndex).FadeIn(color);
                 if (newIndex - 1 >= 0) {
                     this.storyManager.stanzaManager.GetSentence(newIndex - 1).ChangeTextColor(Constants.GREY_TEXT_COLOR);
@@ -668,6 +670,7 @@ public class GameController : MonoBehaviour {
                 }
             } else {
                 // throw new Exception("Cannot show sentence, index out of range");
+                Logger.Log("Cannot show next sentence, index out of range");
             }
         };
     }

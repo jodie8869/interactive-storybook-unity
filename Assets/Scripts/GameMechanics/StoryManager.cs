@@ -157,7 +157,9 @@ public class StoryManager : MonoBehaviour {
         Stanza.ALLOW_SWIPE = StorybookStateManager.GetState().storybookMode == StorybookMode.Explore;
 
         // Load audio.
-        this.audioManager.LoadAudio(description.audioFile, this.assetManager.GetAudioClip(description.audioFile));
+        if (description.audioFile != "") {
+            this.audioManager.LoadAudio(description.audioFile, this.assetManager.GetAudioClip(description.audioFile));
+        }
 
         if (description.isTitle) {
             // Show only the title panel.
@@ -212,7 +214,9 @@ public class StoryManager : MonoBehaviour {
             }
 
             // Load audio triggers for TinkerText.
-            this.loadAudioTriggers();
+            if (description.audioFile != "") {
+                this.loadAudioTriggers();
+            }
         }
 
         // Load all scene objects.
@@ -228,7 +232,7 @@ public class StoryManager : MonoBehaviour {
             this.loadTrigger(trigger);
         }
 
-        if (this.autoplayAudio) {
+        if (this.autoplayAudio && description.audioFile != "") {
             this.audioManager.PlayAudio();
         }
 
