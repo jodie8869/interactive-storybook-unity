@@ -19,6 +19,7 @@ public enum StorybookEventType {
     RECORD_AUDIO_COMPLETE = 5, // Message is index of sentence. 
     STORY_SELECTED = 6, // Message is {needs_download: bool}.
     STORY_LOADED = 7, // Message is empty.
+    CHANGE_MODE = 8, // Message is {mode: int}
 }
 
 // Messages coming from the controller to the storybook.
@@ -30,7 +31,7 @@ public enum StorybookCommand {
     SHOW_NEXT_SENTENCE = 3, // Params is {index: int, child_turn: bool, record: bool}.
     BEGIN_RECORD = 4, // Params is empty. Start the recording without reshowing sentence.
     CANCEL_RECORD = 5, // Stop and discard the recording. Params is empty.
-    SET_STORYBOOK_MODE = 6, // Params is {mode: int}, new mode.
+
     NEXT_PAGE = 7, // Params is empty.
     GO_TO_END_PAGE = 8, // Params is empty.
     SHOW_LIBRARY_PANEL = 9, // Params is empty.

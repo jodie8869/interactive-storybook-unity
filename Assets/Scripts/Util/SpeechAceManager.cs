@@ -75,12 +75,12 @@ public class SpeechAceManager : MonoBehaviour {
         requestStream.Write(endFormBytes, 0, endFormBytes.Length);
         requestStream.Close();
 
-        Logger.Log("Sending request");
+        // Logger.Log("Sending request");
         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
         StreamReader reader = new StreamReader(response.GetResponseStream());
-        Logger.Log("Got response!");
+        Logger.Log("Got speechace response!");
         string speechAceResult = reader.ReadToEnd();
-        Logger.Log(speechAceResult);
+        // Logger.Log(speechAceResult);
 
         reader.Close();
         response.Close();

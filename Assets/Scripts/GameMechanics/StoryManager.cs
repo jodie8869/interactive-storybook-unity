@@ -232,8 +232,12 @@ public class StoryManager : MonoBehaviour {
             this.loadTrigger(trigger);
         }
 
+        // Determine autoplaying. Should autoplay if it's the title page and we're
+        // in explore mode.
         if (this.autoplayAudio && description.audioFile != "") {
-            this.audioManager.PlayAudio();
+            if (description.isTitle && StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+                this.audioManager.PlayAudio();
+            }
         }
 
     }

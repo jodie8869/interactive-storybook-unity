@@ -77,6 +77,9 @@ public class GameController : MonoBehaviour {
     public Button readButton;
     public Button findMoreStoriesButton;
 
+    public Button changeToExploreModeButton;
+    public Button changeToEvaluateModeButton;
+
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
 
@@ -167,6 +170,9 @@ public class GameController : MonoBehaviour {
 
         this.readButton.onClick.AddListener(this.onReadButtonClick);
         this.findMoreStoriesButton.onClick.AddListener(this.onFindMoreStoriesButtonClick);
+        this.changeToExploreModeButton.onClick.AddListener(this.onChangeModeToExploreButtonClick);
+        this.changeToEvaluateModeButton.onClick.AddListener(this.onChangeModeToEvaluateButtonClick);
+
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -189,6 +195,18 @@ public class GameController : MonoBehaviour {
 
         if (Constants.USE_ROS) {
             this.setupRosScreen();
+        } else {
+            // Set up the dropdown, load library panel.
+            if (Constants.LOAD_ASSETS_LOCALLY) {
+                this.setupStoryLibrary();
+                this.showLibraryPanel(true);
+            }
+            else {
+                this.downloadStoryTitlesAndShowLibrary();
+            }
+
+            // Start the app in explore mode.
+            this.goToExploreMode();
         }
 
         // TODO: figure out when to actually set this, should be dependent on game mode.
@@ -199,20 +217,6 @@ public class GameController : MonoBehaviour {
     // Update() is called once per frame.
     void Update() {
         handleTaskQueue();
-
-        // Kinda sketch, make sure this happens once after everyone's Start has been called.
-        // TODO: Move some things in other classes to Awake and then call this in Start?
-        if (!this.downloadedTitles && !Constants.USE_ROS) {
-            this.downloadedTitles = true;
-            // Set up the dropdown, load library panel.
-            if (Constants.LOAD_ASSETS_LOCALLY) {
-                this.setupStoryLibrary();
-                this.showLibraryPanel(true);
-            }
-            else {
-                this.downloadStoryTitlesAndShowLibrary();
-            }
-        }
     }
         
     // Handle main task queue.
@@ -557,6 +561,7 @@ public class GameController : MonoBehaviour {
         
     private void onDoneRecordingButtonClick() {
         Logger.Log("Done Recording Button Click");
+        this.doneRecordingButton.interactable = false;
         this.stopRecordingAndDoSpeechace();
     }
    
@@ -571,7 +576,16 @@ public class GameController : MonoBehaviour {
             this.downloadStoryTitlesAndShowLibrary(true, newMetadatas);
         });
     }
+        
+    private void onChangeModeToExploreButtonClick() {
+        Logger.Log("Change Mode To Explore Button Click");
+        goToExploreMode();
+    }
 
+    private void onChangeModeToEvaluateButtonClick() {
+        Logger.Log("Change Mode To Evaluate Button Click");
+        goToEvaluateMode();
+    }
     // =================================================================
     // All ROS message handlers.
     // They should add tasks to the task queue.
@@ -584,7 +598,6 @@ public class GameController : MonoBehaviour {
         this.rosManager.RegisterHandler(StorybookCommand.SHOW_NEXT_SENTENCE, this.onShowNextSentenceMessage);
         this.rosManager.RegisterHandler(StorybookCommand.BEGIN_RECORD, this.onBeginRecordMessage);
         this.rosManager.RegisterHandler(StorybookCommand.CANCEL_RECORD, this.onCancelRecordMessage);
-        this.rosManager.RegisterHandler(StorybookCommand.SET_STORYBOOK_MODE, this.onSetStorybookModeMessage);
         this.rosManager.RegisterHandler(StorybookCommand.NEXT_PAGE, this.onNextPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.GO_TO_END_PAGE, this.onGoToEndPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.SHOW_LIBRARY_PANEL, this.onShowLibraryPanelMessage);
@@ -595,11 +608,15 @@ public class GameController : MonoBehaviour {
     private void onHelloWorldAckReceived(Dictionary<string, object> args) {
         // Sanity check from the ping test after tablet app starts up.
         Logger.Log("in hello world ack received in game controller, " + args["obj1"]);
+        // The app should begin in explore mode, and let the controller know.
+        this.taskQueue.Enqueue(this.goToExploreMode);
     }
 
     private void onHighlightTinkerTextMessage(Dictionary<string, object> args) {
         // TODO: not sure if this will actually work but maybe...otherwise manually.
+        Logger.Log("onHighlightTinkerTextMessage");
         int[] indexes = Util.ParseIntArrayFromRosMessageParams(args);
+        Logger.Log(indexes.Length);
         this.taskQueue.Enqueue(this.highlightTinkerText(indexes));
     }
 
@@ -620,7 +637,9 @@ public class GameController : MonoBehaviour {
 
     // HIGHLIGHT_SCENE_OBJECT
     private void onHighlightSceneObjectMessage(Dictionary<string, object> args) {
+        Logger.Log("onHighlightSceneObjectMessage");
         int[] ids = Util.ParseIntArrayFromRosMessageParams(args);
+        Logger.Log(ids.Length);
         this.taskQueue.Enqueue(this.highlightSceneObject(ids));
     }
 
@@ -685,6 +704,7 @@ public class GameController : MonoBehaviour {
     private Action recordAudioForCurrentSentence(int sentenceIndex) {
         return () => {
             Logger.Log("Recording audio from inside task queue");
+            this.doneRecordingButton.interactable = true;
             Sentence sentence = this.storyManager.stanzaManager.GetSentence(sentenceIndex);
             string text = sentence.GetSentenceText();
             // Approximately the length of the sentence, plus a little more.
@@ -706,20 +726,6 @@ public class GameController : MonoBehaviour {
                 // Do nothing with the clip.
                 Logger.Log("Recording ended");
             }); 
-        };
-    }
-
-    // SET_STORYBOOK_MODE
-    private void onSetStorybookModeMessage(Dictionary<string, object> args) {
-        Logger.Log("onSetStorybookModeMessage");
-        this.taskQueue.Enqueue(this.setStorybookMode(Convert.ToInt32(args["mode"])));
-    }
-
-    private Action setStorybookMode(int mode) {
-        return () => {
-            // Convert to StorybookMode.
-            StorybookMode newMode = (StorybookMode)mode;
-            StorybookStateManager.SetStorybookMode(newMode);
         };
     }
 
@@ -907,6 +913,28 @@ public class GameController : MonoBehaviour {
     // TODO: Not sure if this will be necessary.
     private void toggleAudio() {
         // this.storyManager.ToggleAudio();
+    }
+
+    // ============================
+    // Manage Storybook Mode
+    // ============================
+
+    private void goToExploreMode() {
+        this.changeToEvaluateModeButton.interactable = true;
+        this.changeToExploreModeButton.interactable = false;
+        StorybookStateManager.SetStorybookMode(StorybookMode.Explore);
+        if (Constants.USE_ROS) {
+            this.rosManager.SendChangeMode(StorybookMode.Explore).Invoke();
+        }
+    }
+
+    private void goToEvaluateMode() {
+        this.changeToExploreModeButton.interactable = true;
+        this.changeToEvaluateModeButton.interactable = false;
+        StorybookStateManager.SetStorybookMode(StorybookMode.Evaluate);
+        if (Constants.USE_ROS) {
+            this.rosManager.SendChangeMode(StorybookMode.Evaluate).Invoke();
+        }
     }
 
     // ====================

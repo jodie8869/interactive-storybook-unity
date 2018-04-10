@@ -235,10 +235,11 @@ public class AssetManager : MonoBehaviour {
         } else {
             // Make sure that the audio is actually there.
             if (!this.storyAudioClips.ContainsKey(audioFile)) {
-                Logger.Log("no audio file found " + audioFile);
+                Logger.Log("No audio file found " + audioFile);
                 Logger.Log(this.storyAudioClips.Count);
                 return null;
             } else {
+                Logger.Log("Found and returning audio file " + audioFile);
                 return this.storyAudioClips[audioFile];
             }
         }
@@ -380,7 +381,7 @@ public class AssetManager : MonoBehaviour {
                                       Dictionary<string, AudioClip>> onDownloadComplete,
                                       bool wholeStory=true) {
         string url = Constants.AUDIO_BASE_URL + storyName + "/" + audioFile + ".wav";
-        //Logger.Log("started downloaded of audio " + audioFile);
+//        Logger.Log("started downloaded of audio " + audioFile);
         WWW www = new WWW(url);
         yield return www;
         AudioClip audioClip = www.GetAudioClip();

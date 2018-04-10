@@ -200,6 +200,18 @@ public class RosManager {
         };
     }
 
+    // Send when the user taps Explore or Evaluate, to tell controller to
+    // change modes.
+    public Action SendChangeMode(StorybookMode newMode) {
+        return () => {
+            Logger.Log("Sending change mode event message");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("mode", (int)newMode);
+            this.sendEventMessageToController(StorybookEventType.CHANGE_MODE,
+                Json.Serialize(message));
+        };
+    }
+
     // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {
