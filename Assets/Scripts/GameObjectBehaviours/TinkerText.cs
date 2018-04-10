@@ -14,8 +14,9 @@ using System.Collections;
 // A TinkerText can also be paired with other sprites on the story image, and
 // triggers between the TinkerText and the sprites are orchestrated by
 // StoryManager via methods in TinkerText and SceneObjectManipulator. 
-public class TinkerText : MonoBehaviour
-{
+public class TinkerText : MonoBehaviour {
+    public static bool ALLOW_CLICK = true;
+    private bool allowClick = true;
 
     private int id;
     public string word;
@@ -28,7 +29,7 @@ public class TinkerText : MonoBehaviour
     public GameObject textButton;
     public GameObject text;
     public GameObject graphicPanel;
-    private AnimationClip graphic;
+    //private AnimationClip graphic;
 
     // UnityActions for various UI interactions (e.g. clicking).
     private UnityAction clickUnityAction;
@@ -56,6 +57,23 @@ public class TinkerText : MonoBehaviour
         this.clickUnityAction += () => { };
         this.textButton.GetComponent<Button>()
             .onClick.AddListener(this.clickUnityAction);
+    }
+
+    void Update() {
+        // GameController changed a global setting, need to update it
+        // for this particular TinkerText.
+        if (ALLOW_CLICK != this.allowClick) {
+            if (ALLOW_CLICK) {
+                // Enable clicking.
+                this.textButton.GetComponent<Button>()
+                    .onClick.AddListener(this.clickUnityAction);
+            } else {
+                // Disable clicking.
+                this.textButton.GetComponent<Button>()
+                    .onClick.RemoveListener(this.clickUnityAction);
+            }
+            this.allowClick = ALLOW_CLICK;
+        }
     }
 
     public int GetId() {

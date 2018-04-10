@@ -11,7 +11,10 @@ using System.Collections;
 // This Stanza script is automatically attached to each stanza object.
 public class Stanza : MonoBehaviour {
 
-    public static bool ALLOW_SWIPE;
+    public static bool ALLOW_SWIPE_GLOBAL = true;
+    // Set to false when audio is playing.
+    public static bool ALLOW_SWIPE_BECAUSE_AUDIO = true;
+
     public static float STANZA_HEIGHT = 165; // Matches prefab.
     public static float ANIMATE_IN_SPEED = 1.0f;
 
@@ -50,7 +53,6 @@ public class Stanza : MonoBehaviour {
         this.stanzaPanel = gameObject;
         this.rect = this.stanzaPanel.GetComponent<RectTransform>();
         this.canvasGroup = this.stanzaPanel.GetComponent<CanvasGroup>();
-        Stanza.ALLOW_SWIPE = true;
         this.specificStanzaAllowSwipe = true;
 
         this.swipeUnityAction += () => {};
@@ -58,7 +60,8 @@ public class Stanza : MonoBehaviour {
 
     void Update() {
         // Check for swipes, start the audio for this stanza if swiped.
-        if (Stanza.ALLOW_SWIPE && this.specificStanzaAllowSwipe) {
+        if (Stanza.ALLOW_SWIPE_GLOBAL && Stanza.ALLOW_SWIPE_BECAUSE_AUDIO &&
+            this.specificStanzaAllowSwipe) {
             if (Input.GetMouseButtonDown(0)) {
                 this.mouseDownPos = Input.mousePosition;
             }

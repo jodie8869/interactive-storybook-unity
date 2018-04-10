@@ -206,11 +206,10 @@ public class GameController : MonoBehaviour {
             }
 
             // Start the app in explore mode.
+            // When ROS is used, this happens in the callback to hello world ack
+            // message being received.
             this.goToExploreMode();
         }
-
-        // TODO: figure out when to actually set this, should be dependent on game mode.
-        this.storyManager.SetAutoplay(false);
 
     }
 
@@ -927,6 +926,10 @@ public class GameController : MonoBehaviour {
         if (Constants.USE_ROS) {
             this.rosManager.SendChangeMode(StorybookMode.Explore).Invoke();
         }
+        // Enable explore mode features.
+        Stanza.ALLOW_SWIPE_GLOBAL = true;
+        TinkerText.ALLOW_CLICK = true;
+        SceneObjectManipulator.ALLOW_CLICK = true;
     }
 
     private void goToEvaluateMode() {
@@ -936,6 +939,11 @@ public class GameController : MonoBehaviour {
         if (Constants.USE_ROS) {
             this.rosManager.SendChangeMode(StorybookMode.Evaluate).Invoke();
         }
+        // Disable explore mode features.
+        Stanza.ALLOW_SWIPE_GLOBAL = false;
+        TinkerText.ALLOW_CLICK = false;
+        SceneObjectManipulator.ALLOW_CLICK = false;
+        this.storyManager.SetAutoplay(false);
     }
 
     // ====================

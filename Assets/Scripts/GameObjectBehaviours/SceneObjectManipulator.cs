@@ -12,8 +12,12 @@ using System.Collections;
 // The public methods of SceneObjectManipulator return Actions that will serve
 // as the callbacks for click handlers. These Actions can also be called
 // immediately if we want to invoke the effects at the calling time.
-public class SceneObjectManipulator : MonoBehaviour
-{
+
+
+public class SceneObjectManipulator : MonoBehaviour {
+
+    public static bool ALLOW_CLICK = true;
+    private bool allowClick = true;
 
     // Components that all SceneObjects should have.
     public Button button;
@@ -44,6 +48,21 @@ public class SceneObjectManipulator : MonoBehaviour
         // to modify or add to the clickUnityAction. Not sure why.
         this.AddClickHandler(this.Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR));
         this.button.onClick.AddListener(this.clickUnityAction);
+    }
+
+    void Update() {
+        // GameController changed a global setting, need to update it
+        // for this particular SceneObject.
+        if (ALLOW_CLICK != this.allowClick) {
+            if (ALLOW_CLICK) {
+                // Enable clicking.
+                this.button.onClick.AddListener(this.clickUnityAction);
+            } else {
+                // Disable clicking.
+                this.button.onClick.RemoveListener(this.clickUnityAction);
+            }
+            this.allowClick = ALLOW_CLICK;
+        }
     }
 
     public void AddClickHandler(Action action) {

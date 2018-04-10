@@ -113,7 +113,7 @@ public class StoryManager : MonoBehaviour {
 
     void Update() {
         // Update whether or not we are accepting user interaction.
-        Stanza.ALLOW_SWIPE = !this.audioManager.IsPlaying();
+        Stanza.ALLOW_SWIPE_BECAUSE_AUDIO = !this.audioManager.IsPlaying();
     }
 
     public void SetRosManager(RosManager ros) {
@@ -127,7 +127,6 @@ public class StoryManager : MonoBehaviour {
             this.titlePanel.SetActive(false);
             this.readerPanel.SetActive(false);
             this.endPagePanel.SetActive(true);
-            // TODO: animate in the confetti, play the animation.
             StartCoroutine(this.fadeInConfetti());
         } else {
             this.endPagePanel.SetActive(false);
@@ -152,9 +151,6 @@ public class StoryManager : MonoBehaviour {
 
         this.setDisplayModeFromSceneDescription(description);
         this.resetPanelSizes();
-
-        // Only allow swiping in explore mode. TODO: maybe should change this if there's a need.
-        Stanza.ALLOW_SWIPE = StorybookStateManager.GetState().storybookMode == StorybookMode.Explore;
 
         // Load audio.
         if (description.audioFile != "") {
@@ -232,14 +228,16 @@ public class StoryManager : MonoBehaviour {
             this.loadTrigger(trigger);
         }
 
-        // Determine autoplaying. Should autoplay if it's the title page and we're
-        // in explore mode.
+        // If we are set to autoplay, then autoplay, obviously.
         if (this.autoplayAudio && description.audioFile != "") {
-            if (description.isTitle && StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
-                this.audioManager.PlayAudio();
-            }
+            this.audioManager.PlayAudio();
         }
-
+        // Also, if it's the title page in explore mode, have to autoplay,
+        // otherwise that sound never plays.
+        if (description.isTitle && StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+            Logger.Log("Playing title audio in explore mode");
+            this.audioManager.PlayAudio();
+        }
     }
 
     private void loadTitlePage(SceneDescription description) {
