@@ -80,6 +80,10 @@ public class GameController : MonoBehaviour {
     public Button changeToExploreModeButton;
     public Button changeToEvaluateModeButton;
 
+    // For switching the state of the toggle audio button.
+    private Sprite playButtonSprite;
+    private Sprite pauseButtonSprite;
+
     // RosManager for handling connection to Ros, sending messages, etc.
     private RosManager rosManager;
 
@@ -178,6 +182,10 @@ public class GameController : MonoBehaviour {
         // screen size of the device we're on.
         this.resizePanelsOnStartup();
 
+        // Load sprites.
+        this.playButtonSprite = Resources.Load<Sprite>("UI/playButton");
+        this.pauseButtonSprite = Resources.Load<Sprite>("UI/pauseButton");
+
         this.storyPages = new List<SceneDescription>();
 
         this.storyManager = GetComponent<StoryManager>();
@@ -217,8 +225,12 @@ public class GameController : MonoBehaviour {
     void Update() {
         handleTaskQueue();
 
+        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+            this.setToggleAudioButtonState(
+                StorybookStateManager.GetState().audioPlaying);
+        }
     }
-        
+
     // Handle main task queue.
     private void handleTaskQueue() {
         // Pop tasks from the task queue and perform them.
@@ -253,20 +265,20 @@ public class GameController : MonoBehaviour {
         // In the future, consider using AmazonS3 API to manually read all the buckets.
         // Don't really want to do that now because it seems like more effort than worth.
 
-        this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
-        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
-        this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
+//        this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
+//        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
+//        this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
         this.stories.Add(new StoryMetadata("clifford_and_the_jet", 9, "landscape"));
-        this.stories.Add(new StoryMetadata("freda_says_please", 17, "portrait"));
+        this.stories.Add(new StoryMetadata("freda_says_please", 17, "landscape"));
         this.stories.Add(new StoryMetadata("geraldine_first", 21, "landscape"));
         this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
-        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("mice_on_ice", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("paws_and_claws", 14, "landscape"));
-        this.stories.Add(new StoryMetadata("pete_the_cat_too_cool_for_school", 28, "portrait"));
-        this.stories.Add(new StoryMetadata("the_biggest_cookie_in_the_world", 21, "landscape"));
+//        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
+//        this.stories.Add(new StoryMetadata("mice_on_ice", 15, "landscape"));
+//        this.stories.Add(new StoryMetadata("paws_and_claws", 14, "landscape"));
+//        this.stories.Add(new StoryMetadata("pete_the_cat_too_cool_for_school", 28, "portrait"));
+//        this.stories.Add(new StoryMetadata("the_biggest_cookie_in_the_world", 21, "landscape"));
         this.stories.Add(new StoryMetadata("the_hungry_toad", 15, "landscape"));
-        this.stories.Add(new StoryMetadata("troll_tricks", 15, "portrait"));
+        this.stories.Add(new StoryMetadata("troll_tricks", 15, "landscape"));
         this.stories.Add(new StoryMetadata("who_hid_it", 9, "landscape"));
 
         // For now, let AssetManager know about these stories so that when we do download new
@@ -452,6 +464,11 @@ public class GameController : MonoBehaviour {
         // If in evaluate mode, don't show any navigation buttons.
         if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
             this.showNavigationButtons(false);
+            this.showElement(this.doneRecordingButton.gameObject);
+            this.hideElement(this.toggleAudioButton.gameObject);
+        } else if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+            this.hideElement(this.doneRecordingButton.gameObject);
+            this.showElement(this.toggleAudioButton.gameObject);
         }
     }
 
@@ -616,7 +633,7 @@ public class GameController : MonoBehaviour {
         // TODO: not sure if this will actually work but maybe...otherwise manually.
         Logger.Log("onHighlightTinkerTextMessage");
         int[] indexes = Util.ParseIntArrayFromRosMessageParams(args);
-        Logger.Log(indexes.Length);
+        Logger.Log("This many tinkertexts to highlight: " + indexes.Length);
         this.taskQueue.Enqueue(this.highlightTinkerText(indexes));
     }
 
@@ -639,7 +656,7 @@ public class GameController : MonoBehaviour {
     private void onHighlightSceneObjectMessage(Dictionary<string, object> args) {
         Logger.Log("onHighlightSceneObjectMessage");
         int[] ids = Util.ParseIntArrayFromRosMessageParams(args);
-        Logger.Log(ids.Length);
+        Logger.Log("This many scene objects to highlight: " + ids.Length);
         this.taskQueue.Enqueue(this.highlightSceneObject(ids));
     }
 
@@ -772,7 +789,6 @@ public class GameController : MonoBehaviour {
             // Fail fast.
             throw new Exception("Cannot go back any farther, already at beginning");
         }
-        this.storyManager.ClearPage();
         StorybookStateManager.ResetEvaluatingSentenceIndex();
         // Explicitly send the state to make sure it gets sent before the page info does.
         if (Constants.USE_ROS) {
@@ -786,7 +802,6 @@ public class GameController : MonoBehaviour {
         if (this.currentPageNumber > StorybookStateManager.GetState().numPages) {
             throw new Exception("Cannot go forward anymore, already at end " + this.currentPageNumber +  " " + StorybookStateManager.GetState().numPages);
         }
-        this.storyManager.ClearPage();
         StorybookStateManager.ResetEvaluatingSentenceIndex();
         // Explicitly send the state to make sure it gets sent before the page info does.
         if (Constants.USE_ROS) {
@@ -852,7 +867,8 @@ public class GameController : MonoBehaviour {
     // Helper function to wrap together two actions:
     // (1) loading a page and (2) sending the StorybookPageInfo message over ROS.
     private void loadPageAndSendRosMessage(SceneDescription sceneDescription) {
-        // Load the page.
+        // Clear old page, reset button state.
+        this.storyManager.ClearPage();
         if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
             this.hideElement(this.startStoryButton.gameObject);
             this.hideElement(this.backToLibraryButton.gameObject);
@@ -912,7 +928,18 @@ public class GameController : MonoBehaviour {
 
     // TODO: Not sure if this will be necessary.
     private void toggleAudio() {
-        // this.storyManager.ToggleAudio();
+        this.storyManager.ToggleAudio();
+    }
+
+    // Called in Update().
+    private void setToggleAudioButtonState(bool audioPlaying) {
+        if (this.toggleAudioButton) {
+            if (audioPlaying) {
+                this.toggleAudioButton.GetComponent<Image>().sprite = this.pauseButtonSprite;
+            } else {
+                this.toggleAudioButton.GetComponent<Image>().sprite = this.playButtonSprite;
+            }   
+        }
     }
 
     // ============================
@@ -1055,6 +1082,7 @@ public class GameController : MonoBehaviour {
         this.startStoryButton = this.landscapeStartStoryButton;
         this.backToLibraryButton = this.landscapeBackToLibraryButton;
         this.doneRecordingButton = this.landscapeDoneRecordingButton;
+        this.toggleAudioButton = this.landscapeToggleAudioButton;
 
         // TODO: is this necessary?
         Screen.orientation = ScreenOrientation.Landscape;
@@ -1071,6 +1099,7 @@ public class GameController : MonoBehaviour {
         this.startStoryButton = this.portraitStartStoryButton;
         this.backToLibraryButton = this.portraitBackToLibraryButton;
         this.doneRecordingButton = this.portraitDoneRecordingButton;
+        this.toggleAudioButton = this.portraitToggleAudioButton;
 
         Screen.orientation = ScreenOrientation.Portrait;
     }

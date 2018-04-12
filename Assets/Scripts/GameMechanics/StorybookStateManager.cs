@@ -73,14 +73,12 @@ public static class StorybookStateManager {
     }
 
     // Used by GameController when user returns back to story selection, i.e. finishes
-    // or prematurely exists.
+    // or prematurely exists the story.
     public static void SetStoryExited() {
         currentState.currentStory = "";
         currentState.numPages = 0;
-        currentState.storybookMode = StorybookMode.NotReading;
         rosMessageData["current_story"] = "";
         rosMessageData["num_pages"] = 0;
-        rosMessageData["storybook_mode"] = (int)StorybookMode.NotReading;
     }
 
     public static void ResetEvaluatingSentenceIndex() {

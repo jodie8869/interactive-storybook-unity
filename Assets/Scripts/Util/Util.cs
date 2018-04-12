@@ -49,9 +49,11 @@ public static class Util {
         // Don't include question marks and exclamation points for this, just as a heuristic
         // because those tend to be followed by a "said Freda" or something.
         if (word.Length > 1 && word[word.Length -1] == '"') {
-            if (word.Substring(0, word.Length - 1)
-                .EndsWith(".", StringComparison.CurrentCulture)) {
-                return true;
+            foreach (string p in sentenceEndingPunctuation) {
+                if (word.Substring(0, word.Length - 1)
+                    .EndsWith(p, StringComparison.CurrentCulture)) {
+                    return true;
+                }   
             }
         }
         return false;
