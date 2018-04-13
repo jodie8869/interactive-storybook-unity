@@ -3,6 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 
 // TinkerText is the script added to all GameObjects dynamically created and
@@ -14,11 +15,16 @@ using System.Collections;
 // A TinkerText can also be paired with other sprites on the story image, and
 // triggers between the TinkerText and the sprites are orchestrated by
 // StoryManager via methods in TinkerText and SceneObjectManipulator. 
+
+
 public class TinkerText : MonoBehaviour {
     public static bool ALLOW_CLICK = true;
     private bool allowClick = true;
 
-    private int id;
+    private int index;
+    private int sceneObjectId = -1;
+    public string phrase;
+    private List<int> phraseTinkerTextIndexes = new List<int>();
     public string word;
     private float textWidth;
     public float audioStartTime, audioEndTime, triggerAudioEndTime;
@@ -76,8 +82,8 @@ public class TinkerText : MonoBehaviour {
         }
     }
 
-    public int GetId() {
-        return this.id;
+    public int GetIndex() {
+        return this.index;
     }
 
     // StoryManager will call this to give TinkerText a chance to readjust the
@@ -85,8 +91,8 @@ public class TinkerText : MonoBehaviour {
     // Also need to set the component to active. 
     // Don't need to know anything about its position, the layout groups
     // should automatically handle that.
-    public void Init(int id, string word, AudioTimestamp timestamp, bool isLastWord) {
-        this.id = id;
+    public void Init(int index, string word, AudioTimestamp timestamp, bool isLastWord) {
+        this.index = index;
         this.word = word;
         this.text.GetComponent<Text>().text = word;
         this.text.GetComponent<Text>().fontSize = TINKER_TEXT_FONT_SIZE;
@@ -107,6 +113,19 @@ public class TinkerText : MonoBehaviour {
         // When a TinkerText is clicked, it should highlight.
         // TODO: consider somehow making all other tinkertexts with the same text highlight?
         this.AddClickHandler(Highlight ());
+    }
+
+    public void SetSceneObjectId(int sceneObjectId) {
+        this.sceneObjectId = sceneObjectId;
+    }
+
+    // Remember indexes of all tinkertexts (including this one) that are
+    // part of a phrase (where a phrase is a label someone has given on a
+    // scene object.
+    public void SetPhraseIndexes(List<int> indexes) {
+        foreach (int index in indexes) {
+            this.phraseTinkerTextIndexes.Add(index);
+        }
     }
 
     public void SetFirstInStanza() {

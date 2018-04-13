@@ -968,8 +968,8 @@ public class GameController : MonoBehaviour {
         }
         // Disable explore mode features.
         Stanza.ALLOW_SWIPE_GLOBAL = false;
-        TinkerText.ALLOW_CLICK = false;
-        SceneObjectManipulator.ALLOW_CLICK = false;
+        // TinkerText.ALLOW_CLICK = false;
+        // SceneObjectManipulator.ALLOW_CLICK = false;
         this.storyManager.SetAutoplay(false);
     }
 

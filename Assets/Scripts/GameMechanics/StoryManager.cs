@@ -7,7 +7,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 using System.Collections;
 
 public class StoryManager : MonoBehaviour {
@@ -78,6 +77,8 @@ public class StoryManager : MonoBehaviour {
     // Dynamically created SceneObjects, keyed by their id.
     public Dictionary<int, GameObject> sceneObjects { get; private set; }
     private Dictionary<string, List<int>> sceneObjectsLabelToId;
+    // Map scene objects to arrays of tinkertexts.
+    private Dictionary<int, List<int>> sceneObjectToTinkerText;
     // The image we loaded for this scene.
     private GameObject storyImage;
     // Need to know the actual dimensions of the background image, so that we
@@ -103,6 +104,7 @@ public class StoryManager : MonoBehaviour {
         this.tinkerTexts = new List<GameObject>();
         this.sceneObjects = new Dictionary<int, GameObject>();
         this.sceneObjectsLabelToId = new Dictionary<string, List<int>>();
+        this.sceneObjectToTinkerText = new Dictionary<int, List<int>>();
 
         this.stanzaManager.SetTextPanel(this.textPanel);
 
@@ -228,6 +230,16 @@ public class StoryManager : MonoBehaviour {
             this.loadTrigger(trigger);
         }
 
+        // Pair up the tinkertexts that are in the same label.
+        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+            this.loadTinkerTextLabelPairTriggers();
+        }
+
+        // Set up ros handlers for tapping on TinkerTexts.
+        if (Constants.USE_ROS) {
+            this.setUpTinkerTextRosHandlers();   
+        }
+
         // If we are set to autoplay, then autoplay, obviously.
         if (this.autoplayAudio && description.audioFile != "") {
             this.audioManager.PlayAudio();
@@ -340,11 +352,6 @@ public class StoryManager : MonoBehaviour {
             Instantiate((GameObject)Resources.Load("Prefabs/TinkerText"));
         newTinkerText.GetComponent<TinkerText>()
              .Init(this.tinkerTexts.Count, word, timestamp, isLastWord);
-        // If we're using ROS, attach a click handler to the tinkertext so that there's a message
-        // sent over ROS whenever the user taps on a word.
-        if (Constants.USE_ROS) {
-            newTinkerText.GetComponent<TinkerText>().AddClickHandler(this.rosManager.SendTinkerTextTappedAction(index, word));
-        }
         this.tinkerTexts.Add(newTinkerText);
         // Place it correctly within the stanzas.
         this.stanzaManager.AddTinkerText(newTinkerText);
@@ -448,25 +455,54 @@ public class StoryManager : MonoBehaviour {
     // Sets up a trigger between TinkerTexts and SceneObjects.
     private void loadTrigger(Trigger trigger) {
         switch (trigger.type) {
-            case TriggerType.CLICK_TINKERTEXT_SCENE_OBJECT:
+        case TriggerType.CLICK_TINKERTEXT_SCENE_OBJECT:
                 // It's possible this sceneObject was not added because we found that it
                 // overlapped with a previous object. This is fine, just skip it.
-                if (!this.sceneObjects.ContainsKey(trigger.args.sceneObjectId)) {
-                    return;
-                }
-                SceneObjectManipulator manip = 
-                    this.sceneObjects[trigger.args.sceneObjectId]
+            if (!this.sceneObjects.ContainsKey(trigger.args.sceneObjectId)) {
+                return;
+            }
+            SceneObjectManipulator manip = 
+                this.sceneObjects[trigger.args.sceneObjectId]
                     .GetComponent<SceneObjectManipulator>();
-                TinkerText tinkerText = this.tinkerTexts[trigger.args.textId]
+            TinkerText tinkerText = this.tinkerTexts[trigger.args.textId]
                                             .GetComponent<TinkerText>();
-                Action action = manip.Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR);
-                tinkerText.AddClickHandler(action);
-                manip.AddClickHandler(tinkerText.Highlight());
-                break;
-            default:
-                Logger.LogError("Unknown TriggerType: " + trigger.type);
-                break;
+            Action action = manip.Highlight(Constants.SCENE_OBJECT_HIGHLIGHT_COLOR);
+            tinkerText.AddClickHandler(action);
+            manip.AddClickHandler(tinkerText.Highlight());
+            if (!this.sceneObjectToTinkerText.ContainsKey(manip.id)) {
+                this.sceneObjectToTinkerText[manip.id] = new List<int>();
+            }
+            this.sceneObjectToTinkerText[manip.id].Add(trigger.args.textId);
+            break;
+        default:
+            Logger.LogError("Unknown TriggerType: " + trigger.type);
+            break;
                 
+        }
+    }
+        
+    private void loadTinkerTextLabelPairTriggers() {
+        foreach (KeyValuePair<int, List<int>> item in this.sceneObjectToTinkerText) {
+            string phrase = "";
+            foreach (int index in item.Value) {
+                Logger.Log("index is " + index);
+                TinkerText tt = this.tinkerTexts[index].GetComponent<TinkerText>();
+                phrase += tt.word + " ";
+            }
+            phrase = phrase.Substring(0, phrase.Length - 1);
+
+            foreach (int index in item.Value) {
+                TinkerText tt = this.tinkerTexts[index].GetComponent<TinkerText>();
+                tt.SetSceneObjectId(item.Key);
+                tt.SetPhraseIndexes(item.Value);
+                tt.phrase = phrase;
+                foreach (int j in item.Value) {
+                    TinkerText tt_j = this.tinkerTexts[j].GetComponent<TinkerText>();
+                    if (j != index) {
+                        tt.AddClickHandler(tt_j.Highlight());
+                    }
+                }
+            }
         }
     }
 
@@ -482,6 +518,16 @@ public class StoryManager : MonoBehaviour {
             if (tinkerText.word == "out.") {
                 Logger.Log("out!!! " + tinkerText.audioEndTime + " " + tinkerText.triggerAudioEndTime);
             }
+        }
+    }
+
+    private void setUpTinkerTextRosHandlers() {
+        // If we're using ROS, attach a click handler to the tinkertext so that there's a message
+        // sent over ROS whenever the user taps on a word.
+        foreach (GameObject obj in this.tinkerTexts) {
+            TinkerText tt = obj.GetComponent<TinkerText>();
+                tt.AddClickHandler(this.rosManager.SendTinkerTextTappedAction(
+                    tt.GetIndex(), tt.word, tt.phrase));
         }
     }
 
@@ -530,7 +576,7 @@ public class StoryManager : MonoBehaviour {
     public void ToggleAudio() {
         this.audioManager.ToggleAudio();
     }
-
+        
     // Called by GameController when we should remove all elements we've added
     // to this page (usually in preparation for the creation of another page).
     public void ClearPage() {
@@ -548,6 +594,7 @@ public class StoryManager : MonoBehaviour {
         }
         this.sceneObjects.Clear();
         this.sceneObjectsLabelToId.Clear();
+        this.sceneObjectToTinkerText.Clear();
         // Remove all images.
         if (this.storyImage != null) {
             Destroy(this.storyImage.gameObject);

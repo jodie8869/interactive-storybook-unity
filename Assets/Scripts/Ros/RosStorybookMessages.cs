@@ -13,13 +13,14 @@
 public enum StorybookEventType {
     HELLO_WORLD = 0,
     SPEECH_ACE_RESULT = 1, // Message is json string representing entire SpeechACE result.
-    WORD_TAPPED = 2, // Message is {index: int, word: string} of the tinkertext.
+    WORD_TAPPED = 2, // Message is {index: int, word: string, phrase: string} of the tinkertext.
     SCENE_OBJECT_TAPPED = 3, // Message is {id: int, label: string} of the scene object.
     SENTENCE_SWIPED = 4, // Message is {index: int, text: string} of the stanza.
     RECORD_AUDIO_COMPLETE = 5, // Message is index of sentence. 
     STORY_SELECTED = 6, // Message is {needs_download: bool}.
     STORY_LOADED = 7, // Message is empty.
     CHANGE_MODE = 8, // Message is {mode: int}
+    REPEAT_END_PAGE_QUESTION = 9, // Message is empty.
 }
 
 // Messages coming from the controller to the storybook.

@@ -130,17 +130,17 @@ public class RosManager {
             message.Add("speechace", jsonResults);
             this.sendEventMessageToController(StorybookEventType.SPEECH_ACE_RESULT,
                 Json.Serialize(message));
-    
         };
     }
 
     // Send when TinkerText has been tapped.
-    public Action SendTinkerTextTappedAction(int tinkerTextIndex, string word) {
+    public Action SendTinkerTextTappedAction(int tinkerTextIndex, string word, string phrase) {
         return () => {
             Logger.Log("Sending tinkertext tapped event message");
             Dictionary<string, object> message = new Dictionary<string, object>();
             message.Add("index", tinkerTextIndex);
             message.Add("word", word);
+            message.Add("phrase", phrase);
             this.sendEventMessageToController(StorybookEventType.WORD_TAPPED,
                 Json.Serialize(message));
         };
@@ -212,6 +212,14 @@ public class RosManager {
         };
     }
 
+    // Send when user wants Jibo to repeat the question.
+    public Action SendRepeatEndPageQuestion() {
+        return () => {
+            Logger.Log("Sending repeat end page question event message");
+            this.sendEventMessageToController(StorybookEventType.REPEAT_END_PAGE_QUESTION, "");
+        };
+    }
+
     // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {
@@ -247,13 +255,8 @@ public class RosManager {
         publish.Add("topic", Constants.STORYBOOK_STATE_TOPIC);
         publish.Add("op", "publish");
 
-        // Note that this is protected by a lock, so although ROS messages could
-        // send out of order, the information within them will be consistent.
-        // And if the sending rate isn't too high, the likelihood of out of order messages
-        // is low, and inconsequential for the controller anyway.
-        // TODO: should devise a better scheme to make sure states are sent in order.
-        // Can also use the sequence numbers provided in the header.
-        // Or use a lock in this class so that only one state message can be sent at a time.
+        // TODO: could devise a better scheme to make sure states are sent in order.
+        // Can also use the sequence numbers provided in the header. Probably overkill.
         Dictionary<string, object> data = StorybookStateManager.GetRosMessageData();
         data.Add("header", RosbridgeUtilities.GetROSHeader());
         // Don't allow audio_file to be null, ROS will get upset.
