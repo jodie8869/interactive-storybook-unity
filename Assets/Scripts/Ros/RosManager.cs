@@ -229,6 +229,14 @@ public class RosManager {
         };
     }
 
+    // Send when user returns to the library from explore mode.
+    public Action SendReturnToLibraryEarly() {
+        return () => {
+            Logger.Log("Sending return to library early message");
+            this.sendEventMessageToController(StorybookEventType.RETURN_TO_LIBRARY_EARLY, "");
+        };
+    }
+
     // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {

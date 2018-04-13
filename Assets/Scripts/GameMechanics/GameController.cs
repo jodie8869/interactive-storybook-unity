@@ -47,6 +47,9 @@ public class GameController : MonoBehaviour {
     public Button portraitToggleAudioButton;
     public Button portraitDoneRecordingButton; // In reader view, stop recording, tell controller.
 
+    public Text landscapePageNumberText; // TODO: add for portrait as well.
+    private Text pageNumberText;
+
     private Button nextButton;
     private Button backButton;
     private Button finishButton;
@@ -177,6 +180,7 @@ public class GameController : MonoBehaviour {
         this.changeToExploreModeButton.onClick.AddListener(this.onChangeModeToExploreButtonClick);
         this.changeToEvaluateModeButton.onClick.AddListener(this.onChangeModeToEvaluateButtonClick);
 
+        this.pageNumberText = this.landscapePageNumberText;
 
         // Update the sizing of all of the panels depending on the actual
         // screen size of the device we're on.
@@ -363,7 +367,6 @@ public class GameController : MonoBehaviour {
         StartCoroutine(this.assetManager.DownloadTitlePages(storyNames,
         (Dictionary<string, Sprite> images, Dictionary<string, AudioClip> audios) => {
             // Callback for when download is complete.
-            Logger.Log("in callback for download story titles");
             this.setupStoryLibrary();
             this.showLibraryPanel(true);
         }));
@@ -461,12 +464,17 @@ public class GameController : MonoBehaviour {
         this.showElement(this.nextButton.gameObject);
         this.showElement(this.toggleAudioButton.gameObject);
         this.setOrientationView(this.orientation);
+       
         // If in evaluate mode, don't show any navigation buttons.
         if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
             this.showNavigationButtons(false);
+            this.hideElement(this.startStoryButton.gameObject);
+            this.hideElement(this.backToLibraryButton.gameObject);
             this.showElement(this.doneRecordingButton.gameObject);
             this.hideElement(this.toggleAudioButton.gameObject);
         } else if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+            this.showElement(this.startStoryButton.gameObject);
+            this.showElement(this.backToLibraryButton.gameObject);
             this.hideElement(this.doneRecordingButton.gameObject);
             this.showElement(this.toggleAudioButton.gameObject);
         }
@@ -534,6 +542,10 @@ public class GameController : MonoBehaviour {
         this.currentPageNumber = 0;
         this.setLandscapeOrientation();
         this.selectedLibraryBookIndex = -1;
+        if (Constants.USE_ROS) {
+            // Inform controller.
+            this.rosManager.SendReturnToLibraryEarly().Invoke();
+        }
         // This call includes going back to the library panel.
         this.finishStory();
     }
@@ -624,20 +636,19 @@ public class GameController : MonoBehaviour {
     // PING_TEST
     private void onHelloWorldAckReceived(Dictionary<string, object> args) {
         // Sanity check from the ping test after tablet app starts up.
-        Logger.Log("in hello world ack received in game controller, " + args["obj1"]);
+        Logger.Log("In hello world ack received in game controller, " + args["obj1"]);
         // The app should begin in explore mode, and let the controller know.
         this.taskQueue.Enqueue(this.goToExploreMode);
     }
 
+    // HIGHLIGHT_WORD
     private void onHighlightTinkerTextMessage(Dictionary<string, object> args) {
-        // TODO: not sure if this will actually work but maybe...otherwise manually.
         Logger.Log("onHighlightTinkerTextMessage");
         int[] indexes = Util.ParseIntArrayFromRosMessageParams(args);
         Logger.Log("This many tinkertexts to highlight: " + indexes.Length);
         this.taskQueue.Enqueue(this.highlightTinkerText(indexes));
     }
 
-    // HIGHLIGHT_WORD
     private Action highlightTinkerText(int[] indexes) {
         return () => {
             foreach (int index in indexes) {
@@ -874,14 +885,11 @@ public class GameController : MonoBehaviour {
     private void loadPageAndSendRosMessage(SceneDescription sceneDescription) {
         // Clear old page, reset button state.
         this.storyManager.ClearPage();
-        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
-            this.hideElement(this.startStoryButton.gameObject);
-            this.hideElement(this.backToLibraryButton.gameObject);
-        } else {
-            this.showElement(this.startStoryButton.gameObject);
-            this.showElement(this.backToLibraryButton.gameObject);
-        }
+
         this.storyManager.LoadPage(sceneDescription);
+
+        // Update page number.
+        this.pageNumberText.text = "Page " + this.currentPageNumber;
 
         // Send the ROS message to update the controller about what page we're on now.
         StorybookPageInfo updatedInfo = new StorybookPageInfo();

@@ -70,10 +70,8 @@ public class SceneObjectManipulator : MonoBehaviour {
     }
 
     public Action Highlight(Color color) {
-        Logger.Log("in Highlight action");
         return () =>
         {
-            Logger.Log("in Highlight actual function");
             gameObject.GetComponent<Image>().color = color;
             // After some amount of time, remove highlighting.
             StartCoroutine(undoHighlight(Constants.SCENE_OBJECT_DISPLAY_TIME));

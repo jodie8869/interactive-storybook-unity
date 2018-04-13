@@ -510,7 +510,6 @@ public class StoryManager : MonoBehaviour {
                     tt.SetSceneObjectId(item.Key);
                     tt.SetPhraseIndexes(item.Value);
                     tt.phrase = phrase;
-                    Logger.Log("phrase: " + phrase);
                     foreach (int j in item.Value) {
                         TinkerText tt_j = this.tinkerTexts[j].GetComponent<TinkerText>();
                         if (j != index) {
@@ -729,12 +728,8 @@ public class StoryManager : MonoBehaviour {
         // Size of the graphics + text panel in the reader panel.
         float screenHeight =  Util.GetScreenHeight();
         float screenWidth = Util.GetScreenWidth();
-//        if (this.gameController.orientation == ScreenOrientation.Portrait) {
-//            screenHeight = 2048f;
-//            screenWidth = 1536f;
-//        }
         float landscapeWidth = screenWidth - 198f; // Subtract border
-        float landscapeHeight = screenHeight - 436f; // Graphics panel is shorter.
+        float landscapeHeight = screenHeight - 480f; // Graphics panel is shorter.
         float portraitWidth = screenHeight - 161f; // Subtract border
         float portraitHeight = screenWidth - 498f; // Subtract border
 

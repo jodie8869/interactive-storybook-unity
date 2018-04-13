@@ -22,6 +22,7 @@ public enum StorybookEventType {
     CHANGE_MODE = 8, // Message is {mode: int}
     REPEAT_END_PAGE_QUESTION = 9, // Message is empty.
     END_STORY = 10, // Message is empty. Happens in explore mode when we reach "The End" page.
+    RETURN_TO_LIBRARY_EARLY= 11, // Message is empty.
 }
 
 // Messages coming from the controller to the storybook.

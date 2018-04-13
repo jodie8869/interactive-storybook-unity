@@ -251,7 +251,7 @@ public class Stanza : MonoBehaviour {
         }
         // Swipe must be from left to right and be 200 to 1200 pixels long.
         if (this.mouseUpPos.x - this.mouseDownPos.x > 1200 ||
-           this.mouseUpPos.x - this.mouseDownPos.x < 200) {
+           this.mouseUpPos.x - this.mouseDownPos.x < 300) {
             return false;
         }
         // Swipe must end within the stanza.

@@ -7,7 +7,7 @@ public static class Constants {
 
     // Flags.
     public static bool LOAD_ASSETS_LOCALLY = false;
-    public static bool USE_ROS = true;
+    public static bool USE_ROS = false;
 
     // For float comparison.
     public static float EPSILON = 1e-5f;
@@ -29,7 +29,7 @@ public static class Constants {
     // Extra height the book should have so that graphics panel and text panel don't cover
     // the book curved pages.
     public static float BOOK_EXTRA_WIDTH = 80f;
-    public static float BOOK_EXTRA_HEIGHT = 270f;
+    public static float BOOK_EXTRA_HEIGHT = 285f;
 
     // UI things.
     public static Color SCENE_OBJECT_HIGHLIGHT_COLOR = new Color(0, 1, 1, 60f / 255f);
