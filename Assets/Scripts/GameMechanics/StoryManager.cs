@@ -483,23 +483,39 @@ public class StoryManager : MonoBehaviour {
         
     private void loadTinkerTextLabelPairTriggers() {
         foreach (KeyValuePair<int, List<int>> item in this.sceneObjectToTinkerText) {
-            string phrase = "";
+            // Need to break these into actual phrases. (Don't want Clifford Clifford).
+            List<List<int>> phrases = new List<List<int>>();
+            item.Value.Sort();
+            int prevIndex = -2;
             foreach (int index in item.Value) {
-                Logger.Log("index is " + index);
-                TinkerText tt = this.tinkerTexts[index].GetComponent<TinkerText>();
-                phrase += tt.word + " ";
+                if (index - prevIndex > 1) {
+                    // Start a new phrase.
+                    phrases.Add(new List<int>());
+                }
+                // Add this index to latest phrase.
+                phrases[phrases.Count - 1].Add(index);
+                prevIndex = index;
             }
-            phrase = phrase.Substring(0, phrase.Length - 1);
+            // For each phrase, link the tinker texts.
+            foreach (List<int> phraseIndexes in phrases) {
+                string phrase = "";
+                foreach (int index in phraseIndexes) {
+                    TinkerText tt = this.tinkerTexts[index].GetComponent<TinkerText>();
+                    phrase += tt.word + " ";
+                }
+                phrase = phrase.Substring(0, phrase.Length - 1);
 
-            foreach (int index in item.Value) {
-                TinkerText tt = this.tinkerTexts[index].GetComponent<TinkerText>();
-                tt.SetSceneObjectId(item.Key);
-                tt.SetPhraseIndexes(item.Value);
-                tt.phrase = phrase;
-                foreach (int j in item.Value) {
-                    TinkerText tt_j = this.tinkerTexts[j].GetComponent<TinkerText>();
-                    if (j != index) {
-                        tt.AddClickHandler(tt_j.Highlight());
+                foreach (int index in phraseIndexes) {
+                    TinkerText tt = this.tinkerTexts[index].GetComponent<TinkerText>();
+                    tt.SetSceneObjectId(item.Key);
+                    tt.SetPhraseIndexes(item.Value);
+                    tt.phrase = phrase;
+                    Logger.Log("phrase: " + phrase);
+                    foreach (int j in item.Value) {
+                        TinkerText tt_j = this.tinkerTexts[j].GetComponent<TinkerText>();
+                        if (j != index) {
+                            tt.AddClickHandler(tt_j.Highlight());
+                        }
                     }
                 }
             }

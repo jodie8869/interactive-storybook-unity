@@ -22,7 +22,7 @@ public class TinkerText : MonoBehaviour {
     private bool allowClick = true;
 
     private int index;
-    private int sceneObjectId = -1;
+    private List<int> sceneObjectIds = new List<int>();
     public string phrase;
     private List<int> phraseTinkerTextIndexes = new List<int>();
     public string word;
@@ -116,15 +116,15 @@ public class TinkerText : MonoBehaviour {
     }
 
     public void SetSceneObjectId(int sceneObjectId) {
-        this.sceneObjectId = sceneObjectId;
+        this.sceneObjectIds.Add(sceneObjectId);
     }
 
     // Remember indexes of all tinkertexts (including this one) that are
     // part of a phrase (where a phrase is a label someone has given on a
     // scene object.
     public void SetPhraseIndexes(List<int> indexes) {
-        foreach (int index in indexes) {
-            this.phraseTinkerTextIndexes.Add(index);
+        foreach (int idx in indexes) {
+            this.phraseTinkerTextIndexes.Add(idx);
         }
     }
 

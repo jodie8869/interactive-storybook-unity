@@ -220,6 +220,15 @@ public class RosManager {
         };
     }
 
+    // Send when user finishes story (only happens in explore mode, since in evaluate
+    // mode the events are driven by controller not tablet/child).
+    public Action SendGoToEndStory() {
+        return () => {
+            Logger.Log("Sending finish story event message");
+            this.sendEventMessageToController(StorybookEventType.END_STORY, "");
+        };
+    }
+
     // Send StorybookEvent message until received, in a new thread.
     private void sendEventMessageToController(StorybookEventType messageType, string message) {
         Thread t = new Thread(() => {

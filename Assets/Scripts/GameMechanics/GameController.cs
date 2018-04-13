@@ -814,6 +814,11 @@ public class GameController : MonoBehaviour {
         this.storyManager.ClearPage();
         this.storyManager.audioManager.StopAudio();
         this.storyManager.ShowTheEndPage(true);
+        if (Constants.USE_ROS) {
+            if (StorybookStateManager.GetState().storybookMode == StorybookMode.Explore) {
+                this.rosManager.SendGoToEndStory().Invoke();
+            }
+        }
     }
 
     private void finishStory() {
