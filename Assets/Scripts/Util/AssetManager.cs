@@ -124,7 +124,10 @@ public class AssetManager : MonoBehaviour {
                     if (obj.Key.EndsWith(".json")) {
                         string storyName = obj.Key.Substring(0, obj.Key.Length - ".json".Length);
                         if (!this.storyMetadatas.ContainsKey(storyName)) {
-                            newStories.Add(storyName);
+                            // TODO: remove this check, excluding the test story.
+                            if (storyName != "my_dog") {
+                                newStories.Add(storyName);
+                            }
                         }
                     } else {
                         Logger.Log("Skipping non-json files: " + obj.Key);

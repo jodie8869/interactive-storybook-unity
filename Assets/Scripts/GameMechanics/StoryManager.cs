@@ -568,10 +568,10 @@ public class StoryManager : MonoBehaviour {
     private void resizeSpacingAndFonts(int numWordsOnPage) {
         if (numWordsOnPage > 32) {
             TinkerText.TINKER_TEXT_FONT_SIZE = 48;
-            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -24;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -50;
         } else if (numWordsOnPage > 25) {
             TinkerText.TINKER_TEXT_FONT_SIZE = 48;
-            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -12;
+            this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -20;
         } else if (numWordsOnPage< 10) {
             TinkerText.TINKER_TEXT_FONT_SIZE = 54;
             this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
