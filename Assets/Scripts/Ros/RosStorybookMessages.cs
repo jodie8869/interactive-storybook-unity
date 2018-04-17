@@ -18,7 +18,7 @@ public enum StorybookEventType {
     SENTENCE_SWIPED = 4, // Message is {index: int, text: string} of the stanza.
     RECORD_AUDIO_COMPLETE = 5, // Message is index of sentence. 
     STORY_SELECTED = 6, // Message is {needs_download: bool}.
-    STORY_LOADED = 7, // Message is empty.
+    STORY_LOADED = 7, // Message is {continue_midway: bool}.
     CHANGE_MODE = 8, // Message is {mode: int}
     REPEAT_END_PAGE_QUESTION = 9, // Message is empty.
     END_STORY = 10, // Message is empty. Happens in explore mode when we reach "The End" page.
@@ -28,13 +28,13 @@ public enum StorybookEventType {
 // Messages coming from the controller to the storybook.
 // We will need to deal with each one by registering a handler.
 public enum StorybookCommand {
-    PING_TEST = 0, // No params.
+    HELLO_WORLD_ACK = 0, // No params.
     HIGHLIGHT_WORD = 1, // Params is {indexes: [int]}, words to highlight.
     HIGHLIGHT_SCENE_OBJECT = 2, // Params is {ids: [int]}, scene object to highlight.
     SHOW_NEXT_SENTENCE = 3, // Params is {index: int, child_turn: bool, record: bool}.
     BEGIN_RECORD = 4, // Params is empty. Start the recording without reshowing sentence.
     CANCEL_RECORD = 5, // Stop and discard the recording. Params is empty.
-
+    GO_TO_PAGE = 6, // Params is {page_number: int}. Used for starting story midway through.
     NEXT_PAGE = 7, // Params is empty.
     GO_TO_END_PAGE = 8, // Params is empty.
     SHOW_LIBRARY_PANEL = 9, // Params is empty.

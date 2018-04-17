@@ -85,7 +85,7 @@ public class AssetManager : MonoBehaviour {
     // Argument audioPath should be the same as what was passed into SaveAudioAtPath in AudioRecorder.
     public void S3UploadChildAudio(string audioPath) {
         // Use a prefix that includes story, page number, first 2 words of stanza, and date.
-        string s3Path = DateTime.Now.ToString("yyyy-MM-dd") + "/" + Constants.CHILD_NAME + "/" +
+        string s3Path = DateTime.Now.ToString("yyyy-MM-dd") + "/" + Constants.PARTICIPANT_ID + "/" +
             StorybookStateManager.GetState().currentStory + "/" + 
             StorybookStateManager.GetState().storybookMode + "/" +
             DateTime.Now.ToString("HH:mm:ss") + "_" + audioPath;

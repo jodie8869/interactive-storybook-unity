@@ -114,7 +114,7 @@ public class RosManager {
     // Simple message to verify connection when we initialize connection to ROS.
     public Action SendHelloWorldAction() {
         return () => {
-            this.sendEventMessageToController(StorybookEventType.HELLO_WORLD, "hello world");
+            this.sendEventMessageToController(StorybookEventType.HELLO_WORLD, "");
         };
     }
 
@@ -193,10 +193,13 @@ public class RosManager {
     }
 
     // Send when story has loaded.
-    public Action SendStorybookLoaded() {
+    public Action SendStorybookLoaded(bool continuingFromPrevState) {
         return () => {
             Logger.Log("Sending storybook loaded event message");
-            this.sendEventMessageToController(StorybookEventType.STORY_LOADED, "");
+            Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("continue_midway", continuingFromPrevState);
+            this.sendEventMessageToController(StorybookEventType.STORY_LOADED,
+                Json.Serialize(message));
         };
     }
 

@@ -13,8 +13,7 @@ public static class Constants {
     public static float EPSILON = 1e-5f;
 
     // Participant information.
-    public static string CHILD_NAME = "child_test";
-
+    public static string PARTICIPANT_ID = "participant_id_placeholder";
 
     // Desired ratio of graphics panel width to entire landscape panel width
     // in landscape display mode.

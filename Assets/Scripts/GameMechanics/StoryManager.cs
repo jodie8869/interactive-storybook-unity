@@ -351,7 +351,7 @@ public class StoryManager : MonoBehaviour {
 		GameObject newTinkerText =
             Instantiate((GameObject)Resources.Load("Prefabs/TinkerText"));
         newTinkerText.GetComponent<TinkerText>()
-             .Init(this.tinkerTexts.Count, word, timestamp, isLastWord);
+             .Init(index, word, timestamp, isLastWord);
         this.tinkerTexts.Add(newTinkerText);
         // Place it correctly within the stanzas.
         this.stanzaManager.AddTinkerText(newTinkerText);
@@ -631,10 +631,10 @@ public class StoryManager : MonoBehaviour {
             if (description.orientation == ScreenOrientation.Landscape) {
                 // Need to look at aspect ratio to decide between Landscape and LandscapeWide.
                 Texture texture = this.assetManager.GetSprite(description.storyImageFile).texture;
-                float aspectRatio = (float)texture.width / (float)texture.height;
-                // TODO: this is where we set the display mode.
-                // For now, just only allow landscape, because otherwise sentences are too
-                // tall and the text takes up too much space.
+//                // TODO: this is where we set the display mode.
+//                // For now, just only allow landscape, because otherwise sentences are too
+//                // tall and the text takes up too much space.
+//                float aspectRatio = (float)texture.width / (float)texture.height;
 //                if (aspectRatio > 2.0) {
 //                    this.setDisplayMode(DisplayMode.LandscapeWide);
 //                } else {

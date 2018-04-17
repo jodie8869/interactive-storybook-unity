@@ -78,6 +78,7 @@ public class GameController : MonoBehaviour {
 
     public Button enterLibraryButton;
     public Button readButton;
+    public Button continueFromPrevStateButton;
     public Button findMoreStoriesButton;
 
     public Button changeToExploreModeButton;
@@ -95,7 +96,6 @@ public class GameController : MonoBehaviour {
 
     // Reference to AssetDownloader.
     private AssetManager assetManager;
-    private bool downloadedTitles = false;
 
     // Reference to AudioRecorder for when we need to record child and stream to SpeechACE.
     private AudioRecorder audioRecorder;
@@ -109,6 +109,10 @@ public class GameController : MonoBehaviour {
     private List<GameObject> libraryShelves;
     private List<GameObject> libraryBooks;
     private int selectedLibraryBookIndex = -1;
+    private bool continuingFromPrevState = false;
+
+    // Information about previous session, so we can offer to start where we left off.
+    private string prevSessionStoryName;
 
     // Some information about the current state of the storybook.
     private StoryMetadata currentStory;
@@ -176,6 +180,7 @@ public class GameController : MonoBehaviour {
         this.portraitDoneRecordingButton.onClick.AddListener(this.onDoneRecordingButtonClick);
 
         this.readButton.onClick.AddListener(this.onReadButtonClick);
+        this.continueFromPrevStateButton.onClick.AddListener(this.continueFromPrevStateButtonClick);
         this.findMoreStoriesButton.onClick.AddListener(this.onFindMoreStoriesButtonClick);
         this.changeToExploreModeButton.onClick.AddListener(this.onChangeModeToExploreButtonClick);
         this.changeToEvaluateModeButton.onClick.AddListener(this.onChangeModeToEvaluateButtonClick);
@@ -273,7 +278,7 @@ public class GameController : MonoBehaviour {
 //        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
 //        this.stories.Add(new StoryMetadata("baby_pig_at_school", 15, "landscape"));
         this.stories.Add(new StoryMetadata("clifford_and_the_jet", 9, "landscape"));
-        this.stories.Add(new StoryMetadata("freda_says_please", 17, "landscape"));
+//        this.stories.Add(new StoryMetadata("freda_says_please", 17, "landscape"));
         this.stories.Add(new StoryMetadata("geraldine_first", 21, "landscape"));
         this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
 //        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
@@ -384,12 +389,16 @@ public class GameController : MonoBehaviour {
             if (this.selectedLibraryBookIndex == index) {
                 this.selectedLibraryBookIndex = -1;
                 this.hideElement(this.readButton.gameObject);
+                this.hideElement(this.continueFromPrevStateButton.gameObject);
             } else {
                 this.selectedLibraryBookIndex = index;
                 // Enlarge the appropriate library book.
                 this.libraryBooks[index].GetComponent<LibraryBook>().Enlarge();
                 // Show the Read button.
                 this.showElement(this.readButton.gameObject);
+                if (story.GetName() == this.prevSessionStoryName) {
+                    this.showElement(this.continueFromPrevStateButton.gameObject);
+                }
             }
         };
     }
@@ -456,7 +465,7 @@ public class GameController : MonoBehaviour {
 
     private void loadFirstPage() {
         if (Constants.USE_ROS) {
-            this.rosManager.SendStorybookLoaded().Invoke();
+            this.rosManager.SendStorybookLoaded(this.continuingFromPrevState).Invoke();
         }
         this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
         this.showLibraryPanel(false);
@@ -526,6 +535,7 @@ public class GameController : MonoBehaviour {
         LibraryBook selectedBook = this.libraryBooks[this.selectedLibraryBookIndex]
             .GetComponent<LibraryBook>();
         this.hideElement(readButton.gameObject);
+        this.hideElement(continueFromPrevStateButton.gameObject);
         // Send ROS message.
         bool needsDownload = !this.assetManager.JsonHasBeenDownloaded(selectedBook.story.GetName());
         if (Constants.USE_ROS) {
@@ -533,6 +543,14 @@ public class GameController : MonoBehaviour {
         }
         this.startStory(selectedBook.story);
         selectedBook.ReturnToOriginalSize();
+    }
+
+    // Starts the story currently selected, from the previous place we left off at.
+    // Only during evaluate mode.
+    private void continueFromPrevStateButtonClick () {
+        // Start the story, and remember that we are continuing.
+        this.continuingFromPrevState = true;
+        this.onReadButtonClick();
     }
 
     // When user clicks button to go back to the library and exit the current story they're in.
@@ -621,24 +639,29 @@ public class GameController : MonoBehaviour {
     // =================================================================
 
     private void registerRosMessageHandlers() {
-        this.rosManager.RegisterHandler(StorybookCommand.PING_TEST, this.onHelloWorldAckReceived);
+        this.rosManager.RegisterHandler(StorybookCommand.HELLO_WORLD_ACK, this.onHelloWorldAckReceived);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_WORD, this.onHighlightTinkerTextMessage);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_SCENE_OBJECT, this.onHighlightSceneObjectMessage);
         this.rosManager.RegisterHandler(StorybookCommand.SHOW_NEXT_SENTENCE, this.onShowNextSentenceMessage);
         this.rosManager.RegisterHandler(StorybookCommand.BEGIN_RECORD, this.onBeginRecordMessage);
         this.rosManager.RegisterHandler(StorybookCommand.CANCEL_RECORD, this.onCancelRecordMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.GO_TO_PAGE, this.onGoToPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.NEXT_PAGE, this.onNextPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.GO_TO_END_PAGE, this.onGoToEndPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.SHOW_LIBRARY_PANEL, this.onShowLibraryPanelMessage);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_ALL_SENTENCES, this.onHighlightAllSentencesMessage);
     }
 
-    // PING_TEST
+    // HELLO_WORLD_ACK
     private void onHelloWorldAckReceived(Dictionary<string, object> args) {
-        // Sanity check from the ping test after tablet app starts up.
-        Logger.Log("In hello world ack received in game controller, " + args["obj1"]);
-        // The app should begin in explore mode, and let the controller know.
-        this.taskQueue.Enqueue(this.goToExploreMode);
+        Logger.Log("onHelloWorldAckReceived");
+        Constants.PARTICIPANT_ID = (string)args["participant_id"];
+        this.taskQueue.Enqueue(() => {
+            // Remember what the previous story name was.
+            this.prevSessionStoryName = (string)args["story_name"];
+            // The app should begin in explore mode, and let the controller know.
+            this.goToExploreMode();
+        });
     }
 
     // HIGHLIGHT_WORD
@@ -757,6 +780,19 @@ public class GameController : MonoBehaviour {
         };
     }
 
+    // GO_TO_PAGE
+    private void onGoToPageMessage(Dictionary<string, object> args) {
+        Logger.Log("onGoToPageMessage");
+        int pageNumber = Convert.ToInt32(args["page_number"]);
+        this.taskQueue.Enqueue(this.goToPageHelper(pageNumber));
+    }
+
+    private Action goToPageHelper(int pageNumber) {
+        return () => {
+            this.goToPage(pageNumber);
+        };
+    }
+
     // NEXT_PAGE
     private void onNextPageMessage(Dictionary<string, object> args) {
         Logger.Log("onNextPageMessage");
@@ -795,24 +831,22 @@ public class GameController : MonoBehaviour {
     // In evaluate mode, we want to be able to instruct the tablet to navigate the pages
     // without the child needing to press any buttons.
     private void goToPrevPage() {
-        this.currentPageNumber -= 1;
-        if (this.currentPageNumber < 0) {
+        if (this.currentPageNumber - 1 < 0) {
             // Fail fast.
             throw new Exception("Cannot go back any farther, already at beginning");
         }
-        StorybookStateManager.ResetEvaluatingSentenceIndex();
-        // Explicitly send the state to make sure it gets sent before the page info does.
-        if (Constants.USE_ROS) {
-            this.rosManager.SendStorybookState();
-        }
-        this.loadPageAndSendRosMessage(this.storyPages[this.currentPageNumber]);
+        this.goToPage(this.currentPageNumber - 1);
     }
 
     private void goToNextPage() {
-        this.currentPageNumber += 1;
-        if (this.currentPageNumber > StorybookStateManager.GetState().numPages) {
-            throw new Exception("Cannot go forward anymore, already at end " + this.currentPageNumber +  " " + StorybookStateManager.GetState().numPages);
+        if (this.currentPageNumber + 1 >= StorybookStateManager.GetState().numPages) {
+            throw new Exception("Cannot go forward anymore, already at end " + (this.currentPageNumber + 1) + " " + StorybookStateManager.GetState().numPages);
         }
+        this.goToPage(this.currentPageNumber + 1);
+    }
+
+    private void goToPage(int pageNumber) {
+        this.currentPageNumber = pageNumber;
         StorybookStateManager.ResetEvaluatingSentenceIndex();
         // Explicitly send the state to make sure it gets sent before the page info does.
         if (Constants.USE_ROS) {
@@ -839,6 +873,12 @@ public class GameController : MonoBehaviour {
         this.currentPageNumber = 0;
         this.setLandscapeOrientation();
         this.showLibraryPanel(true);
+        if (StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
+            // If we've completed a story in evaluate mode, then we don't need to
+            // worry about showing the option to continue from where we left off.
+            this.continuingFromPrevState = false;
+            this.prevSessionStoryName = "";
+        }
         StorybookStateManager.SetStoryExited();
     }
 
