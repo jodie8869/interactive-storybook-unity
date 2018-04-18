@@ -46,15 +46,14 @@ public class TinkerText : MonoBehaviour {
     // These numbers should match the prefab, putting them here is just for
     // convenience when setting sizeDelta.
     // Height of entire TinkerText, including graphic.
-    public static float TINKER_TEXT_HEIGHT = 165;
+    public static float TINKER_TEXT_HEIGHT = 105;
     //public static float MIN_WIDTH = 120; // Based on size of GIFs.
     // Height of the button and text components.
-    public static float BUTTON_TEXT_HEIGHT = 85;
+    public static float BUTTON_TEXT_HEIGHT = 100;
     public static float GRAPHIC_PANEL_WIDTH = 80;
-    public static float GRAPHIC_PANEL_HEIGHT = 80;
+    public static float GRAPHIC_PANEL_HEIGHT = 20;
 
-    // Can set the text size depending on how many words there are.
-    public static int TINKER_TEXT_FONT_SIZE = 50;
+    public static int TINKER_TEXT_FONT_SIZE = 52;
 
     // Set up click handler.
     void Start() {
@@ -111,7 +110,6 @@ public class TinkerText : MonoBehaviour {
         }
         this.gameObject.SetActive(true);
         // When a TinkerText is clicked, it should highlight.
-        // TODO: consider somehow making all other tinkertexts with the same text highlight?
         this.AddClickHandler(Highlight ());
     }
 

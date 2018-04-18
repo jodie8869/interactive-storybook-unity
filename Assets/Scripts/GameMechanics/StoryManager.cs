@@ -191,13 +191,14 @@ public class StoryManager : MonoBehaviour {
                 Logger.LogError("textWords doesn't match timestamps length " +
                                 filteredTextWords.Count + " " + description.timestamps.Length);
             }
-            // Depending on how many words there are, update the sizing and spacing heuristically.
-            this.resizeSpacingAndFonts(filteredTextWords.Count);
 
             for (int i = 0; i < filteredTextWords.Count; i++) {
                 this.loadTinkerText(i, filteredTextWords[i], description.timestamps[i],
                                       i == filteredTextWords.Count - 1);
             }
+
+            // Depending on how many words there are, update the sizing and spacing heuristically.
+            this.resizeSpacingAndFonts(this.stanzaManager.stanzas.Count);
 
             // After all TinkerTexts and Stanzas have been formatted, set up all the sentences and
             // set the stanza swipe handlers.
@@ -563,20 +564,16 @@ public class StoryManager : MonoBehaviour {
     }
 
     // Change the vertical spacing between stanzas, and the font size of tinkertexts,
-    // to react to how many words are on the page. For now, just heuristic, later
+    // to react to how stanzas are on the page. For now, just heuristic, later
     // we can figure out the best way to fit the words on the page.
-    private void resizeSpacingAndFonts(int numWordsOnPage) {
-        if (numWordsOnPage > 32) {
-            TinkerText.TINKER_TEXT_FONT_SIZE = 48;
+    private void resizeSpacingAndFonts(int numStanzas) {
+        if (numStanzas > 8) {
             this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -50;
-        } else if (numWordsOnPage > 25) {
-            TinkerText.TINKER_TEXT_FONT_SIZE = 48;
+        } else if (numStanzas > 5) {
             this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = -20;
-        } else if (numWordsOnPage< 10) {
-            TinkerText.TINKER_TEXT_FONT_SIZE = 54;
+        } else if (numStanzas > 3) {
             this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
         } else {
-            TinkerText.TINKER_TEXT_FONT_SIZE = 50;
             this.textPanel.GetComponent<VerticalLayoutGroup>().spacing = 0;
         }
     }
