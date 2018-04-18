@@ -667,9 +667,30 @@ public class GameController : MonoBehaviour {
     // HIGHLIGHT_WORD
     private void onHighlightTinkerTextMessage(Dictionary<string, object> args) {
         Logger.Log("onHighlightTinkerTextMessage");
-        int[] indexes = Util.ParseIntArrayFromRosMessageParams(args);
-        Logger.Log("This many tinkertexts to highlight: " + indexes.Length);
-        this.taskQueue.Enqueue(this.highlightTinkerText(indexes));
+        Dictionary<string, object> indexesDict = new Dictionary<string, object>();
+        indexesDict.Add("indexes", args["indexes"]);
+        int[] indexes = Util.ParseIntArrayFromRosMessageParams(indexesDict);
+        bool stayOn = false;
+        bool unhighlight = false;
+        if (args.ContainsKey("stay_on")) {
+            stayOn = Convert.ToBoolean(args["stay_on"]);
+        } else if (args.ContainsKey("unhighlight")) {
+            unhighlight = Convert.ToBoolean(args["unhighlight"]);
+        }
+            
+        if (!stayOn && !unhighlight) {
+            // Normal case, just highlight the words (and they will unhighlight
+            // themselves after the default time).
+            this.taskQueue.Enqueue(this.highlightTinkerText(indexes));
+        } else if (stayOn) {
+            // Change the color but don't automatically unhighlight.
+            this.taskQueue.Enqueue(this.changeTinkerTextColor(indexes,
+                Constants.TINKERTEXT_CLICK_HIGHLIGHT_COLOR));
+        } else if (unhighlight) {
+            // Immediately return words to their default color.
+            this.taskQueue.Enqueue(this.changeTinkerTextColor(indexes,
+                Constants.TINKERTEXT_UNHIGHLIGHTED_COLOR));
+        }
     }
 
     private Action highlightTinkerText(int[] indexes) {
@@ -681,6 +702,20 @@ public class GameController : MonoBehaviour {
                 } else {
                     Logger.Log("No word at index: " + index);
                 
+                }
+            }
+        };
+    }
+
+    private Action changeTinkerTextColor(int[] indexes, Color color) {
+        return () => {
+            foreach (int index in indexes) {
+                if (index < this.storyManager.tinkerTexts.Count && index >= 0) {
+                    this.storyManager.tinkerTexts[index].GetComponent<TinkerText>()
+                        .ChangeTextColor(color);
+                } else {
+                    Logger.Log("No word at index: " + index);
+
                 }
             }
         };
@@ -814,12 +849,12 @@ public class GameController : MonoBehaviour {
     // HIGHLIGHT_ALL_SENTENCES
     private void onHighlightAllSentencesMessage(Dictionary<string, object> args) {
         Logger.Log("onHighlightAllSentencesMessage");
-        this.taskQueue.Enqueue(this.highlightAllSentences());
+        this.taskQueue.Enqueue(this.unhighlightAllSentences());
     }
 
-    private Action highlightAllSentences() {
+    private Action unhighlightAllSentences() {
         return () => {
-            this.storyManager.stanzaManager.HighlightAllSentences();  
+            this.storyManager.stanzaManager.UnhighlightAllSentences();
         };
     }
 

@@ -29,7 +29,9 @@ public enum StorybookEventType {
 // We will need to deal with each one by registering a handler.
 public enum StorybookCommand {
     HELLO_WORLD_ACK = 0, // No params.
-    HIGHLIGHT_WORD = 1, // Params is {indexes: [int]}, words to highlight.
+    HIGHLIGHT_WORD = 1, // Params is {indexes: [int], unhighlight: bool, stay_on: bool},
+                        // words to highlight, whether this is an "off" command,
+                        // whether should stay on forever
     HIGHLIGHT_SCENE_OBJECT = 2, // Params is {ids: [int]}, scene object to highlight.
     SHOW_NEXT_SENTENCE = 3, // Params is {index: int, child_turn: bool, record: bool}.
     BEGIN_RECORD = 4, // Params is empty. Start the recording without reshowing sentence.

@@ -40,9 +40,6 @@ public class TinkerText : MonoBehaviour {
     // UnityActions for various UI interactions (e.g. clicking).
     private UnityAction clickUnityAction;
 
-    // Normal color should be black.
-    private Color unhighlightedColor = Color.black;
-
     // These numbers should match the prefab, putting them here is just for
     // convenience when setting sizeDelta.
     // Height of entire TinkerText, including graphic.
@@ -166,7 +163,7 @@ public class TinkerText : MonoBehaviour {
     private IEnumerator undoHighlight(float secondsDelay, Color originalColor = new Color()) {
         yield return new WaitForSeconds(secondsDelay);
         if (originalColor == new Color()) {
-            this.ChangeTextColor(this.unhighlightedColor);
+            this.ChangeTextColor(Constants.TINKERTEXT_UNHIGHLIGHTED_COLOR);
         } else {
             this.ChangeTextColor(originalColor);
         }
@@ -194,6 +191,6 @@ public class TinkerText : MonoBehaviour {
     }
 
     public void OnEndAudioTrigger() {
-        this.ChangeTextColor(Color.black);
+        this.ChangeTextColor(Constants.TINKERTEXT_UNHIGHLIGHTED_COLOR);
     }
 }

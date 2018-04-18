@@ -246,9 +246,9 @@ public class StanzaManager : MonoBehaviour {
         }
     }
 
-    public void HighlightAllSentences() {
+    public void UnhighlightAllSentences() {
         foreach (Sentence s in this.sentences) {
-            s.ChangeTextColor(Color.black);
+            s.ChangeTextColor(Constants.TINKERTEXT_UNHIGHLIGHTED_COLOR);
         }
     }
 
