@@ -63,6 +63,7 @@ public struct StorybookPageInfo {
     public string[] sentences;
     public StorybookSceneObject[] sceneObjects;
     public StorybookTinkerText[] tinkerTexts;
+    public JiboPrompt[] prompts;
 }
 
 // To be nested inside of StorybookPageInfo.

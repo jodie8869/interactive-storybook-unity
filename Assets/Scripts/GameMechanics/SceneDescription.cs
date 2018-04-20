@@ -59,6 +59,12 @@ public struct Trigger {
     public TriggerArgs args;
 }
 
+[Serializable]
+public struct JiboPrompt {
+    public string question;
+    public string response;
+}
+
 // SceneDescription can be serialized to and from JSON.
 // This is necessary so that we can describe scenes in plaintext, so that they
 // can be stored easily as JSON files and can be sent over the network.
@@ -86,6 +92,8 @@ public class SceneDescription {
     // Triggers to coordinate connections among SceneObjects and TinkerTexts.
     public Trigger[] triggers;
 
+    public JiboPrompt[] prompts;
+
     public SceneDescription() {
         // Empty constructor if no JSON file is passed.
     }
@@ -100,6 +108,10 @@ public class SceneDescription {
             this.loadFromJSONFile(jsonFileOrData);
         }
         this.orientation = orientation;
+        // Make sure prompts is not null, let it be an empty array.
+        if (this.prompts == null) {
+            this.prompts = new JiboPrompt[]{};
+        }
     }
 
     // Populate this SceneDescription with JSON data from the given file.

@@ -328,6 +328,15 @@ public class RosManager {
             }
             data.Add("scene_objects", sceneObjects);
 
+            List<Dictionary<string, object>> prompts = new List<Dictionary<string, object>>();
+            foreach (JiboPrompt p in pageInfo.prompts) {
+                Dictionary<string, object> prompt = new Dictionary<string, object>();
+                prompt.Add("question", p.question);
+                prompt.Add("response", p.response);
+                prompts.Add(prompt);
+            }
+            data.Add("prompts", prompts);
+
             publish.Add("msg", data);
             Logger.Log("Sending page info ROS message: " + Json.Serialize(publish));
             bool sent = false;

@@ -24,6 +24,8 @@ public class AssetManager : MonoBehaviour {
 
     // The assets we have already downloaded and are storing in memory until the app
     // is shut down.
+    private Dictionary<string, bool> localStories; // Keep track of stories we know are local.
+
     private Dictionary<string, bool> downloadedStories; // Names of stories we have downloaded assets for (sprites + audio).
     private Dictionary<string, Sprite> storySprites;
     private Dictionary<string, AudioClip> storyAudioClips;
@@ -39,6 +41,7 @@ public class AssetManager : MonoBehaviour {
         this.jsonMidDownload = new ConcurrentDictionary<string, StoryJson>();
         this.storyMetadataMidDownload = new ConcurrentDictionary<string, StoryMetadata>();
 
+        this.localStories = new Dictionary<string, bool>();
         this.downloadedStories = new Dictionary<string, bool>();
         this.storySprites = new Dictionary<string, Sprite>();
         this.storyAudioClips = new Dictionary<string, AudioClip>();
@@ -216,7 +219,8 @@ public class AssetManager : MonoBehaviour {
 
     // Called when another part of the app wants to load a sprite.
     public Sprite GetSprite(string imageFile) {
-        if (Constants.LOAD_ASSETS_LOCALLY) {
+        string storyName = Util.FileNameToStoryName(imageFile);
+        if (this.storyExistsLocal(storyName)) {
             return Util.GetStorySprite(imageFile);
         } else {
             // Make sure the sprite is there.
@@ -232,8 +236,8 @@ public class AssetManager : MonoBehaviour {
 
     // Called when another part of the app wants to load an audio clip.
     public AudioClip GetAudioClip(string audioFile) {
-        if (Constants.LOAD_ASSETS_LOCALLY) {
-            string storyName = Util.FileNameToStoryName(audioFile);
+        string storyName = Util.FileNameToStoryName(audioFile);
+        if (this.storyExistsLocal(storyName)) {
             return Resources.Load("StoryAudio/" + storyName + "/" + audioFile) as AudioClip;
         } else {
             // Make sure that the audio is actually there.
@@ -251,7 +255,7 @@ public class AssetManager : MonoBehaviour {
     // Called when GameController wants to get the json files for a story.
     public List<StoryJson> GetStoryJson(StoryMetadata story) {
         string storyName = story.GetName();
-        if (Constants.LOAD_ASSETS_LOCALLY) {
+        if (this.StoryExistsLocal(story)) {
             TextAsset[] textAssets = Resources.LoadAll<TextAsset>("SceneDescriptions/" + storyName);
             List<StoryJson> jsons = new List<StoryJson>();
             foreach (TextAsset t in textAssets) {
@@ -266,6 +270,25 @@ public class AssetManager : MonoBehaviour {
                 return this.storyJsons[storyName];
             }
         }
+    }
+
+    // Called by GameController to check if a story's assets exist in Resources folder locally.
+    public bool StoryExistsLocal(StoryMetadata story) {
+        return this.storyExistsLocal(story.GetName());
+    }
+
+    private bool storyExistsLocal(string storyName) {
+        if (this.localStories.ContainsKey(storyName) && this.localStories[storyName] == true) {
+            return true;
+        }
+        string path = "SceneDescriptions/" + storyName + "/" + storyName + "_01";
+        TextAsset test = Resources.Load<TextAsset>(path);
+        bool exists = test != null;
+        if (exists) {
+            this.localStories.Add(storyName, true);
+        }
+        Logger.Log("Story " + storyName + " exists: " + exists);
+        return exists;
     }
 
     // Called by GameController to check if the json of a story has already been downloaded.

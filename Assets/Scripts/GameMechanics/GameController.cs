@@ -407,13 +407,14 @@ public class GameController : MonoBehaviour {
         this.currentStory = story;
 
         // Check if we need to download the json files.
-        if (!Constants.LOAD_ASSETS_LOCALLY && !this.assetManager.JsonHasBeenDownloaded(story.GetName())) {
+        if (!this.assetManager.StoryExistsLocal(story) && !this.assetManager.JsonHasBeenDownloaded(story.GetName())) {
             this.showLoadingPanel(true);
             StartCoroutine(this.assetManager.DownloadStoryJson(story, (_) => {
                 List<StoryJson> storyJsons = this.assetManager.GetStoryJson(story);
                 this.startStoryHelper(story, storyJsons);    
             }));
         } else {
+            Logger.Log("startStory getting assets locally");
             List<StoryJson> storyJsons = this.assetManager.GetStoryJson(story);
             this.startStoryHelper(story, storyJsons);
         }
@@ -432,9 +433,10 @@ public class GameController : MonoBehaviour {
         // this.changeButtonText(this.nextButton, "Begin Story!");
         this.hideElement(this.backButton.gameObject);
 
-        if (Constants.LOAD_ASSETS_LOCALLY ||
+        if (this.assetManager.StoryExistsLocal(story) ||
             this.assetManager.StoryHasBeenDownloaded(this.currentStory.GetName())) {
             // Either we load from memory or we've already cached a previous download.
+            Logger.Log("startStoryHelper loading first page from local assets");
             this.loadFirstPage();
         } else {
             // Choose to pass lists of strings instead of the SceneDescriptions objects,
@@ -971,12 +973,16 @@ public class GameController : MonoBehaviour {
         updatedInfo.storyName = this.currentStory.GetName();
         updatedInfo.pageNumber = this.currentPageNumber;
         updatedInfo.sentences = this.storyManager.stanzaManager.GetAllSentenceTexts();
+        updatedInfo.prompts = sceneDescription.prompts;
 
         // Update state (will get automatically sent to the controller.
         StorybookStateManager.SetStorySelected(this.currentStory.GetName(),
             this.currentStory.GetNumPages());
 
         // Gather information about scene objects.
+        // Do this instead of passing the whole thing because the properties
+        // that we sent to the controller are just a subset, and the message
+        // type has to match exactly.
         StorybookSceneObject[] sceneObjects =
             new StorybookSceneObject[sceneDescription.sceneObjects.Length];
         for (int i = 0; i < sceneDescription.sceneObjects.Length; i++) {
@@ -1014,7 +1020,6 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    // TODO: Not sure if this will be necessary.
     private void toggleAudio() {
         this.storyManager.ToggleAudio();
     }
