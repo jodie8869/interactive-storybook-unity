@@ -281,7 +281,7 @@ public class GameController : MonoBehaviour {
 //        this.stories.Add(new StoryMetadata("freda_says_please", 17, "landscape"));
         this.stories.Add(new StoryMetadata("geraldine_first", 21, "landscape"));
         this.stories.Add(new StoryMetadata("henrys_happy_birthday", 29, "landscape"));
-//        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
+        this.stories.Add(new StoryMetadata("jane_and_jake_bake_a_cake", 15, "landscape"));
 //        this.stories.Add(new StoryMetadata("mice_on_ice", 15, "landscape"));
 //        this.stories.Add(new StoryMetadata("paws_and_claws", 14, "landscape"));
 //        this.stories.Add(new StoryMetadata("pete_the_cat_too_cool_for_school", 28, "portrait"));
