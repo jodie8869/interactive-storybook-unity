@@ -270,9 +270,13 @@ public class GameController : MonoBehaviour {
 
     private void initStories() {
         // TODO: Read story metadata from the cloud here instead of hardcoding this stuff.
-        // It should all be read from a single file, whose url is known.
-        // In the future, consider using AmazonS3 API to manually read all the buckets.
-        // Don't really want to do that now because it seems like more effort than worth.
+        // Each StoryMetadata sits in the same, known S3 folder.
+        // The stories known by each app should be hardcoded for now, and then
+        // should be configurable. Need to build a UI for this.
+        // Once downloaded once, should no longer need to download any more, but should
+        // pull updates to any stories that have been changed on the cloud.
+        // Only pull these updates if someone tries to load that story?
+        // Also allow users to remove a book from the collection. 
 
 //        this.stories.Add(new StoryMetadata("a_dozen_dogs", 17, "landscape"));
 //        this.stories.Add(new StoryMetadata("at_bat", 9, "landscape"));
@@ -540,8 +544,9 @@ public class GameController : MonoBehaviour {
         this.hideElement(continueFromPrevStateButton.gameObject);
         // Send ROS message.
         bool needsDownload = !this.assetManager.JsonHasBeenDownloaded(selectedBook.story.GetName());
+        string[] targetWords = selectedBook.story.GetTargetWords();
         if (Constants.USE_ROS) {
-            this.rosManager.SendStorybookSelected(needsDownload).Invoke();
+            this.rosManager.SendStorybookSelected(needsDownload, targetWords).Invoke();
         }
         this.startStory(selectedBook.story);
         selectedBook.ReturnToOriginalSize();
@@ -610,6 +615,12 @@ public class GameController : MonoBehaviour {
         
     private void onDoneRecordingButtonClick() {
         Logger.Log("Done Recording Button Click");
+        // TODO: add something here that will return from this function and not analyze
+        // for Speechace stuff if the recording is actually empty or it's likely that
+        // the user clicked it by mistake. For a start, just use a timer and make sure
+        // it's been a reasonable amount of time between the sentence showing up and
+        // the button being pressed. Later, try to look for pure silence/noise in the
+        // audio? Should implement that part in AudioRecorder.
         this.doneRecordingButton.interactable = false;
         this.stopRecordingAndDoSpeechace();
     }
@@ -635,10 +646,11 @@ public class GameController : MonoBehaviour {
         Logger.Log("Change Mode To Evaluate Button Click");
         goToEvaluateMode();
     }
-    // =================================================================
+    // ====================================================================
     // All ROS message handlers.
-    // They should add tasks to the task queue.
-    // =================================================================
+    // They should add tasks to the task queue, because many of their
+    // functionalities will throw errors if not run on the main thread.
+    // ====================================================================
 
     private void registerRosMessageHandlers() {
         this.rosManager.RegisterHandler(StorybookCommand.HELLO_WORLD_ACK, this.onHelloWorldAckReceived);
@@ -717,7 +729,8 @@ public class GameController : MonoBehaviour {
                         .ChangeTextColor(color);
                 } else {
                     Logger.Log("No word at index: " + index);
-
+                    // TODO: should I throw an error or are there cases where this
+                    // should just be accepted and ignored?
                 }
             }
         };
@@ -945,7 +958,7 @@ public class GameController : MonoBehaviour {
             StartCoroutine(this.speechAceManager.AnalyzeTextSample(
                 tempFileName, text, (speechAceResult) => {
                     if (Constants.USE_ROS) {
-                        this.rosManager.SendSpeechAceResultAction(sentenceIndex, text,
+                        this.rosManager.SendSpeechAceResultAction(this.currentPageNumber, sentenceIndex, text,
                             duration, speechAceResult).Invoke();
                     }
                     // If we want to replay for debugging, uncomment this.

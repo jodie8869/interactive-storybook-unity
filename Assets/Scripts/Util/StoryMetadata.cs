@@ -2,7 +2,7 @@
 // GameController has a list of StoryMetadata objects, and uses them to populate the dropdown menu.
 
 using UnityEngine;
-using System.Collections;
+using System;
 
 public class StoryMetadata {
 	
@@ -11,13 +11,20 @@ public class StoryMetadata {
     public int numPages;
     public ScreenOrientation orientation;
     public string orientationString;
+    public string[] targetWords;
 
-    public StoryMetadata(string name, int numPages, string orientationString, string humanReadableName = null) {
+    // TODO: don't init targetWords as empty array, force caller to pass an actual array.
+    public StoryMetadata(string name, int numPages, string orientationString, string[] targetWords = null,
+        string humanReadableName = null) {
         this.name = name;
         this.numPages = numPages;
         this.orientationString = orientationString;
         this.humanReadableName = humanReadableName;
         this.initFields();
+        this.targetWords = targetWords;
+        if (this.targetWords == null) {
+            this.targetWords = new string[]{ };
+        }
     }
         
     public StoryMetadata(string jsonData) {
@@ -49,6 +56,10 @@ public class StoryMetadata {
 
     public int GetNumPages() {
         return this.numPages;
+    }
+
+    public string[] GetTargetWords() {
+        return this.targetWords;
     }
 
     public ScreenOrientation GetOrientation() {

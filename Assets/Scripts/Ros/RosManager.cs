@@ -119,11 +119,12 @@ public class RosManager {
     }
 
     // Send the SpeechACE results.
-    public Action SendSpeechAceResultAction(int sentenceIndex, string text,
+    public Action SendSpeechAceResultAction(int pageNum, int sentenceIndex, string text,
         float duration, string jsonResults) {
         return () => {
             Logger.Log("Sending speech ace result event message");
             Dictionary<string, object> message = new Dictionary<string, object>();
+            message.Add("page_num", pageNum);
             message.Add("index", sentenceIndex);
             message.Add("text", text);
             message.Add("duration", duration);
@@ -182,11 +183,12 @@ public class RosManager {
     }
 
     // Send when story is selected from the library (and we're waiting for it to load).
-    public Action SendStorybookSelected(bool needsDownload) {
+    public Action SendStorybookSelected(bool needsDownload, string[] targetWords) {
         return () => {
             Logger.Log("Sending storybook selected event message");
             Dictionary<string, object> message = new Dictionary<string, object>();
             message.Add("needs_download", needsDownload);
+            message.Add("target_words", targetWords);
             this.sendEventMessageToController(StorybookEventType.STORY_SELECTED,
                 Json.Serialize(message));
         };
@@ -268,7 +270,7 @@ public class RosManager {
         this.sendStorybookState(null, null);
     }
 
-    // Send a message representing storybook state to the controller, in a new thread.
+    // Send a message representing storybook state to the controller.
     // Doesn't need to return Action because it's only used as a timer elapsed handler.
     private void sendStorybookState(object _, System.Timers.ElapsedEventArgs __) {
         Dictionary<string, object> publish = new Dictionary<string, object>();
