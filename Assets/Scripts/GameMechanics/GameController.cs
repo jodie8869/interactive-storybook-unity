@@ -448,6 +448,12 @@ public class GameController : MonoBehaviour {
             List<string> imageFileNames = new List<string>();
             List<string> audioFileNames = new List<string>();
             foreach (SceneDescription d in this.storyPages) {
+                if (d.storyImageFile == null) {
+                    Logger.Log("no image " + d.text);
+                }
+                if (d.audioFile == null) {
+                    Logger.Log("no audio " + d.text);
+                }
                 imageFileNames.Add(d.storyImageFile);
                 audioFileNames.Add(d.audioFile);
             }

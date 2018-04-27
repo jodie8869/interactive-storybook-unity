@@ -337,7 +337,8 @@ public class StoryManager : MonoBehaviour {
             this.storyImageX =
                 (this.graphicsPanelWidth - this.storyImageWidth) / 2;
         }
-
+        // Set the popup label position.
+        this.setPopupLabelInitialPosition();
         this.imageScaleFactor = this.storyImageWidth / imageTexture.width;
         // TODO: Not sure if should destroy object, but I think it's safer to do so, check later.
         Destroy(this.storyImage);
@@ -552,9 +553,9 @@ public class StoryManager : MonoBehaviour {
     //
     // Only show it for a short amount of time.
     private void showPopupText(string label, Position objectPosition) {
-        Logger.Log("popup text!");
-        this.popupLabel.GetComponent<PopupLabel>().Configure(label, objectPosition);
+        Logger.Log("popup text for " + label);
         this.popupLabel.SetActive(true);
+        this.popupLabel.GetComponent<PopupLabel>().Configure(label, objectPosition);
         StartCoroutine(this.hidePopupText(Constants.SCENE_OBJECT_DISPLAY_TIME));
     }
 
@@ -709,11 +710,6 @@ public class StoryManager : MonoBehaviour {
             Logger.Log("width: " + graphicsPanelWidth + " height: " + graphicsPanelHeight);
             rect = this.titleImagePanel.GetComponent<RectTransform>().sizeDelta;
             this.titlePanelImageAspectRatio = rect.x / rect.y;
-
-            // TODO: verify this is correct.
-            // Update the popup panel to have its parent be the correct graphicsPanel.
-            this.popupLabel.GetComponent<RectTransform>().SetParent(
-                this.graphicsPanel.GetComponent<RectTransform>());
         }
         this.stanzaManager.SetTextPanel(this.textPanel);
     }
@@ -772,6 +768,7 @@ public class StoryManager : MonoBehaviour {
         // Util.SetSize(this.portraitTitleImagePanel, new Vector2(portraitWidth, portraitHeight));
     }
 
+    // Called once per loading each page.
     private void resetPanelSizes() {
         Vector2 graphicsSize = new Vector2();
         Vector2 textSize = new Vector2();
@@ -804,6 +801,14 @@ public class StoryManager : MonoBehaviour {
         Util.SetSize(this.textPanel, textSize);
         Util.SetSize(this.openBookBackground, bookSize + new Vector2(Constants.BOOK_EXTRA_WIDTH,
             Constants.BOOK_EXTRA_HEIGHT));
+
     }
 
+    // Called after the image for the page is loaded, so the popup label starts centered.
+    private void setPopupLabelInitialPosition() {
+        RectTransform graphicsPanelTransform = this.graphicsPanel.GetComponent<RectTransform>();
+        this.popupLabel.GetComponent<RectTransform>().position = new Vector2(
+            graphicsPanelTransform.position.x + graphicsPanelTransform.sizeDelta.x / 2f,
+            graphicsPanelTransform.position.y - PopupLabel.DESIRED_MARGIN);
+    }
 }
