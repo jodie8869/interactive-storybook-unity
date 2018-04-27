@@ -92,6 +92,15 @@ public static class StorybookStateManager {
         rosMessageData["evaluating_sentence_index"] = currentState.evaluatingSentenceIndex;
     }
 
+    // Directly set the evaluating sentence index, for when we ask the child
+    // to reread a specific sentence as opposed to incrementing through the
+    // sentences in normal reading.
+
+    public static void SetEvaluatingSentenceIndex(int newIndex) {
+        currentState.evaluatingSentenceIndex = newIndex;
+        rosMessageData["evaluating_sentence_index"] = currentState.evaluatingSentenceIndex;
+    }
+
 }
 
 

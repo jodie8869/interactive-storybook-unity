@@ -657,7 +657,7 @@ public class GameController : MonoBehaviour {
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_WORD, this.onHighlightTinkerTextMessage);
         this.rosManager.RegisterHandler(StorybookCommand.HIGHLIGHT_SCENE_OBJECT, this.onHighlightSceneObjectMessage);
         this.rosManager.RegisterHandler(StorybookCommand.SHOW_NEXT_SENTENCE, this.onShowNextSentenceMessage);
-        this.rosManager.RegisterHandler(StorybookCommand.BEGIN_RECORD, this.onBeginRecordMessage);
+        this.rosManager.RegisterHandler(StorybookCommand.START_RECORD, this.onStartRecordMessage);
         this.rosManager.RegisterHandler(StorybookCommand.CANCEL_RECORD, this.onCancelRecordMessage);
         this.rosManager.RegisterHandler(StorybookCommand.GO_TO_PAGE, this.onGoToPageMessage);
         this.rosManager.RegisterHandler(StorybookCommand.NEXT_PAGE, this.onNextPageMessage);
@@ -796,10 +796,15 @@ public class GameController : MonoBehaviour {
     }
 
     // BEGIN_RECORD
-    private void onBeginRecordMessage(Dictionary<string, object> args) {
-        Logger.Log("onBeginRecordMessage");
-        int sentenceIndex = StorybookStateManager.GetState().evaluatingSentenceIndex;
-        this.taskQueue.Enqueue(this.recordAudioForCurrentSentence(sentenceIndex));
+    private void onStartRecordMessage(Dictionary<string, object> args) {
+        Logger.Log("onStartRecordMessage");
+        // Check if sender told us a specific index to use, otherwise use our
+        // normal evaluatingSentenceIndex.
+        if (args.ContainsKey(("index"))) {
+            StorybookStateManager.SetEvaluatingSentenceIndex(Convert.ToInt32(args["index"]));
+        }
+        this.taskQueue.Enqueue(this.recordAudioForCurrentSentence(
+            StorybookStateManager.GetState().evaluatingSentenceIndex));
     }
 
     private Action recordAudioForCurrentSentence(int sentenceIndex) {
