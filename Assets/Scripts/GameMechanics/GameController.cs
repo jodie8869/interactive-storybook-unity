@@ -120,6 +120,9 @@ public class GameController : MonoBehaviour {
     // Stores the scene descriptions for the current story.
     private List<SceneDescription> storyPages;
     private int currentPageNumber = 0; // 0-indexed, index into this.storyPages, 0 is title page.
+    private bool autoShowNextSentenceOnDoneRecord = true; // Set by controller when either the child is
+                                              // progressing through sentences, or just being asked
+                                              // to read one sentence.
 
     void Awake()
     {
@@ -773,6 +776,11 @@ public class GameController : MonoBehaviour {
             StorybookStateManager.GetState().evaluatingSentenceIndex + 1);
             throw new Exception("Sentence index doesn't match, fail fast");
         }
+        // Since we (currently) only receive this message at the start of a new page, it means we
+        // should be autoshowing all of the sentences.
+        // TODO: make this less brittle.
+        this.autoShowNextSentenceOnDoneRecord = true;
+
         this.taskQueue.Enqueue(this.showNextSentence((bool)args["child_turn"], (bool)args["record"]));
     }
 
@@ -808,6 +816,11 @@ public class GameController : MonoBehaviour {
         // normal evaluatingSentenceIndex.
         if (args.ContainsKey(("index"))) {
             StorybookStateManager.SetEvaluatingSentenceIndex(Convert.ToInt32(args["index"]));
+        }
+        if (args.ContainsKey("oneshot")){
+            // If it's a oneshot recording, then don't follow the normal progression of
+            // autoshowing the next sentence when the child is done recording.
+            this.autoShowNextSentenceOnDoneRecord = !Convert.ToBoolean(args["oneshot"]);
         }
         this.taskQueue.Enqueue(this.recordAudioForCurrentSentence(
             StorybookStateManager.GetState().evaluatingSentenceIndex));
@@ -957,7 +970,9 @@ public class GameController : MonoBehaviour {
             Logger.Log("Done recording, getting speechACE results and uploading file to S3...");
             if (StorybookStateManager.GetState().evaluatingSentenceIndex + 1 <
                 this.storyManager.stanzaManager.GetNumSentences()) {
-                this.showNextSentence(true, true).Invoke();
+                if (this.autoShowNextSentenceOnDoneRecord) {
+                    this.showNextSentence(true, true).Invoke();
+                }
             }
             // Tell controller we're done recording!
             if (Constants.USE_ROS) {
