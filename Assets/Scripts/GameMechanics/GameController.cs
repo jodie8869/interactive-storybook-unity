@@ -403,8 +403,11 @@ public class GameController : MonoBehaviour {
                 this.libraryBooks[index].GetComponent<LibraryBook>().Enlarge();
                 // Show the Read button.
                 this.showElement(this.readButton.gameObject);
-                if (story.GetName() == this.prevSessionStoryName) {
+                if (story.GetName() == this.prevSessionStoryName &&
+                    StorybookStateManager.GetState().storybookMode == StorybookMode.Evaluate) {
                     this.showElement(this.continueFromPrevStateButton.gameObject);
+                } else {
+                    this.hideElement(this.continueFromPrevStateButton.gameObject);
                 }
             }
         };

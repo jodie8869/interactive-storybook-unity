@@ -30,6 +30,7 @@ public class StoryMetadata {
     public StoryMetadata(string jsonData) {
         JsonUtility.FromJsonOverwrite(jsonData, this);
         this.initFields();
+        Logger.Log(this.targetWords);
     }
 
     private void initFields() {
