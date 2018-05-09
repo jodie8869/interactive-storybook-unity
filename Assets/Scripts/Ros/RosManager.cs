@@ -335,6 +335,7 @@ public class RosManager {
                 Dictionary<string, object> prompt = new Dictionary<string, object>();
                 prompt.Add("question", p.question);
                 prompt.Add("response", p.response);
+                prompt.Add("hint", p.hint);
                 prompts.Add(prompt);
             }
             data.Add("prompts", prompts);

@@ -63,6 +63,7 @@ public struct Trigger {
 public struct JiboPrompt {
     public string question;
     public string response;
+    public string hint;
 }
 
 // SceneDescription can be serialized to and from JSON.
@@ -112,6 +113,7 @@ public class SceneDescription {
         if (this.prompts == null) {
             this.prompts = new JiboPrompt[]{};
         }
+        Logger.Log("prompts are: " + this.prompts);
     }
 
     // Populate this SceneDescription with JSON data from the given file.
