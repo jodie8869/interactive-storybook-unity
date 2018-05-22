@@ -51,18 +51,7 @@ public class SceneObjectManipulator : MonoBehaviour {
     }
 
     void Update() {
-        // GameController changed a global setting, need to update it
-        // for this particular SceneObject.
-        if (ALLOW_CLICK != this.allowClick) {
-            if (ALLOW_CLICK) {
-                // Enable clicking.
-                this.button.onClick.AddListener(this.clickUnityAction);
-            } else {
-                // Disable clicking.
-                this.button.onClick.RemoveListener(this.clickUnityAction);
-            }
-            this.allowClick = ALLOW_CLICK;
-        }
+        
     }
 
     public void AddClickHandler(Action action) {

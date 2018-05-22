@@ -67,8 +67,8 @@ public class SpeechAceManager : MonoBehaviour {
 
         // Write the form data. Two fields: text and user_audio_file.
         Stream requestStream = request.GetRequestStream();
-        this.AddStandardFormValue(requestStream, "text", text);
-        this.AddFileFormValue(requestStream, "user_audio_file", filename, audioBytes);
+        this.addStandardFormValue(requestStream, "text", text);
+        this.addFileFormValue(requestStream, "user_audio_file", filename, audioBytes);
         // Form text ends with these special characters.
         string endForm = "--" + this.boundary + "--";
         byte[] endFormBytes = System.Text.Encoding.UTF8.GetBytes(endForm);
@@ -89,7 +89,7 @@ public class SpeechAceManager : MonoBehaviour {
         yield return null;
     }
 
-    private void AddStandardFormValue(Stream requestStream, string formFieldName, string value) {
+    private void addStandardFormValue(Stream requestStream, string formFieldName, string value) {
         string formData = "--" + this.boundary + this.CRLF;
         formData += "Content-Disposition: form-data; name=\"" + formFieldName + "\"";
         formData += this.CRLF + this.CRLF;
@@ -100,7 +100,7 @@ public class SpeechAceManager : MonoBehaviour {
         requestStream.Write(formDataBytes, 0, formDataBytes.Length);
     }
 
-    private void AddFileFormValue(Stream requestStream, string formFieldName, string filename, byte[] fileData) {
+    private void addFileFormValue(Stream requestStream, string formFieldName, string filename, byte[] fileData) {
         string formData = "--" + this.boundary + this.CRLF;
         formData += "Content-Disposition: form-data; name=\"" + formFieldName + "\"; ";
         formData += "filename=\"" + filename + "\"";

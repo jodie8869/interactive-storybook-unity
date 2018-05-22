@@ -33,6 +33,8 @@ public class RosManager {
     }
 
     public bool Connect() {
+        // If the client disconnects then reconnects, make sure to readvertise our topics to make
+        // sure we're not being ignored.
         this.rosClient.OnReconnectSuccess(this.setupPubSub);
 
         if (!this.rosClient.SetupSocket()) {

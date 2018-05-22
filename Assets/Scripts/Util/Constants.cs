@@ -49,7 +49,7 @@ public static class Constants {
         
 
     // ROS connection information.
-    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.175";
+    public static string DEFAULT_ROSBRIDGE_IP = "192.168.1.165";
     public static string DEFAULT_ROSBRIDGE_PORT = "9090";
 
     // ROS topics.

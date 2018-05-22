@@ -18,7 +18,6 @@ using System.Collections.Generic;
 
 
 public class TinkerText : MonoBehaviour {
-    public static bool ALLOW_CLICK = true;
     private bool allowClick = true;
 
     private int index;
@@ -62,20 +61,7 @@ public class TinkerText : MonoBehaviour {
     }
 
     void Update() {
-        // GameController changed a global setting, need to update it
-        // for this particular TinkerText.
-        if (ALLOW_CLICK != this.allowClick) {
-            if (ALLOW_CLICK) {
-                // Enable clicking.
-                this.textButton.GetComponent<Button>()
-                    .onClick.AddListener(this.clickUnityAction);
-            } else {
-                // Disable clicking.
-                this.textButton.GetComponent<Button>()
-                    .onClick.RemoveListener(this.clickUnityAction);
-            }
-            this.allowClick = ALLOW_CLICK;
-        }
+
     }
 
     public int GetIndex() {

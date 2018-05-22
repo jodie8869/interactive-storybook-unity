@@ -1090,8 +1090,6 @@ public class GameController : MonoBehaviour {
         }
         // Enable explore mode features.
         Stanza.ALLOW_SWIPE_GLOBAL = true;
-        TinkerText.ALLOW_CLICK = true;
-        SceneObjectManipulator.ALLOW_CLICK = true;
     }
 
     private void goToEvaluateMode() {
@@ -1103,8 +1101,6 @@ public class GameController : MonoBehaviour {
         }
         // Disable explore mode features.
         Stanza.ALLOW_SWIPE_GLOBAL = false;
-        // TinkerText.ALLOW_CLICK = false;
-        // SceneObjectManipulator.ALLOW_CLICK = false;
         this.storyManager.SetAutoplay(false);
     }
 
